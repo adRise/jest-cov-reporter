@@ -27,8 +27,10 @@ async function main() {
     }
 
     const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
+    console.log('codeCoverageNew', codeCoverageNew)
 
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString())
+    console.log('codeCoverageOld', codeCoverageOld)
 
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
     let messageToPost = `## Test coverage results :test_tube: \n
