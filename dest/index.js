@@ -8660,7 +8660,7 @@ class DiffChecker {
   }
 
   getPercentage(coverageData) {
-    return coverageData?.pct || 0
+    return coverageData.pct || 0
   }
 
   getStatusIcon(
