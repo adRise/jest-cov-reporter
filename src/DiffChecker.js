@@ -15,20 +15,20 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       this.diffCoverageReport[filePath] = {
         branches: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.branches),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.branches)
+          newPct: this.getPercentage(coverageReportNew[filePath].branches),
+          oldPct: this.getPercentage(coverageReportOld[filePath].branches)
         },
         statements: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.statements),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.statements)
+          newPct: this.getPercentage(coverageReportNew[filePath].statements),
+          oldPct: this.getPercentage(coverageReportOld[filePath].statements)
         },
         lines: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.lines),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.lines)
+          newPct: this.getPercentage(coverageReportNew[filePath].lines),
+          oldPct: this.getPercentage(coverageReportOld[filePath].lines)
         },
         functions: {
-          newPct: this.getPercentage(coverageReportNew[filePath]?.functions),
-          oldPct: this.getPercentage(coverageReportOld[filePath]?.functions)
+          newPct: this.getPercentage(coverageReportNew[filePath].functions),
+          oldPct: this.getPercentage(coverageReportOld[filePath].functions)
         }
       }
     }
