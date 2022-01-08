@@ -9,7 +9,7 @@ inputs:
     description: 'Path to base coverage report'
   branch-coverage-report-path:
     required: true
-    description: 'Path to the current running branch\'s coverage report'
+    description: 'Path to the current coverage report'
 
 runs:
   using: 'node14'
