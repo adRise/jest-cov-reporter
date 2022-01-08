@@ -8721,9 +8721,10 @@ async function main() {
     }
 
     const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
-    console.log('codeCoverageNew', codeCoverageNew)
+    // console.log('codeCoverageNew', codeCoverageNew)
 
     const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString())
+    console.log('codeCoverageOld value')
     console.log('codeCoverageOld', codeCoverageOld)
 
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
