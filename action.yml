@@ -10,6 +10,18 @@ inputs:
   branch-coverage-report-path:
     required: true
     description: 'Path to the current coverage report'
+  accessToken:
+    description: 'access token required to comment on a pr'
+    default: ${{ github.token }}
+  fullCoverageDiff:
+    description: 'get the full coverage with diff or only the diff'
+    default: false
+  delta:
+    description: 'Difference between the old and final test coverage'
+    default: 100
+  useSameComment:
+    description: 'While commenting on the PR update the exisiting comment'
+    default: false
 
 runs:
   using: 'node12'
