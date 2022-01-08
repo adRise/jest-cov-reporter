@@ -9,7 +9,7 @@
       "jest-dev": "jest src --coverage --verbose --watch",
       "build": "ncc build src/index.js -o dest"
     },
-    "repository": "git@github.com:adRise/jest-coverage-reporter.git",
+    "repository": "git@github.com:arunshan/jest-cov-reporter.git",
     "license": "MIT",
     "private": false,
     "dependencies": {},
