@@ -4,7 +4,6 @@ const newCoverageIcon = ':sparkles: :new:'
 const removedCoverageIcon = ':x:'
 
 export class DiffChecker {
-  diffCoverageReport = {}
   constructor(
     coverageReportNew,
     coverageReportOld
