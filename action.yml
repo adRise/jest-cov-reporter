@@ -1,0 +1,16 @@
+name: 'Jest Coverage Reporter Action'
+description: 'Provide a coverage report based on a base/master coverage report'
+branding:
+  icon: git-pull-request
+  color: orange
+inputs:
+  base-coverage-report-path:
+    required: true
+    description: 'Path to base coverage report'
+  branch-coverage-report-path:
+    required: true
+    description: 'Path to the current running branch\'s coverage report'
+
+runs:
+  using: 'node14'
+  main: 'dest/index.js'
