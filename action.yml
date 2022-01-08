@@ -12,5 +12,5 @@ inputs:
     description: 'Path to the current coverage report'
 
 runs:
-  using: 'node14'
+  using: 'node12'
   main: 'dest/index.js'
