@@ -8787,6 +8787,7 @@ async function main() {
       throw Error(messageToPost)
     }
   } catch (error) {
+    console.log('fatal error', error)
     core.setFailed(error)
   }
 }
