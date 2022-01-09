@@ -70,6 +70,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
+    console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', delta, diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
       if (useSameComment) {
