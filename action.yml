@@ -18,7 +18,7 @@ inputs:
     default: false
   delta:
     description: 'Difference between the old and final test coverage'
-    default: 100
+    default: 0.2
   useSameComment:
     description: 'While commenting on the PR update the exisiting comment'
     default: false
