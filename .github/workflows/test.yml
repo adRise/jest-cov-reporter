@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     name: We test it locally with act
     steps:
+      - uses: actions/checkout@v2
       - name: jest coverage reporter
         uses: ./ # Uses an action in the root directory
         id: coverage-reporter
