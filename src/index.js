@@ -90,7 +90,8 @@ async function main() {
         messageToPost,
         prNumber
       )
-      throw Error(messageToPost)
+      // throw Error(messageToPost)
+      core.setFailed(Error(messageToPost))
     }
   } catch (error) {
     console.log('fatal error', error)
