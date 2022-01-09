@@ -93,6 +93,8 @@ async function main() {
       )
       // throw Error(messageToPost)
       core.setFailed(Error(messageToPost))
+      // eslint-disable-next-line no-undef
+      process.exit(-1)
     }
   } catch (error) {
     console.log('fatal error', error)
