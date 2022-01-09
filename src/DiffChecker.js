@@ -76,6 +76,7 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
+          console.log('diff', this.getPercentageDiff(diffCoverageData[key]))
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
             return true
           }
