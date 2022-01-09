@@ -39,8 +39,6 @@ export class DiffChecker {
     const keys = Object.keys(this.diffCoverageReport)
     const returnStrings = []
     for (const key of keys) {
-      console.log('this.diffCoverageReport[key]', this.diffCoverageReport[key])
-      console.log('this.compareCoverageValues(this.diffCoverageReport[key])', this.compareCoverageValues(this.diffCoverageReport[key]))
       if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
         returnStrings.push(
           this.createDiffLine(
