@@ -1,0 +1,13 @@
+on: [push]
+
+jobs:
+  custom_test:
+    runs-on: ubuntu-latest
+    name: We test it locally with act
+    steps:
+      - name: jest coverage reporter
+        uses: ./ # Uses an action in the root directory
+        id: coverage-reporter
+        with:
+          branch-coverage-report-path: ../coverage/coverage-summary.json
+          base-coverage-report-path: ../coverage/coverage-summary-master.json

@@ -27,7 +27,6 @@ async function main() {
     }
 
     const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
-    // console.log('codeCoverageNew', codeCoverageNew)
 
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString())
     console.log('codeCoverageOld value')
