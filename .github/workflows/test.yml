@@ -10,5 +10,5 @@ jobs:
         uses: ./ # Uses an action in the root directory
         id: coverage-reporter
         with:
-          branch-coverage-report-path: ../coverage/coverage-summary.json
-          base-coverage-report-path: ../coverage/coverage-summary-master.json
+          branch-coverage-report-path: ./coverage/coverage-summary.json
+          base-coverage-report-path: ./coverage/coverage-summary-master.json
