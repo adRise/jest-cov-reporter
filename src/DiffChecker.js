@@ -8,6 +8,7 @@ export class DiffChecker {
     coverageReportNew,
     coverageReportOld
   ) {
+    this.diffCoverageReport = {};
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
@@ -75,6 +76,7 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
+          console.log('diff', this.getPercentageDiff(diffCoverageData[key]))
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
             return true
           }

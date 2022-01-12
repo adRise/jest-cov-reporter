@@ -8540,6 +8540,7 @@ class DiffChecker {
     coverageReportNew,
     coverageReportOld
   ) {
+    this.diffCoverageReport = {};
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
@@ -8607,6 +8608,7 @@ class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
+          console.log('diff', this.getPercentageDiff(diffCoverageData[key]))
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
             return true
           }
@@ -8721,11 +8723,8 @@ async function main() {
     }
 
     const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
-    // console.log('codeCoverageNew', codeCoverageNew)
 
     const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString())
-    console.log('codeCoverageOld value')
-    console.log('codeCoverageOld', codeCoverageOld)
 
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
     let messageToPost = `## Test coverage results :test_tube: \n
@@ -8767,7 +8766,9 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
+    console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', delta, diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+      console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -8787,9 +8788,13 @@ async function main() {
         messageToPost,
         prNumber
       )
-      throw Error(messageToPost)
+      // throw Error(messageToPost)
+      core.setFailed(Error(messageToPost))
+      // eslint-disable-next-line no-undef
+      process.exit(-1)
     }
   } catch (error) {
+    console.log('fatal error', error)
     core.setFailed(error)
   }
 }

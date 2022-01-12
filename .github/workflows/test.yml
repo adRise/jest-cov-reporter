@@ -1,4 +1,15 @@
-on: [push]
+name: CI
+
+env:
+  NODE_VERSION: 14.17.3
+
+on:
+  # push:
+  #   branches:
+  #     - 'master'
+  pull_request:
+    branches:
+      - '**'
 
 jobs:
   custom_test:
