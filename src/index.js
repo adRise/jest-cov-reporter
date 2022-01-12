@@ -70,9 +70,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', delta, diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -92,13 +90,9 @@ async function main() {
         messageToPost,
         prNumber
       )
-      // throw Error(messageToPost)
-      core.setFailed(Error(messageToPost))
-      // eslint-disable-next-line no-undef
-      process.exit(-1)
+      throw Error(messageToPost)
     }
   } catch (error) {
-    console.log('fatal error', error)
     core.setFailed(error)
   }
 }
