@@ -4,6 +4,11 @@ A simple coverage reporter for jest which compares json-summary reports for a ba
 
 ## Screenshots
 
+Success Screenshot
+![success](https://github.com/arunshan/jest-cov-reporter/blob/main/images/success.png?raw=true)
+
+Failure Screenshot
+![failure](https://github.com/arunshan/jest-cov-reporter/blob/main/images/failure.png?raw=true)
 
 
 ## Usage
