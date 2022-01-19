@@ -50,7 +50,7 @@ async function main() {
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
     }
-    messageToPost = `${commentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`
+    messageToPost = `${commentIdentifier}\nCommit SHA: ${commitSha}\n${messageToPost}`
     let commentId = null
     if (useSameComment) {
       commentId = await findComment(
@@ -61,6 +61,12 @@ async function main() {
         commentIdentifier
       )
     }
+    console.log('comment data', commentId,
+      githubClient,
+      repoOwner,
+      repoName,
+      messageToPost,
+      prNumber)
     await createOrUpdateComment(
       commentId,
       githubClient,
