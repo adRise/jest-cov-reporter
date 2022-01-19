@@ -15,8 +15,6 @@ async function main() {
     const delta = Number(core.getInput('delta'))
     const githubClient = github.getOctokit(githubToken)
     const prNumber = github.context.issue.number
-    const branchNameBase = github.context.payload.pull_request.base.ref
-    const branchNameHead = github.context.payload.pull_request.head.ref
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
     const deltaCommentIdentifier = `<!-- codeCoverageDeltaComment -->`
