@@ -17,7 +17,6 @@ async function main() {
     const prNumber = github.context.issue.number
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
-    const deltaCommentIdentifier = `<!-- codeCoverageDeltaComment -->`
     const baseCoverageReportPath = core.getInput('base-coverage-report-path');
     const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
@@ -41,8 +40,11 @@ async function main() {
     )
     if (coverageDetails.length === 0) {
       messageToPost =
-              'No changes to code coverage between the base branch and the head branch'
+              'No changes to code coverage between the master branch and the head branch'
     } else {
+      if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+        messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
+      }
       messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
@@ -70,25 +72,6 @@ async function main() {
       
     // check if the test coverage is falling below delta/tolerance.
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      if (useSameComment) {
-        commentId = await findComment(
-          githubClient,
-          repoName,
-          repoOwner,
-          prNumber,
-          deltaCommentIdentifier
-        )
-      }
-      messageToPost = `Current PR reduces the test coverage percentage by ${delta} for some tests`
-      messageToPost = `${deltaCommentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
-      await createOrUpdateComment(
-        commentId,
-        githubClient,
-        repoOwner,
-        repoName,
-        messageToPost,
-        prNumber
-      )
       throw Error(messageToPost)
     }
   } catch (error) {
