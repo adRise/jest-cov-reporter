@@ -47,7 +47,7 @@ async function main() {
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
     }
-    messageToPost = `${commentIdentifier}\nCommit SHA: ${commitSha}\n${messageToPost}`
+    messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
     let commentId = null
     if (useSameComment) {
       commentId = await findComment(
@@ -80,7 +80,7 @@ async function main() {
         )
       }
       messageToPost = `Current PR reduces the test coverage percentage by ${delta} for some tests`
-      messageToPost = `${deltaCommentIdentifier}\nCommit SHA: ${commitSha} \n ${messageToPost}`
+      messageToPost = `${deltaCommentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
       await createOrUpdateComment(
         commentId,
         githubClient,
