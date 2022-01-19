@@ -1,3 +1,12 @@
+/**
+ * Create or update comment based on commentId
+ * @param {*} commentId 
+ * @param {*} githubClient 
+ * @param {*} repoOwner 
+ * @param {*} repoName 
+ * @param {*} messageToPost 
+ * @param {*} prNumber 
+ */
 export async function createOrUpdateComment(
   commentId,
   githubClient,
@@ -22,7 +31,16 @@ export async function createOrUpdateComment(
     })
   }
 }
-    
+
+/**
+ * findComment from a list of comments in a PR
+ * @param {*} githubClient 
+ * @param {*} repoName 
+ * @param {*} repoOwner 
+ * @param {*} prNumber 
+ * @param {*} identifier 
+ * @returns 
+ */
 export async function findComment(
   githubClient,
   repoName,
