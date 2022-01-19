@@ -32,8 +32,7 @@ async function main() {
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString())
 
     const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
-    let messageToPost = `## Test coverage results :test_tube: \n
-          Code coverage diff between base branch:${branchNameBase} and head branch: ${branchNameHead} \n\n`
+    let messageToPost = '## Test coverage results :test_tube: \n\n'
 
     const currentDirectory = execSync('pwd')
       .toString()
@@ -83,7 +82,7 @@ async function main() {
         )
       }
       messageToPost = `Current PR reduces the test coverage percentage by ${delta} for some tests`
-      messageToPost = `${deltaCommentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`
+      messageToPost = `${deltaCommentIdentifier}\nCommit SHA: ${commitSha} \n ${messageToPost}`
       await createOrUpdateComment(
         commentId,
         githubClient,
