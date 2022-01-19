@@ -8520,7 +8520,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 3797:
+/***/ 5985:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
@@ -8693,7 +8693,54 @@ var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
 
 // CONCATENATED MODULE: external "child_process"
 const external_child_process_namespaceObject = require("child_process");;
+// CONCATENATED MODULE: ./src/utils.js
+async function createOrUpdateComment(
+  commentId,
+  githubClient,
+  repoOwner,
+  repoName,
+  messageToPost,
+  prNumber
+) {
+  if (commentId) {
+    await githubClient.issues.updateComment({
+      owner: repoOwner,
+      repo: repoName,
+      comment_id: commentId,
+      body: messageToPost
+    })
+  } else {
+    await githubClient.issues.createComment({
+      repo: repoName,
+      owner: repoOwner,
+      body: messageToPost,
+      issue_number: prNumber
+    })
+  }
+}
+    
+async function findComment(
+  githubClient,
+  repoName,
+  repoOwner,
+  prNumber,
+  identifier
+) {
+  const comments = await githubClient.issues.listComments({
+    owner: repoOwner,
+    repo: repoName,
+    issue_number: prNumber
+  })
+    
+  for (const comment of comments.data) {
+    if (comment.body.startsWith(identifier)) {
+      return comment.id
+    }
+  }
+  return 0
+}
 // CONCATENATED MODULE: ./src/index.js
+
 
 
 
@@ -8745,7 +8792,7 @@ async function main() {
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
     }
-    messageToPost = `${commentIdentifier}\nCommit SHA:${commitSha}\n${messageToPost}`
+    messageToPost = `${commentIdentifier}\nCommit SHA: ${commitSha}\n${messageToPost}`
     let commentId = null
     if (useSameComment) {
       commentId = await findComment(
@@ -8756,6 +8803,12 @@ async function main() {
         commentIdentifier
       )
     }
+    console.log('comment data', commentId,
+      githubClient,
+      repoOwner,
+      repoName,
+      messageToPost,
+      prNumber)
     await createOrUpdateComment(
       commentId,
       githubClient,
@@ -8766,9 +8819,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', delta, diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      console.log('**** diffChecker.checkIfTestCoverageFallsBelowDelta(delta) **', diffChecker.checkIfTestCoverageFallsBelowDelta(delta))
       if (useSameComment) {
         commentId = await findComment(
           githubClient,
@@ -8788,63 +8839,12 @@ async function main() {
         messageToPost,
         prNumber
       )
-      // throw Error(messageToPost)
-      core.setFailed(Error(messageToPost))
-      // eslint-disable-next-line no-undef
-      process.exit(-1)
+      throw Error(messageToPost)
     }
   } catch (error) {
-    console.log('fatal error', error)
     core.setFailed(error)
   }
 }
-
-async function createOrUpdateComment(
-  commentId,
-  githubClient,
-  repoOwner,
-  repoName,
-  messageToPost,
-  prNumber
-) {
-  if (commentId) {
-    await githubClient.issues.updateComment({
-      owner: repoOwner,
-      repo: repoName,
-      comment_id: commentId,
-      body: messageToPost
-    })
-  } else {
-    await githubClient.issues.createComment({
-      repo: repoName,
-      owner: repoOwner,
-      body: messageToPost,
-      issue_number: prNumber
-    })
-  }
-}
-  
-async function findComment(
-  githubClient,
-  repoName,
-  repoOwner,
-  prNumber,
-  identifier
-) {
-  const comments = await githubClient.issues.listComments({
-    owner: repoOwner,
-    repo: repoName,
-    issue_number: prNumber
-  })
-  
-  for (const comment of comments.data) {
-    if (comment.body.startsWith(identifier)) {
-      return comment.id
-    }
-  }
-  return 0
-}
-  
 
 main();
 
@@ -9057,6 +9057,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(3797);
+/******/ 	return __nccwpck_require__(5985);
 /******/ })()
 ;
