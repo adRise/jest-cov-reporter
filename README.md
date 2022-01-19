@@ -33,5 +33,5 @@ Failure Screenshot
     Defaults to ${{ github.token }}
 4. `fullCoverageDiff`: get the full coverage with diff or only the diff. Defaults to false
 5. `delta`: Difference between the old and final test coverage. Defaults to 0.2
-6. `useSameComment`: While commenting on the PR update the exisiting comment. Defauls to true.
+6. `useSameComment`: While commenting on the PR update the exisiting comment. Defaults to true.
 
