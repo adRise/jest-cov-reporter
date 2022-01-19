@@ -8534,7 +8534,9 @@ const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':sparkles: :new:'
 const removedCoverageIcon = ':x:'
-
+/**
+ * DiffChecker is the simple algorithm to compare coverage
+ */
 class DiffChecker {
   constructor(
     coverageReportNew,
@@ -8545,6 +8547,10 @@ class DiffChecker {
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
+    /**
+     * For all filePaths in coverage, generate a percentage value
+     * for both base and current branch
+     */
     for (const filePath of reportKeys) {
       this.diffCoverageReport[filePath] = {
         branches: {
@@ -8567,6 +8573,12 @@ class DiffChecker {
     }
   }
 
+  /**
+   * Create coverageDetails table
+   * @param {*} diffOnly 
+   * @param {*} currentDirectory 
+   * @returns 
+   */
   getCoverageDetails(diffOnly, currentDirectory) {
     const keys = Object.keys(this.diffCoverageReport)
     const returnStrings = []
@@ -8593,6 +8605,11 @@ class DiffChecker {
     return returnStrings
   }
 
+  /**
+   * Function to check if the file's coverage is below delta
+   * @param {*} delta 
+   * @returns 
+   */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
     for (const key of keys) {
@@ -8608,7 +8625,6 @@ class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          console.log('diff', this.getPercentageDiff(diffCoverageData[key]))
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
             return true
           }
@@ -8619,6 +8635,12 @@ class DiffChecker {
     return false
   }
 
+  /**
+   * Create the table row for the file with higher/lower coverage compared to base branch
+   * @param {*} name 
+   * @param {*} diffFileCoverageData 
+   * @returns 
+   */
   createDiffLine(
     name,
     diffFileCoverageData
@@ -8665,6 +8687,11 @@ class DiffChecker {
     return coverageData.pct || 0
   }
 
+  /**
+   * Show red/green status icon for each file
+   * @param {*} diffFileCoverageData 
+   * @returns 
+   */
   getStatusIcon(
     diffFileCoverageData
   ) {
@@ -8678,8 +8705,12 @@ class DiffChecker {
     return increasedCoverageIcon
   }
 
+  /**
+   * Get % diff for base vs current branch
+   * @param {*} diffData 
+   * @returns 
+   */
   getPercentageDiff(diffData) {
-    // get diff
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)
     // round off the diff to 2 decimal places
     return Math.round((diff + Number.EPSILON) * 100) / 100
@@ -8694,6 +8725,15 @@ var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
 // CONCATENATED MODULE: external "child_process"
 const external_child_process_namespaceObject = require("child_process");;
 // CONCATENATED MODULE: ./src/utils.js
+/**
+ * Create or update comment based on commentId
+ * @param {*} commentId 
+ * @param {*} githubClient 
+ * @param {*} repoOwner 
+ * @param {*} repoName 
+ * @param {*} messageToPost 
+ * @param {*} prNumber 
+ */
 async function createOrUpdateComment(
   commentId,
   githubClient,
@@ -8718,7 +8758,16 @@ async function createOrUpdateComment(
     })
   }
 }
-    
+
+/**
+ * findComment from a list of comments in a PR
+ * @param {*} githubClient 
+ * @param {*} repoName 
+ * @param {*} repoOwner 
+ * @param {*} prNumber 
+ * @param {*} identifier 
+ * @returns 
+ */
 async function findComment(
   githubClient,
   repoName,
@@ -8749,50 +8798,80 @@ async function findComment(
 
 async function main() {
   try {
+    // repo name
     const repoName = github.context.repo.repo
+    // get the repo owner
     const repoOwner = github.context.repo.owner
+    // commit sha
     const commitSha = github.context.sha
+    // github token
     const githubToken = core.getInput('accessToken')
+    // Full coverage (true/false)
     const fullCoverage = JSON.parse(core.getInput('fullCoverageDiff'))
+    // delta coverage. Defaults to 0.2
     const delta = Number(core.getInput('delta'))
     const githubClient = github.getOctokit(githubToken)
+    // PR number
     const prNumber = github.context.issue.number
+    // Use the same comment for posting diff updates on a PR
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
+    // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
+
+    // The base coverage json summary report. This should be master/main summary report.
     const baseCoverageReportPath = core.getInput('base-coverage-report-path');
+
+    // branch coverage json summary report
     const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
+
+    // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
       return;
     }
 
+    // Read the json summary files for base and branch coverage
     const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
+    const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
-    const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString())
-
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld)
-    let messageToPost = '## Test coverage results :test_tube: \n\n'
-
+    // Perform analysis
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld);
+    
+    // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
       .toString()
       .trim()
+    
+    // Get coverage details.
+    // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
     const coverageDetails = diffChecker.getCoverageDetails(
       !fullCoverage,
       `${currentDirectory}/`
     )
+
+    // Add a comment to PR with full coverage report
+    let messageToPost = '## Test coverage results :test_tube: \n\n'
+
+    // If coverageDetails length is 0 that means there is no change between base and head
     if (coverageDetails.length === 0) {
       messageToPost =
               'No changes to code coverage between the master branch and the head branch'
     } else {
+      // If coverage details is below delta then post a message
       if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
         messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
       }
+      // Show coverage table for all files that were affected because of this PR
       messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
     }
+
     messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
     let commentId = null
+
+    // If useSameComment is true, then find the comment and then update that comment.
+    // If not, then create a new comment
     if (useSameComment) {
       commentId = await findComment(
         githubClient,
