@@ -2,7 +2,9 @@ const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':sparkles: :new:'
 const removedCoverageIcon = ':x:'
-
+/**
+ * DiffChecker is the simple algorithm to compare coverage
+ */
 export class DiffChecker {
   constructor(
     coverageReportNew,
@@ -13,6 +15,10 @@ export class DiffChecker {
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
+    /**
+     * For all filePaths in coverage, generate a percentage value
+     * for both base and current branch
+     */
     for (const filePath of reportKeys) {
       this.diffCoverageReport[filePath] = {
         branches: {
@@ -35,6 +41,12 @@ export class DiffChecker {
     }
   }
 
+  /**
+   * Create coverageDetails table
+   * @param {*} diffOnly 
+   * @param {*} currentDirectory 
+   * @returns 
+   */
   getCoverageDetails(diffOnly, currentDirectory) {
     const keys = Object.keys(this.diffCoverageReport)
     const returnStrings = []
@@ -61,6 +73,11 @@ export class DiffChecker {
     return returnStrings
   }
 
+  /**
+   * Function to check if the file's coverage is below delta
+   * @param {*} delta 
+   * @returns 
+   */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
     for (const key of keys) {
@@ -76,7 +93,6 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          console.log('diff', this.getPercentageDiff(diffCoverageData[key]))
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
             return true
           }
@@ -87,6 +103,12 @@ export class DiffChecker {
     return false
   }
 
+  /**
+   * Create the table row for the file with higher/lower coverage compared to base branch
+   * @param {*} name 
+   * @param {*} diffFileCoverageData 
+   * @returns 
+   */
   createDiffLine(
     name,
     diffFileCoverageData
@@ -133,6 +155,11 @@ export class DiffChecker {
     return coverageData.pct || 0
   }
 
+  /**
+   * Show red/green status icon for each file
+   * @param {*} diffFileCoverageData 
+   * @returns 
+   */
   getStatusIcon(
     diffFileCoverageData
   ) {
@@ -146,8 +173,12 @@ export class DiffChecker {
     return increasedCoverageIcon
   }
 
+  /**
+   * Get % diff for base vs current branch
+   * @param {*} diffData 
+   * @returns 
+   */
   getPercentageDiff(diffData) {
-    // get diff
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)
     // round off the diff to 2 decimal places
     return Math.round((diff + Number.EPSILON) * 100) / 100

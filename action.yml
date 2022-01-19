@@ -21,7 +21,7 @@ inputs:
     default: 0.2
   useSameComment:
     description: 'While commenting on the PR update the exisiting comment'
-    default: false
+    default: true
 
 runs:
   using: 'node12'
