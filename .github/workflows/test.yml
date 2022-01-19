@@ -4,9 +4,9 @@ env:
   NODE_VERSION: 14.17.3
 
 on:
-  # push:
-  #   branches:
-  #     - 'master'
+  push:
+    branches:
+      - 'master'
   pull_request:
     branches:
       - '**'

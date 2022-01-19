@@ -61,12 +61,7 @@ async function main() {
         commentIdentifier
       )
     }
-    console.log('comment data', commentId,
-      githubClient,
-      repoOwner,
-      repoName,
-      messageToPost,
-      prNumber)
+
     await createOrUpdateComment(
       commentId,
       githubClient,
