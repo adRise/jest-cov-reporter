@@ -8862,9 +8862,12 @@ async function main() {
         messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
       }
       // Show coverage table for all files that were affected because of this PR
+      messageToPost += '<details>'
+      messageToPost += '<summary markdown="span">Click to view coverage report</summary>'
       messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
+      messageToPost += '</details>'
     }
 
     messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
