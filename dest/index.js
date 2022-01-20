@@ -8863,7 +8863,7 @@ async function main() {
       }
       // Show coverage table for all files that were affected because of this PR
       messageToPost += '<details>'
-      messageToPost += '<summary markdown="span">Click to view coverage report</summary>'
+      messageToPost += '<summary markdown="span">Click to view coverage report</summary>\n\n'
       messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
       messageToPost += coverageDetails.join('\n')
