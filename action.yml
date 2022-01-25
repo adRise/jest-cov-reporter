@@ -25,4 +25,4 @@ inputs:
 
 runs:
   using: 'node12'
-  main: 'dest/index.js'
+  main: 'lib/index.js'

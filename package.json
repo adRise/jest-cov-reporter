@@ -7,7 +7,8 @@
     "lint": "eslint -c .eslintrc.json src",
     "test": "jest src --coverage --verbose",
     "jest-dev": "jest src --coverage --verbose --watch",
-    "build": "ncc build src/index.js -o dest"
+    "build": "tsc",
+    "pack": "ncc build"
   },
   "repository": "git@github.com:arunshan/jest-cov-reporter.git",
   "license": "MIT",
@@ -21,6 +22,8 @@
     "@vercel/ncc": "^0.27.0",
     "babel-jest": "^26.6.3",
     "eslint": "^8.6.0",
-    "jest": "^26.6.3"
+    "jest": "^26.6.3",
+    "ts-jest": "^24.3.0",
+    "typescript": "^3.9.6"
   }
 }

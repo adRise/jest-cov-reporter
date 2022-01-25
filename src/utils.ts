@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Create or update comment based on commentId
  * @param {*} commentId 
