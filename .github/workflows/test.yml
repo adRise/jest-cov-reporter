@@ -17,6 +17,15 @@ jobs:
     name: We test it locally with act
     steps:
       - uses: actions/checkout@v2
+
+      - name: rename file
+        if: ${{ github.base_ref == 'main' }}
+        run: mv ./coverage/coverage-summary.json ./coverage/coverage-summary-${{ github.event.pull_request.base.sha }}.json
+
+      - name: Display structure of coverage folder
+        run: ls -R
+        working-directory: ./coverage
+
       - name: jest coverage reporter
         uses: ./ # Uses an action in the root directory
         id: coverage-reporter
