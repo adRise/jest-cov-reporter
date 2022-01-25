@@ -13,10 +13,11 @@
   "repository": "git@github.com:arunshan/jest-cov-reporter.git",
   "license": "MIT",
   "private": false,
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
+    "@actions/github": "^4.0.0"
+  },
+  "devDependencies": {
     "@babel/core": "^7.12.13",
     "@babel/preset-env": "^7.12.13",
     "@vercel/ncc": "^0.27.0",
