@@ -22,20 +22,20 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       this.diffCoverageReport[filePath] = {
         branches: {
-          newPct: this.getPercentage(coverageReportNew[filePath].branches),
-          oldPct: this.getPercentage(coverageReportOld[filePath].branches)
+          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null),
+          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null)
         },
         statements: {
-          newPct: this.getPercentage(coverageReportNew[filePath].statements),
-          oldPct: this.getPercentage(coverageReportOld[filePath].statements)
+          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null),
+          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null)
         },
         lines: {
-          newPct: this.getPercentage(coverageReportNew[filePath].lines),
-          oldPct: this.getPercentage(coverageReportOld[filePath].lines)
+          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null),
+          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null)
         },
         functions: {
-          newPct: this.getPercentage(coverageReportNew[filePath].functions),
-          oldPct: this.getPercentage(coverageReportOld[filePath].functions)
+          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null),
+          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
         }
       }
     }
@@ -152,7 +152,7 @@ export class DiffChecker {
   }
 
   getPercentage(coverageData) {
-    return coverageData.pct || 0
+    return coverageData ? coverageData.pct : 0
   }
 
   /**
