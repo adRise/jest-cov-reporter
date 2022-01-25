@@ -12,7 +12,6 @@ Failure Screenshot
 
 
 ## Usage
-
 ```
 - name: Coverage
         uses: arunshan/jest-cov-reporter@main
