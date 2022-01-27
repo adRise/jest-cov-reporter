@@ -24,6 +24,9 @@ async function main() {
     const prNumber = github.context.issue.number
     // Use the same comment for posting diff updates on a PR
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
+
+    // get the custom message
+    const customMessage = core.getInput('custom-message');
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -60,6 +63,11 @@ async function main() {
 
     // Add a comment to PR with full coverage report
     let messageToPost = '## Test coverage results :test_tube: \n\n'
+    
+    // Add the custom message if it exists
+    if (customMessage !== '') {
+      messageToPost += customMessage + '\n\n';
+    }
 
     // If coverageDetails length is 0 that means there is no change between base and head
     if (coverageDetails.length === 0) {
