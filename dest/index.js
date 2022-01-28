@@ -8545,9 +8545,12 @@ class DiffChecker {
   ) {
     this.diffCoverageReport = {};
     this.delta = delta;
+    this.coverageReportNew = coverageReportNew;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+
+    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -8609,8 +8612,18 @@ class DiffChecker {
       }
     }
     return {
+      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
       decreaseStatusLines,
       remainingStatusLines,
+    }
+  }
+
+  getTotalCoverageReport(diffCoverageReport) {
+    return {
+      lineChangesPct: diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct,
+      linesCovered: this.coverageReportNew['total'].lines.covered,
+      linesTotal: this.coverageReportNew['total'].lines.total,
+      linesTotalPct: this.coverageReportNew['total'].lines.pct
     }
   }
 
@@ -8867,7 +8880,7 @@ async function main() {
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines } = diffChecker.getCoverageDetails(
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
       !fullCoverage,
       `${currentDirectory}/`
     )
@@ -8898,6 +8911,24 @@ async function main() {
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
+      messageToPost += '\n--- \n\n'
+
+      if (totalCoverageLines) {
+        const {
+          lineChangesPct,
+          linesCovered,
+          linesTotal,
+          linesTotalPct
+        } = totalCoverageLines
+        messageToPost +=
+              `Totals | ${linesTotalPct} \n 
+              -----|----- \n
+              Change from base | ${lineChangesPct}% \n
+              Covered Lines: | ${linesCovered} \n
+              Total Lines: | ${linesTotal} \n
+              `
+      }
+
       messageToPost += '\n--- \n\n'
 
       // Show coverage table for all files that were affected because of this PR

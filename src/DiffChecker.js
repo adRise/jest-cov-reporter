@@ -13,9 +13,12 @@ export class DiffChecker {
   ) {
     this.diffCoverageReport = {};
     this.delta = delta;
+    this.coverageReportNew = coverageReportNew;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+
+    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -77,8 +80,18 @@ export class DiffChecker {
       }
     }
     return {
+      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
       decreaseStatusLines,
       remainingStatusLines,
+    }
+  }
+
+  getTotalCoverageReport(diffCoverageReport) {
+    return {
+      lineChangesPct: diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct,
+      linesCovered: this.coverageReportNew['total'].lines.covered,
+      linesTotal: this.coverageReportNew['total'].lines.total,
+      linesTotalPct: this.coverageReportNew['total'].lines.pct
     }
   }
 
