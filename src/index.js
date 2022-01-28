@@ -82,7 +82,7 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
+              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
       messageToPost += '\n\n';
@@ -92,7 +92,7 @@ async function main() {
         messageToPost += '<details>'
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
+              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '</details>'
       }
