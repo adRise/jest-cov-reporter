@@ -8886,11 +8886,11 @@ async function main() {
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage report \n\n`
 
-    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n\n`
+    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
 
     // Add the custom message if it exists
     if (customMessage !== '') {
-      messageToPost += `* ${customMessage} \n\n`;
+      messageToPost += `* ${customMessage} \n`;
     }
 
     // If coverageDetails length is 0 that means there is no change between base and head
@@ -8900,7 +8900,7 @@ async function main() {
     } else {
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
-        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
+        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
       }
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
