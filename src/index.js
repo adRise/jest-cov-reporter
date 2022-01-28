@@ -84,6 +84,8 @@ async function main() {
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
+      messageToPost += '\n\n';
+
       // Show coverage table for all files that were affected because of this PR
       messageToPost += '<details>'
       messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
