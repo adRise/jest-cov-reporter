@@ -63,11 +63,11 @@ async function main() {
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage report \n\n`
 
-    messageToPost += `Status: ${isCoverageBelowDelta ? ':x: Failed' : ':white_check_mark: Passed'} \n\n`
+    messageToPost += `* Status: ${isCoverageBelowDelta ? ':x: Failed' : ':white_check_mark: Passed'} \n\n`
 
     // Add the custom message if it exists
     if (customMessage !== '') {
-      messageToPost += customMessage + '\n\n';
+      messageToPost += `* ${customMessage} \n\n`;
     }
 
     // If coverageDetails length is 0 that means there is no change between base and head
@@ -77,8 +77,9 @@ async function main() {
     } else {
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
-        messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
+        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
       }
+      messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
@@ -87,12 +88,14 @@ async function main() {
       messageToPost += '\n\n';
 
       // Show coverage table for all files that were affected because of this PR
-      messageToPost += '<details>'
-      messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
-      messageToPost +=
+      if (remainingStatusLines.length > 0) {
+        messageToPost += '<details>'
+        messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
+        messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
-      messageToPost += remainingStatusLines.join('\n')
-      messageToPost += '</details>'
+        messageToPost += remainingStatusLines.join('\n')
+        messageToPost += '</details>'
+      }
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
