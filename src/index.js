@@ -61,7 +61,7 @@ async function main() {
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
-    let messageToPost = `## Coverage report \n\n`
+    let messageToPost = `## Coverage Report \n\n`
 
     messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
 
@@ -85,7 +85,7 @@ async function main() {
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
-      messageToPost += '--- \n\n'
+      messageToPost += '\n--- \n\n'
 
       // Show coverage table for all files that were affected because of this PR
       if (remainingStatusLines.length > 0) {
