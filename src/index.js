@@ -82,10 +82,10 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
-      messageToPost += '\n\n';
+      messageToPost += '--- \n\n'
 
       // Show coverage table for all files that were affected because of this PR
       if (remainingStatusLines.length > 0) {

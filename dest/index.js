@@ -8654,7 +8654,6 @@ class DiffChecker {
     name,
     diffFileCoverageData
   ) {
-    console.log('diffFileCoverageData', diffFileCoverageData)
     // No old coverage found so that means we added a new file coverage
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.oldPct === 0
@@ -8726,15 +8725,6 @@ class DiffChecker {
       }
     }
     return coverageIcon;
-    // let overallDiff = 0
-    // Object.values(diffFileCoverageData).forEach(coverageData => {
-    //   console.log('this.getPercentageDiff(coverageData)', this.getPercentageDiff(coverageData))
-    //   overallDiff = overallDiff + this.getPercentageDiff(coverageData)
-    // })
-    // if (overallDiff < 0) {
-    //   return decreasedCoverageIcon
-    // }
-    // return increasedCoverageIcon
   }
 
   /**
@@ -8905,17 +8895,17 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
+              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
       }
-      messageToPost += '\n\n';
+      messageToPost += '--- \n\n'
 
       // Show coverage table for all files that were affected because of this PR
       if (remainingStatusLines.length > 0) {
         messageToPost += '<details>'
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
+              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '</details>'
       }

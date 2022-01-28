@@ -122,7 +122,6 @@ export class DiffChecker {
     name,
     diffFileCoverageData
   ) {
-    console.log('diffFileCoverageData', diffFileCoverageData)
     // No old coverage found so that means we added a new file coverage
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.oldPct === 0
@@ -194,15 +193,6 @@ export class DiffChecker {
       }
     }
     return coverageIcon;
-    // let overallDiff = 0
-    // Object.values(diffFileCoverageData).forEach(coverageData => {
-    //   console.log('this.getPercentageDiff(coverageData)', this.getPercentageDiff(coverageData))
-    //   overallDiff = overallDiff + this.getPercentageDiff(coverageData)
-    // })
-    // if (overallDiff < 0) {
-    //   return decreasedCoverageIcon
-    // }
-    // return increasedCoverageIcon
   }
 
   /**
