@@ -63,7 +63,7 @@ async function main() {
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage report \n\n`
 
-    messageToPost += `* Status: ${isCoverageBelowDelta ? ':x: Failed' : ':white_check_mark: Passed'} \n\n`
+    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n\n`
 
     // Add the custom message if it exists
     if (customMessage !== '') {
