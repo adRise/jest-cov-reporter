@@ -11,8 +11,6 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
-    // commit sha
-    const commitSha = github.context.sha
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)
@@ -47,7 +45,7 @@ async function main() {
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
     // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld);
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
     
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
@@ -56,38 +54,46 @@ async function main() {
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const coverageDetails = diffChecker.getCoverageDetails(
+    const { decreaseStatusLines, remainingStatusLines } = diffChecker.getCoverageDetails(
       !fullCoverage,
       `${currentDirectory}/`
     )
 
+    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
-    let messageToPost = '## Test coverage results :test_tube: \n\n'
-    
+    let messageToPost = `## Coverage report \n\n`
+
+    messageToPost += `Status: ${isCoverageBelowDelta ? ':x: Failed' : ':white_check_mark: Passed'} \n\n`
+
     // Add the custom message if it exists
     if (customMessage !== '') {
       messageToPost += customMessage + '\n\n';
     }
 
     // If coverageDetails length is 0 that means there is no change between base and head
-    if (coverageDetails.length === 0) {
+    if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
       messageToPost =
-              'No changes to code coverage between the master branch and the head branch'
+              'No changes to code coverage between the master branch and the current head branch'
     } else {
       // If coverage details is below delta then post a message
-      if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+      if (isCoverageBelowDelta) {
         messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
+      }
+      if (decreaseStatusLines.length > 0) {
+        messageToPost +=
+              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
+        messageToPost += decreaseStatusLines.join('\n')
       }
       // Show coverage table for all files that were affected because of this PR
       messageToPost += '<details>'
-      messageToPost += '<summary markdown="span">Click to view coverage report</summary>\n\n'
+      messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
       messageToPost +=
               'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
-      messageToPost += coverageDetails.join('\n')
+      messageToPost += remainingStatusLines.join('\n')
       messageToPost += '</details>'
     }
 
-    messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
+    messageToPost = `${commentIdentifier} \n ${messageToPost}`
     let commentId = null
 
     // If useSameComment is true, then find the comment and then update that comment.
