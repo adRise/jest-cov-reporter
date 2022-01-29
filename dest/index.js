@@ -8910,8 +8910,8 @@ async function main() {
         messageToPost +=
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
+        messageToPost += '\n--- \n\n'
       }
-      messageToPost += '\n--- \n\n'
 
       if (totalCoverageLines) {
         const {
