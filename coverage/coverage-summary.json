@@ -25008,7 +25008,7 @@
             "total": 20,
             "covered": 15,
             "skipped": 0,
-            "pct": 75
+            "pct": 73
         }
     },
     "/home/runner/work/www/www/src/web/rd/containers/MovieOrSeriesTile/MovieOrSeriesTile.tsx": {
@@ -25034,7 +25034,7 @@
             "total": 44,
             "covered": 34,
             "skipped": 0,
-            "pct": 77.27
+            "pct": 71.27
         }
     }
 }
