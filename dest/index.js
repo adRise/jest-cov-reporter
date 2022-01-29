@@ -8921,6 +8921,7 @@ async function main() {
         messageToPost +=
               'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += remainingStatusLines.join('\n')
+        messageToPost += '\n';
         messageToPost += '</details>'
         messageToPost += '\n--- \n\n'
       }
