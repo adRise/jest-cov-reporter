@@ -4502,7 +4502,7 @@
             "total": 28,
             "covered": 21,
             "skipped": 0,
-            "pct": 78
+            "pct": 75
         },
         "functions": {
             "total": 6,
@@ -11652,25 +11652,25 @@
             "total": 37,
             "covered": 34,
             "skipped": 0,
-            "pct": 94.62
+            "pct": 91.89
         },
         "functions": {
             "total": 14,
             "covered": 13,
             "skipped": 0,
-            "pct": 92.31
+            "pct": 92.86
         },
         "statements": {
             "total": 48,
             "covered": 42,
             "skipped": 0,
-            "pct": 88.37
+            "pct": 87.5
         },
         "branches": {
             "total": 19,
             "covered": 12,
             "skipped": 0,
-            "pct": 66.67
+            "pct": 63.16
         }
     },
     "/home/runner/work/www/www/src/common/selectors/featuredVideos.ts": {
