@@ -8921,7 +8921,7 @@ async function main() {
           linesTotalPct
         } = totalCoverageLines
         messageToPost +=
-              `| Totals | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`
+              `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`
       }
 
       messageToPost += '\n--- \n\n'
