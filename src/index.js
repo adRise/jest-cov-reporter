@@ -72,7 +72,7 @@ async function main() {
 
     // If coverageDetails length is 0 that means there is no change between base and head
     if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
-      messageToPost =
+      messageToPost +=
               'No changes to code coverage between the master branch and the current head branch'
     } else {
       // If coverage details is below delta then post a message
