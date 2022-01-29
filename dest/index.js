@@ -8899,32 +8899,20 @@ async function main() {
     // If coverageDetails length is 0 that means there is no change between base and head
     if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
       messageToPost +=
-              'No changes to code coverage between the master branch and the current head branch'
+              '* No changes to code coverage between the master branch and the current head branch'
+      messageToPost += '--- \n\n'
     } else {
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
         messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
+        messageToPost += '--- \n\n'
       }
-      messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
         messageToPost += '\n--- \n\n'
       }
-
-      if (totalCoverageLines) {
-        const {
-          lineChangesPct,
-          linesCovered,
-          linesTotal,
-          linesTotalPct
-        } = totalCoverageLines
-        messageToPost +=
-              `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`
-      }
-
-      messageToPost += '\n--- \n\n'
 
       // Show coverage table for all files that were affected because of this PR
       if (remainingStatusLines.length > 0) {
@@ -8934,7 +8922,20 @@ async function main() {
               'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '</details>'
+        messageToPost += '\n--- \n\n'
       }
+    }
+
+    if (totalCoverageLines) {
+      const {
+        lineChangesPct,
+        linesCovered,
+        linesTotal,
+        linesTotalPct
+      } = totalCoverageLines
+      messageToPost +=
+            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+      messageToPost += '\n--- \n\n';
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
