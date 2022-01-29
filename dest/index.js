@@ -8922,8 +8922,8 @@ async function main() {
               'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
-        messageToPost += '</details>'
-        messageToPost += '\n--- \n\n'
+        messageToPost += '</details>';
+        messageToPost += '\n\n--- \n\n'
       }
     }
 
@@ -8936,7 +8936,6 @@ async function main() {
       } = totalCoverageLines
       messageToPost +=
             `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
-      messageToPost += '\n--- \n\n';
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
