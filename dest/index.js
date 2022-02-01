@@ -8533,19 +8533,24 @@ var core = __nccwpck_require__(2186);
 const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':sparkles: :new:'
-const removedCoverageIcon = ':x:'
+const removedCoverageIcon = ':yellow_circle:'
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
 class DiffChecker {
   constructor(
     coverageReportNew,
-    coverageReportOld
+    coverageReportOld,
+    delta
   ) {
     this.diffCoverageReport = {};
+    this.delta = delta;
+    this.coverageReportNew = coverageReportNew;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+
+    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -8581,18 +8586,22 @@ class DiffChecker {
    */
   getCoverageDetails(diffOnly, currentDirectory) {
     const keys = Object.keys(this.diffCoverageReport)
-    const returnStrings = []
+    const decreaseStatusLines = [];
+    const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
-        returnStrings.push(
-          this.createDiffLine(
-            key.replace(currentDirectory, ''),
-            this.diffCoverageReport[key]
-          )
+        const diffStatus = this.createDiffLine(
+          key.replace(currentDirectory, ''),
+          this.diffCoverageReport[key]
         )
+        if (diffStatus.status === 'decrease') {
+          decreaseStatusLines.push(diffStatus.statusMessage)
+        } else {
+          remainingStatusLines.push(diffStatus.statusMessage)
+        }
       } else {
         if (!diffOnly) {
-          returnStrings.push(
+          remainingStatusLines.push(
             `${key.replace(currentDirectory, '')} | ${
               this.diffCoverageReport[key].statements.newPct
             } | ${this.diffCoverageReport[key].branches.newPct} | ${
@@ -8602,7 +8611,20 @@ class DiffChecker {
         }
       }
     }
-    return returnStrings
+    return {
+      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
+      decreaseStatusLines,
+      remainingStatusLines,
+    }
+  }
+
+  getTotalCoverageReport(diffCoverageReport) {
+    return {
+      lineChangesPct: diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct,
+      linesCovered: this.coverageReportNew['total'].lines.covered,
+      linesTotal: this.coverageReportNew['total'].lines.total,
+      linesTotalPct: this.coverageReportNew['total'].lines.pct
+    }
   }
 
   /**
@@ -8654,21 +8676,31 @@ class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
     if (fileNewCoverage) {
-      return ` ${newCoverageIcon} | **${name}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`
+      return {
+        status: 'new',
+        statusMessage: ` ${newCoverageIcon} | **${name}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`
+      }
     } else if (fileRemovedCoverage) {
-      return ` ${removedCoverageIcon} | ~~${name}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+      return {
+        status: 'removed',
+        statusMessage: ` ${removedCoverageIcon} | ~~${name}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+      }
     }
     // Coverage existed before so calculate the diff status
     const statusIcon = this.getStatusIcon(diffFileCoverageData)
-    return ` ${statusIcon} | ${name} | ${
-      diffFileCoverageData.statements.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
-      diffFileCoverageData.branches.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
-      diffFileCoverageData.functions.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
-      diffFileCoverageData.lines.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+
+    return {
+      status: statusIcon === increasedCoverageIcon ? 'increase' : 'decrease',
+      statusMessage: ` ${statusIcon} | ${name} | ${
+        diffFileCoverageData.statements.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
+        diffFileCoverageData.branches.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
+        diffFileCoverageData.functions.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
+        diffFileCoverageData.lines.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+    }
   }
 
   compareCoverageValues(
@@ -8695,14 +8727,17 @@ class DiffChecker {
   getStatusIcon(
     diffFileCoverageData
   ) {
-    let overallDiff = 0
-    Object.values(diffFileCoverageData).forEach(coverageData => {
-      overallDiff = overallDiff + this.getPercentageDiff(coverageData)
-    })
-    if (overallDiff < 0) {
-      return decreasedCoverageIcon
+    let coverageIcon = increasedCoverageIcon;
+    const parts = Object.values(diffFileCoverageData);
+    for (let i = 0; i < parts.length; i++) {
+      const coverageData = parts[i];
+      const percDiff = this.getPercentageDiff(coverageData);
+      if (percDiff < 0 && Math.abs(percDiff) > this.delta) {
+        coverageIcon = decreasedCoverageIcon;
+        break;
+      }
     }
-    return increasedCoverageIcon
+    return coverageIcon;
   }
 
   /**
@@ -8802,8 +8837,6 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
-    // commit sha
-    const commitSha = github.context.sha
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)
@@ -8815,6 +8848,9 @@ async function main() {
     const prNumber = github.context.issue.number
     // Use the same comment for posting diff updates on a PR
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
+
+    // get the custom message
+    const customMessage = core.getInput('custom-message');
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -8835,7 +8871,7 @@ async function main() {
     const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
     // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld);
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
     
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
@@ -8844,33 +8880,65 @@ async function main() {
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const coverageDetails = diffChecker.getCoverageDetails(
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
       !fullCoverage,
       `${currentDirectory}/`
     )
 
+    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
-    let messageToPost = '## Test coverage results :test_tube: \n\n'
+    let messageToPost = `## Coverage Report \n\n`
 
-    // If coverageDetails length is 0 that means there is no change between base and head
-    if (coverageDetails.length === 0) {
-      messageToPost =
-              'No changes to code coverage between the master branch and the head branch'
-    } else {
-      // If coverage details is below delta then post a message
-      if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-        messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
-      }
-      // Show coverage table for all files that were affected because of this PR
-      messageToPost += '<details>'
-      messageToPost += '<summary markdown="span">Click to view coverage report</summary>\n\n'
-      messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
-      messageToPost += coverageDetails.join('\n')
-      messageToPost += '</details>'
+    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
+
+    // Add the custom message if it exists
+    if (customMessage !== '') {
+      messageToPost += `* ${customMessage} \n`;
     }
 
-    messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
+    // If coverageDetails length is 0 that means there is no change between base and head
+    if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
+      messageToPost +=
+              '* No changes to code coverage between the master branch and the current head branch'
+      messageToPost += '\n--- \n\n'
+    } else {
+      // If coverage details is below delta then post a message
+      if (isCoverageBelowDelta) {
+        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
+        messageToPost += '--- \n\n'
+      }
+      if (decreaseStatusLines.length > 0) {
+        messageToPost +=
+              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+        messageToPost += decreaseStatusLines.join('\n')
+        messageToPost += '\n--- \n\n'
+      }
+
+      // Show coverage table for all files that were affected because of this PR
+      if (remainingStatusLines.length > 0) {
+        messageToPost += '<details>'
+        messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
+        messageToPost +=
+              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+        messageToPost += remainingStatusLines.join('\n')
+        messageToPost += '\n';
+        messageToPost += '</details>';
+        messageToPost += '\n\n--- \n\n'
+      }
+    }
+
+    if (totalCoverageLines) {
+      const {
+        lineChangesPct,
+        linesCovered,
+        linesTotal,
+        linesTotalPct
+      } = totalCoverageLines
+      messageToPost +=
+            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+    }
+
+    messageToPost = `${commentIdentifier} \n ${messageToPost}`
     let commentId = null
 
     // If useSameComment is true, then find the comment and then update that comment.

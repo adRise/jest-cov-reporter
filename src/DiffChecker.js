@@ -1,19 +1,24 @@
 const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':sparkles: :new:'
-const removedCoverageIcon = ':x:'
+const removedCoverageIcon = ':yellow_circle:'
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
 export class DiffChecker {
   constructor(
     coverageReportNew,
-    coverageReportOld
+    coverageReportOld,
+    delta
   ) {
     this.diffCoverageReport = {};
+    this.delta = delta;
+    this.coverageReportNew = coverageReportNew;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+
+    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -49,18 +54,22 @@ export class DiffChecker {
    */
   getCoverageDetails(diffOnly, currentDirectory) {
     const keys = Object.keys(this.diffCoverageReport)
-    const returnStrings = []
+    const decreaseStatusLines = [];
+    const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
-        returnStrings.push(
-          this.createDiffLine(
-            key.replace(currentDirectory, ''),
-            this.diffCoverageReport[key]
-          )
+        const diffStatus = this.createDiffLine(
+          key.replace(currentDirectory, ''),
+          this.diffCoverageReport[key]
         )
+        if (diffStatus.status === 'decrease') {
+          decreaseStatusLines.push(diffStatus.statusMessage)
+        } else {
+          remainingStatusLines.push(diffStatus.statusMessage)
+        }
       } else {
         if (!diffOnly) {
-          returnStrings.push(
+          remainingStatusLines.push(
             `${key.replace(currentDirectory, '')} | ${
               this.diffCoverageReport[key].statements.newPct
             } | ${this.diffCoverageReport[key].branches.newPct} | ${
@@ -70,7 +79,20 @@ export class DiffChecker {
         }
       }
     }
-    return returnStrings
+    return {
+      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
+      decreaseStatusLines,
+      remainingStatusLines,
+    }
+  }
+
+  getTotalCoverageReport(diffCoverageReport) {
+    return {
+      lineChangesPct: diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct,
+      linesCovered: this.coverageReportNew['total'].lines.covered,
+      linesTotal: this.coverageReportNew['total'].lines.total,
+      linesTotalPct: this.coverageReportNew['total'].lines.pct
+    }
   }
 
   /**
@@ -122,21 +144,31 @@ export class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
     if (fileNewCoverage) {
-      return ` ${newCoverageIcon} | **${name}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`
+      return {
+        status: 'new',
+        statusMessage: ` ${newCoverageIcon} | **${name}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`
+      }
     } else if (fileRemovedCoverage) {
-      return ` ${removedCoverageIcon} | ~~${name}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+      return {
+        status: 'removed',
+        statusMessage: ` ${removedCoverageIcon} | ~~${name}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+      }
     }
     // Coverage existed before so calculate the diff status
     const statusIcon = this.getStatusIcon(diffFileCoverageData)
-    return ` ${statusIcon} | ${name} | ${
-      diffFileCoverageData.statements.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
-      diffFileCoverageData.branches.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
-      diffFileCoverageData.functions.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
-      diffFileCoverageData.lines.newPct
-    } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+
+    return {
+      status: statusIcon === increasedCoverageIcon ? 'increase' : 'decrease',
+      statusMessage: ` ${statusIcon} | ${name} | ${
+        diffFileCoverageData.statements.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
+        diffFileCoverageData.branches.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
+        diffFileCoverageData.functions.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
+        diffFileCoverageData.lines.newPct
+      } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+    }
   }
 
   compareCoverageValues(
@@ -163,14 +195,17 @@ export class DiffChecker {
   getStatusIcon(
     diffFileCoverageData
   ) {
-    let overallDiff = 0
-    Object.values(diffFileCoverageData).forEach(coverageData => {
-      overallDiff = overallDiff + this.getPercentageDiff(coverageData)
-    })
-    if (overallDiff < 0) {
-      return decreasedCoverageIcon
+    let coverageIcon = increasedCoverageIcon;
+    const parts = Object.values(diffFileCoverageData);
+    for (let i = 0; i < parts.length; i++) {
+      const coverageData = parts[i];
+      const percDiff = this.getPercentageDiff(coverageData);
+      if (percDiff < 0 && Math.abs(percDiff) > this.delta) {
+        coverageIcon = decreasedCoverageIcon;
+        break;
+      }
     }
-    return increasedCoverageIcon
+    return coverageIcon;
   }
 
   /**

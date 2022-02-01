@@ -11,8 +11,6 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
-    // commit sha
-    const commitSha = github.context.sha
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)
@@ -24,6 +22,9 @@ async function main() {
     const prNumber = github.context.issue.number
     // Use the same comment for posting diff updates on a PR
     const useSameComment = JSON.parse(core.getInput('useSameComment'))
+
+    // get the custom message
+    const customMessage = core.getInput('custom-message');
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -44,7 +45,7 @@ async function main() {
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
     // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld);
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
     
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
@@ -53,33 +54,65 @@ async function main() {
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const coverageDetails = diffChecker.getCoverageDetails(
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
       !fullCoverage,
       `${currentDirectory}/`
     )
 
+    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
-    let messageToPost = '## Test coverage results :test_tube: \n\n'
+    let messageToPost = `## Coverage Report \n\n`
 
-    // If coverageDetails length is 0 that means there is no change between base and head
-    if (coverageDetails.length === 0) {
-      messageToPost =
-              'No changes to code coverage between the master branch and the head branch'
-    } else {
-      // If coverage details is below delta then post a message
-      if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-        messageToPost += `Current PR reduces the test coverage percentage by ${delta} for some tests \n\n`
-      }
-      // Show coverage table for all files that were affected because of this PR
-      messageToPost += '<details>'
-      messageToPost += '<summary markdown="span">Click to view coverage report</summary>\n\n'
-      messageToPost +=
-              'Status | File | % Stmts | % Branch | % Funcs | % Lines \n -----|-----|---------|----------|---------|------ \n'
-      messageToPost += coverageDetails.join('\n')
-      messageToPost += '</details>'
+    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
+
+    // Add the custom message if it exists
+    if (customMessage !== '') {
+      messageToPost += `* ${customMessage} \n`;
     }
 
-    messageToPost = `${commentIdentifier} \n Commit SHA: ${commitSha} \n ${messageToPost}`
+    // If coverageDetails length is 0 that means there is no change between base and head
+    if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
+      messageToPost +=
+              '* No changes to code coverage between the master branch and the current head branch'
+      messageToPost += '\n--- \n\n'
+    } else {
+      // If coverage details is below delta then post a message
+      if (isCoverageBelowDelta) {
+        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
+        messageToPost += '--- \n\n'
+      }
+      if (decreaseStatusLines.length > 0) {
+        messageToPost +=
+              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+        messageToPost += decreaseStatusLines.join('\n')
+        messageToPost += '\n--- \n\n'
+      }
+
+      // Show coverage table for all files that were affected because of this PR
+      if (remainingStatusLines.length > 0) {
+        messageToPost += '<details>'
+        messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
+        messageToPost +=
+              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+        messageToPost += remainingStatusLines.join('\n')
+        messageToPost += '\n';
+        messageToPost += '</details>';
+        messageToPost += '\n\n--- \n\n'
+      }
+    }
+
+    if (totalCoverageLines) {
+      const {
+        lineChangesPct,
+        linesCovered,
+        linesTotal,
+        linesTotalPct
+      } = totalCoverageLines
+      messageToPost +=
+            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+    }
+
+    messageToPost = `${commentIdentifier} \n ${messageToPost}`
     let commentId = null
 
     // If useSameComment is true, then find the comment and then update that comment.

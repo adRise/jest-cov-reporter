@@ -22,6 +22,9 @@ inputs:
   useSameComment:
     description: 'While commenting on the PR update the exisiting comment'
     default: true
+  custom-message:
+    description: 'Pass any custom string which will be displayed in the comment'
+    default: ''
 
 runs:
   using: 'node12'
