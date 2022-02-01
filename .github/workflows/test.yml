@@ -23,7 +23,7 @@ jobs:
         run: echo ${{ github.sha }} > ./coverage/latest_sha
 
       - name: read contents of file
-        run: cat ./coverage/latest_sha >> MASTER_SHA
+        run: MASTER_SHA=${cat ./coverage/latest_sha}
 
       - name: print contents of file
         run: echo $MASTER_SHA
