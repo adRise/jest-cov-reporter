@@ -22,11 +22,13 @@ jobs:
       - name: create a file
         run: echo ${{ github.sha }} > ./coverage/latest_sha
 
-      - name: read contents of file
-        run: MASTER_SHA=${cat ./coverage/latest_sha}
+      - name: Set variables
+        run: |
+          VER=$(cat ./coverage/latest_sha)
+          echo "VERSION=$VER" >> $GITHUB_ENV
 
       - name: print contents of file
-        run: echo $MASTER_SHA
+        run: echo ${{ env.VERSION }}
 
       - name: jest coverage reporter
         uses: ./ # Uses an action in the root directory
