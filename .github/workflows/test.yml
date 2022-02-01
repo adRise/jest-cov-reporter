@@ -4,7 +4,6 @@ env:
   NODE_VERSION: 14.17.3
   MASTER_SHA: ''
 
-
 on:
   push:
     branches:
@@ -24,7 +23,7 @@ jobs:
         run: echo ${{ github.sha }} > ./coverage/latest_sha
 
       - name: read contents of file
-        run: cat ./coverage/latest_sha >> $MASTER_SHA
+        run: cat ./coverage/latest_sha >> MASTER_SHA
 
       - name: print contents of file
         run: echo $MASTER_SHA
