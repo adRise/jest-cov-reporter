@@ -87,8 +87,10 @@ export class DiffChecker {
   }
 
   getTotalCoverageReport(diffCoverageReport) {
+    let lineChangesPct = diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct;
+    lineChangesPct = Math.round((lineChangesPct + Number.EPSILON) * 100) / 100;
     return {
-      lineChangesPct: diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct,
+      lineChangesPct,
       linesCovered: this.coverageReportNew['total'].lines.covered,
       linesTotal: this.coverageReportNew['total'].lines.total,
       linesTotalPct: this.coverageReportNew['total'].lines.pct
