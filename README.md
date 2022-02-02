@@ -8,7 +8,7 @@ Success Screenshot
 ![success](https://github.com/arunshan/jest-cov-reporter/blob/main/images/pass.png?raw=true)
 
 Failure Screenshot
-![failure](https://github.com/arunshan/jest-cov-reporter/blob/main/images/failure.png?raw=true)
+![failure](https://github.com/arunshan/jest-cov-reporter/blob/main/images/fail.png?raw=true)
 
 
 ## Usage
