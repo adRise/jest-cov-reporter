@@ -8895,11 +8895,11 @@ async function main() {
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage Report \n\n`
 
-    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
+    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n\n`
 
     // Add the custom message if it exists
     if (customMessage !== '') {
-      messageToPost += `* ${customMessage} \n`;
+      messageToPost += `* ${customMessage} \n\n`;
     }
 
     // If coverageDetails length is 0 that means there is no change between base and head
