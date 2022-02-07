@@ -26,3 +26,4 @@ jobs:
           branch-coverage-report-path: ./coverage/coverage-summary.json
           base-coverage-report-path: ./coverage/coverage-summary-master.json
           useSameComment: true
+          delta: 0.02

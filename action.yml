@@ -25,6 +25,9 @@ inputs:
   custom-message:
     description: 'Pass any custom string which will be displayed in the comment'
     default: ''
+  check-total-coverage-only:
+    description: 'Only check total coverage and not coverage on individual files'
+    default: false
 
 runs:
   using: 'node12'

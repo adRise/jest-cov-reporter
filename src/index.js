@@ -137,7 +137,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+    if (isCoverageBelowDelta) {
       throw Error(messageToPost)
     }
   } catch (error) {

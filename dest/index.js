@@ -8634,9 +8634,11 @@ class DiffChecker {
    * @param {*} delta 
    * @returns 
    */
-  checkIfTestCoverageFallsBelowDelta(delta) {
+  checkIfTestCoverageFallsBelowDelta(delta, onlyTotalCoverage) {
     const keys = Object.keys(this.diffCoverageReport)
     for (const key of keys) {
+      if (onlyTotalCoverage && key !== 'total') continue;
+
       const diffCoverageData = this.diffCoverageReport[key]
       const keys = Object.keys(diffCoverageData)
       // No new coverage found so that means we deleted a file coverage
@@ -8965,7 +8967,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+    if (isCoverageBelowDelta) {
       throw Error(messageToPost)
     }
   } catch (error) {
