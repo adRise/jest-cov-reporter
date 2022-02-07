@@ -79,7 +79,8 @@ async function main() {
       messageToPost += '\n--- \n\n'
     } else {
       // If coverage details is below delta then post a message
-      if (isCoverageBelowDelta) {
+      const isCoverageBelowDeltaForFiles = diffChecker.checkIfTestCoverageFallsBelowDelta(delta, false);
+      if (isCoverageBelowDeltaForFiles) {
         messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
         messageToPost += '--- \n\n'
       }
@@ -111,7 +112,7 @@ async function main() {
         linesTotalPct
       } = totalCoverageLines
       messageToPost +=
-            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base (lines): | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`

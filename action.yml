@@ -17,8 +17,8 @@ inputs:
     description: 'get the full coverage with diff or only the diff'
     default: false
   delta:
-    description: 'Difference between the old and final test coverage'
-    default: 0.2
+    description: 'Difference between the old and new total test coverage'
+    default: 0.03
   useSameComment:
     description: 'While commenting on the PR update the exisiting comment'
     default: true
