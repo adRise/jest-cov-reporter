@@ -27,3 +27,4 @@ jobs:
           base-coverage-report-path: ./coverage/coverage-summary-master.json
           useSameComment: true
           delta: 0.02
+          check-total-coverage-only: true

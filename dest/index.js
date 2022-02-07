@@ -8864,6 +8864,8 @@ async function main() {
     // branch coverage json summary report
     const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
 
+    const checkTotalCoverageOnly = core.getInput('check-total-coverage-only');
+
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
@@ -8889,7 +8891,7 @@ async function main() {
       `${currentDirectory}/`
     )
 
-    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
+    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta, checkTotalCoverageOnly);
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage Report \n\n`
 
