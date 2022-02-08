@@ -19995,10 +19995,10 @@
     },
     "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
-            "total": 110,
-            "covered": 91,
+            "total": 115,
+            "covered": 96,
             "skipped": 0,
-            "pct": 82.72
+            "pct": 83.47
         },
         "functions": {
             "total": 13,
