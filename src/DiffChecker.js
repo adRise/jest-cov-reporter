@@ -140,7 +140,8 @@ export class DiffChecker {
     const oldCoverage = diffCoverageData.old;
     if (!oldCoverage || !newCoverage) return false;
 
-    return oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total
+    return newCoverage.covered - oldCoverage.covered < 0 && 
+      (oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total)
   }
 
   /**
