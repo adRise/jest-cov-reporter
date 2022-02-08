@@ -19996,9 +19996,9 @@
     "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
             "total": 112,
-            "covered": 93,
+            "covered": 112,
             "skipped": 0,
-            "pct": 83.04
+            "pct": 100
         },
         "functions": {
             "total": 13,
@@ -20008,15 +20008,15 @@
         },
         "statements": {
             "total": 112,
-            "covered": 93,
+            "covered": 112,
             "skipped": 0,
-            "pct": 83.04
+            "pct": 100
         },
         "branches": {
             "total": 72,
-            "covered": 46,
+            "covered": 72,
             "skipped": 0,
-            "pct": 63.89
+            "pct": 100
         }
     },
     "/home/runner/work/www/www/src/server/routes/wellKnown.js": {
