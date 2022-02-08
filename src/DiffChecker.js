@@ -194,7 +194,7 @@ export class DiffChecker {
   ) {
     const keys = Object.keys(diffCoverageData)
     for (const key of keys) {
-      if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
+      if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct && !this.isDueToRemovedLines(diffCoverageData[key])) {
         return 1
       }
     }
