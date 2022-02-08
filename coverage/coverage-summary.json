@@ -19996,9 +19996,9 @@
     "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
             "total": 115,
-            "covered": 96,
+            "covered": 80,
             "skipped": 0,
-            "pct": 83.47
+            "pct": 69.56
         },
         "functions": {
             "total": 13,
