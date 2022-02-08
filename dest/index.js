@@ -8923,8 +8923,8 @@ async function main() {
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
         messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
-        messageToPost += '--- \n\n'
       }
+      messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
