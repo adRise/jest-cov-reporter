@@ -20014,9 +20014,9 @@
         },
         "branches": {
             "total": 70,
-            "covered": 43,
+            "covered": 44,
             "skipped": 0,
-            "pct": 61.42
+            "pct": 62.85
         }
     },
     "/home/runner/work/www/www/src/server/routes/wellKnown.js": {
