@@ -8559,18 +8559,26 @@ class DiffChecker {
     for (const filePath of reportKeys) {
       this.diffCoverageReport[filePath] = {
         branches: {
+          new: coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null,
+          old: coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null,
           newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null),
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null)
         },
         statements: {
+          new: coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null,
+          old: coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null,
           newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null),
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null)
         },
         lines: {
+          new: coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null,
+          old: coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null,
           newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null),
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null)
         },
         functions: {
+          new: coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null,
+          old: coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null,
           newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null),
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
         }
@@ -8649,7 +8657,7 @@ class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta) {
+          if (-this.getPercentageDiff(diffCoverageData[key]) > delta && !this.isDueToRemovedLines(diffCoverageData[key])) {
             return true
           }
         }
@@ -8657,6 +8665,14 @@ class DiffChecker {
     }
 
     return false
+  }
+
+  isDueToRemovedLines(diffCoverageData) {
+    const newCoverage = diffCoverageData.new;
+    const oldCoverage = diffCoverageData.old;
+    if (!oldCoverage || !newCoverage) return false;
+
+    return oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total
   }
 
   /**

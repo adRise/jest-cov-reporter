@@ -20013,10 +20013,10 @@
             "pct": 83.04
         },
         "branches": {
-            "total": 72,
-            "covered": 46,
+            "total": 70,
+            "covered": 44,
             "skipped": 0,
-            "pct": 63.89
+            "pct": 62.85
         }
     },
     "/home/runner/work/www/www/src/server/routes/wellKnown.js": {
