@@ -27,10 +27,10 @@ jobs:
           base-coverage-report-path: ./coverage/coverage-summary-master.json
           useSameComment: true
 
-      - name: Use Node.js 10.x
-        uses: actions/setup-node@v1
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
         with:
-          node-version: 10.x
+          node-version: '14'
       
       - name: install yarn
         run: npm install -g yarn
