@@ -9,7 +9,7 @@ const modifiedFiles = danger.git.modified_files;
 const createdFiles = danger.git.created_files;
 const deletedFiles = danger.git.deleted_files;
 const changedFiles = [...modifiedFiles, ...createdFiles, ...deletedFiles];
-const promises = changedFiles.map(fileName => danger.git.JSONDiffForFile(fileName))
+const promises = changedFiles.map(fileName => danger.git.diffForFile(fileName))
 Promise.all(promises)
   .then((data) => {
     console.log(data)
