@@ -8,6 +8,7 @@ console.log('** changedFiles **', changedFiles)
 
 const filePattern = 'coverage'
 const codeBlock = 'logExposure'
+const whitelistPath = 'src'
 
 let filesChanged = false;
 for (let file of changedFiles) {
@@ -22,8 +23,8 @@ if (filesChanged) {
   Promise.all(promises)
     .then((filesChanged) => {
       let isCodeBlockAdded = false;
-      filesChanged.forEach(fChange => {
-        if (fChange.added.indexOf(codeBlock) > -1) {
+      filesChanged.forEach((fChange, idx) => {
+        if (fChange.added.indexOf(codeBlock) > -1 && changedFiles[idx].indexOf(whitelistPath) > -1) {
           isCodeBlockAdded = true;
         }
       })
