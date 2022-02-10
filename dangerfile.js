@@ -1,10 +1,9 @@
-import { message, danger, warn } from "danger"
+// eslint-disable-next-line no-undef
+const { message, danger, warn } = require("danger")
 
 const modifiedFiles = danger.git.modified_files;
 const createdFiles = danger.git.created_files;
 const changedFiles = [...modifiedFiles, ...createdFiles];
-
-console.log('** changedFiles **', changedFiles)
 
 const filePattern = 'coverage'
 const codeBlock = 'logExposure'
