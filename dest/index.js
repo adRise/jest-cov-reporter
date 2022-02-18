@@ -8891,7 +8891,8 @@ async function main() {
       pull_number: prNumber,
     });
 
-    console.log('files changed', files)
+    const changedFiles = files.map(file => file.data.filename)
+    console.log('files changed', changedFiles) 
 
     // Read the json summary files for base and branch coverage
     const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
