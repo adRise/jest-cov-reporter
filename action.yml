@@ -25,6 +25,9 @@ inputs:
   custom-message:
     description: 'Pass any custom string which will be displayed in the comment'
     default: ''
+  only-check-changed-files:
+    description: 'Only test for changed files in the PR'
+    default: true
 
 runs:
   using: 'node12'

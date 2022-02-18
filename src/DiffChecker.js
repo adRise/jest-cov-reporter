@@ -9,16 +9,16 @@ export class DiffChecker {
   constructor(
     coverageReportNew,
     coverageReportOld,
-    delta
+    delta,
+    changedFiles
   ) {
     this.diffCoverageReport = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
+    this.changedFiles = changedFiles;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
-
-    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -54,6 +54,14 @@ export class DiffChecker {
     }
   }
 
+  checkOnlyChangedFiles(file) {
+    if (this.changedFiles) {
+      return this.changedFiles.indexOf(file) > -1;
+    }
+
+    return true;
+  }
+
   /**
    * Create coverageDetails table
    * @param {*} diffOnly 
@@ -70,7 +78,7 @@ export class DiffChecker {
           key.replace(currentDirectory, ''),
           this.diffCoverageReport[key]
         )
-        if (diffStatus.status === 'decrease') {
+        if (diffStatus.status === 'decrease' && this.checkOnlyChangedFiles(key)) {
           decreaseStatusLines.push(diffStatus.statusMessage)
         } else {
           remainingStatusLines.push(diffStatus.statusMessage)
@@ -125,7 +133,10 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta && !this.isDueToRemovedLines(diffCoverageData[key])) {
+          if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
+            && !this.isDueToRemovedLines(diffCoverageData[key])) {
+            // Check only changed files
+            if (this.changedFiles) return this.changedFiles.indexOf(key) > -1
             return true
           }
         }

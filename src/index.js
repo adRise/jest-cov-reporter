@@ -25,6 +25,10 @@ async function main() {
 
     // get the custom message
     const customMessage = core.getInput('custom-message');
+
+    // Only check changed files in PR
+    const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
+    
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -40,21 +44,22 @@ async function main() {
       return;
     }
 
-    const files = await githubClient.pulls.listFiles({
-      owner: repoOwner,
-      repo: repoName,
-      pull_number: prNumber,
-    });
-
-    const changedFiles = files.data.map(file => file.filename)
-    console.log('files changed', changedFiles) 
+    let changedFiles = null;
+    if (onlyCheckChangedFiles) {
+      const files = await githubClient.pulls.listFiles({
+        owner: repoOwner,
+        repo: repoName,
+        pull_number: prNumber,
+      });
+      changedFiles = files.data ? files.data.map(file => file.filename) : [];
+    }
 
     // Read the json summary files for base and branch coverage
     const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
     // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta, changedFiles);
     
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')

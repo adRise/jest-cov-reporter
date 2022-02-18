@@ -8541,16 +8541,16 @@ class DiffChecker {
   constructor(
     coverageReportNew,
     coverageReportOld,
-    delta
+    delta,
+    changedFiles
   ) {
     this.diffCoverageReport = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
+    this.changedFiles = changedFiles;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
-
-    
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -8586,6 +8586,14 @@ class DiffChecker {
     }
   }
 
+  checkOnlyChangedFiles(file) {
+    if (this.changedFiles) {
+      return this.changedFiles.indexOf(file) > -1;
+    }
+
+    return true;
+  }
+
   /**
    * Create coverageDetails table
    * @param {*} diffOnly 
@@ -8602,7 +8610,7 @@ class DiffChecker {
           key.replace(currentDirectory, ''),
           this.diffCoverageReport[key]
         )
-        if (diffStatus.status === 'decrease') {
+        if (diffStatus.status === 'decrease' && this.checkOnlyChangedFiles(key)) {
           decreaseStatusLines.push(diffStatus.statusMessage)
         } else {
           remainingStatusLines.push(diffStatus.statusMessage)
@@ -8657,7 +8665,10 @@ class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta && !this.isDueToRemovedLines(diffCoverageData[key])) {
+          if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
+            && !this.isDueToRemovedLines(diffCoverageData[key])) {
+            // Check only changed files
+            if (this.changedFiles) return this.changedFiles.indexOf(key) > -1
             return true
           }
         }
@@ -8870,6 +8881,10 @@ async function main() {
 
     // get the custom message
     const customMessage = core.getInput('custom-message');
+
+    // Only check changed files in PR
+    const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
+    
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -8885,21 +8900,22 @@ async function main() {
       return;
     }
 
-    const files = await githubClient.pulls.listFiles({
-      owner: repoOwner,
-      repo: repoName,
-      pull_number: prNumber,
-    });
-
-    const changedFiles = files.data.map(file => file.filename)
-    console.log('files changed', changedFiles) 
+    let changedFiles = null;
+    if (onlyCheckChangedFiles) {
+      const files = await githubClient.pulls.listFiles({
+        owner: repoOwner,
+        repo: repoName,
+        pull_number: prNumber,
+      });
+      changedFiles = files.data ? files.data.map(file => file.filename) : [];
+    }
 
     // Read the json summary files for base and branch coverage
     const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
     const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
     // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta, changedFiles);
     
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
