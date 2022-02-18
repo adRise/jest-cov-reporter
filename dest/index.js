@@ -8891,7 +8891,7 @@ async function main() {
       pull_number: prNumber,
     });
 
-    const changedFiles = files.map(file => file.data.filename)
+    const changedFiles = files.data.map(file => file.filename)
     console.log('files changed', changedFiles) 
 
     // Read the json summary files for base and branch coverage
