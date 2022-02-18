@@ -40,6 +40,14 @@ async function main() {
       return;
     }
 
+    const files = await githubClient.pulls.listFiles({
+      owner: repoOwner,
+      repo: repoName,
+      pull_number: prNumber,
+    });
+
+    console.log('files changed', files)
+
     // Read the json summary files for base and branch coverage
     const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
