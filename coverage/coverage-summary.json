@@ -19972,7 +19972,7 @@
             "total": 34,
             "covered": 32,
             "skipped": 0,
-            "pct": 94.12
+            "pct": 90.12
         },
         "functions": {
             "total": 5,
@@ -19990,10 +19990,10 @@
             "total": 16,
             "covered": 12,
             "skipped": 0,
-            "pct": 75
+            "pct": 70
         }
     },
-    "/home/runner/work/www/www/src/server/routes/videos.js": {
+    "src/DiffChecker.js": {
         "lines": {
             "total": 112,
             "covered": 93,
@@ -20002,9 +20002,9 @@
         },
         "functions": {
             "total": 13,
-            "covered": 13,
+            "covered": 12,
             "skipped": 0,
-            "pct": 100
+            "pct": 90
         },
         "statements": {
             "total": 112,
@@ -20019,12 +20019,12 @@
             "pct": 63.89
         }
     },
-    "/home/runner/work/www/www/src/server/routes/wellKnown.js": {
+    "dest/index.js": {
         "lines": {
             "total": 5,
             "covered": 4,
             "skipped": 0,
-            "pct": 80
+            "pct": 70
         },
         "functions": {
             "total": 2,
