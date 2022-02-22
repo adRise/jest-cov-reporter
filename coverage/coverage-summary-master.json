@@ -19993,7 +19993,7 @@
             "pct": 75
         }
     },
-    "src/DiffChecker.js": {
+    "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
             "total": 112,
             "covered": 93,
@@ -20019,7 +20019,7 @@
             "pct": 63.89
         }
     },
-    "dest/index.js": {
+    "/home/runner/work/www/www/src/server/routes/wellKnown.js": {
         "lines": {
             "total": 5,
             "covered": 4,
