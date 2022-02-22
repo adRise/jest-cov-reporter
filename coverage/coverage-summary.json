@@ -19972,7 +19972,7 @@
             "total": 34,
             "covered": 32,
             "skipped": 0,
-            "pct": 92.12
+            "pct": 94.12
         },
         "functions": {
             "total": 5,
@@ -19993,7 +19993,7 @@
             "pct": 75
         }
     },
-    "dest/index.js": {
+    "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
             "total": 112,
             "covered": 93,

@@ -19993,7 +19993,7 @@
             "pct": 75
         }
     },
-    "dest/index.js": {
+    "/home/runner/work/www/www/src/server/routes/videos.js": {
         "lines": {
             "total": 112,
             "covered": 93,
