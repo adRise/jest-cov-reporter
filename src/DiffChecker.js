@@ -6,13 +6,13 @@ const removedCoverageIcon = ':yellow_circle:'
  * DiffChecker is the simple algorithm to compare coverage
  */
 export class DiffChecker {
-  constructor(
+  constructor({
     coverageReportNew,
     coverageReportOld,
     delta,
     changedFiles,
     currentDirectory
-  ) {
+  }) {
     this.diffCoverageReport = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;

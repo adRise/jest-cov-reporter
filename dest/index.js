@@ -8538,16 +8538,18 @@ const removedCoverageIcon = ':yellow_circle:'
  * DiffChecker is the simple algorithm to compare coverage
  */
 class DiffChecker {
-  constructor(
+  constructor({
     coverageReportNew,
     coverageReportOld,
     delta,
-    changedFiles
-  ) {
+    changedFiles,
+    currentDirectory
+  }) {
     this.diffCoverageReport = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
     this.changedFiles = changedFiles;
+    this.currentDirectory = currentDirectory;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
@@ -8587,6 +8589,7 @@ class DiffChecker {
   }
 
   checkOnlyChangedFiles(file) {
+    file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file) > -1;
     }
@@ -8597,17 +8600,16 @@ class DiffChecker {
   /**
    * Create coverageDetails table
    * @param {*} diffOnly 
-   * @param {*} currentDirectory 
    * @returns 
    */
-  getCoverageDetails(diffOnly, currentDirectory) {
+  getCoverageDetails(diffOnly) {
     const keys = Object.keys(this.diffCoverageReport)
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
         const diffStatus = this.createDiffLine(
-          key.replace(currentDirectory, ''),
+          key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
         )
         if (diffStatus.status === 'decrease' && this.checkOnlyChangedFiles(key)) {
@@ -8618,7 +8620,7 @@ class DiffChecker {
       } else {
         if (!diffOnly) {
           remainingStatusLines.push(
-            `${key.replace(currentDirectory, '')} | ${
+            `${key.replace(this.currentDirectory, '')} | ${
               this.diffCoverageReport[key].statements.newPct
             } | ${this.diffCoverageReport[key].branches.newPct} | ${
               this.diffCoverageReport[key].functions.newPct
@@ -8911,23 +8913,20 @@ async function main() {
     }
 
     // Read the json summary files for base and branch coverage
-    const codeCoverageNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
-    const codeCoverageOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
+    const coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
+    const coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
-    // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta, changedFiles);
-    
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
       .toString()
       .trim()
+
+    // Perform analysis
+    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory });
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
-      !fullCoverage,
-      `${currentDirectory}/`
-    )
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
