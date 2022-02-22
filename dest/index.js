@@ -8713,7 +8713,7 @@ class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
-    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name}})` : name;
+    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name}.html)` : name;
     if (fileNewCoverage) {
       return {
         status: 'new',
