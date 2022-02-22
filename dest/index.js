@@ -8658,8 +8658,8 @@ class DiffChecker {
    */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
-    for (const key of keys) {
-      const diffCoverageData = this.diffCoverageReport[key]
+    for (const fileName of keys) {
+      const diffCoverageData = this.diffCoverageReport[fileName]
       const keys = Object.keys(diffCoverageData)
       // No new coverage found so that means we deleted a file coverage
       const fileRemovedCoverage = Object.values(diffCoverageData).every(
@@ -8674,8 +8674,8 @@ class DiffChecker {
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
             // Check only changed files
-            console.log('key, this.changedFiles', key, this.changedFiles)
-            if (this.checkOnlyChangedFiles(key)) {
+            console.log('key, this.changedFiles', fileName, this.changedFiles)
+            if (this.checkOnlyChangedFiles(fileName)) {
               return true
             }
           }
