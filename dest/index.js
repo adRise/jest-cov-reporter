@@ -8674,6 +8674,7 @@ class DiffChecker {
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
             // Check only changed files
+            console.log('key, this.changedFiles', key, this.changedFiles)
             if (this.checkOnlyChangedFiles(key)) {
               return true
             }
