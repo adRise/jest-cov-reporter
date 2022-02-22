@@ -28,6 +28,9 @@ async function main() {
 
     // Only check changed files in PR
     const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
+
+    // Add prefix to file name URLs
+    const prefixFilenameUrl = core.getInput('prefix-filename-url')
     
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
@@ -64,7 +67,7 @@ async function main() {
       .trim()
 
     // Perform analysis
-    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory });
+    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
