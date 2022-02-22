@@ -26,3 +26,4 @@ jobs:
           branch-coverage-report-path: ./coverage/coverage-summary.json
           base-coverage-report-path: ./coverage/coverage-summary-master.json
           useSameComment: true
+          prefix-filename-url: 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/coverage-artifacts'

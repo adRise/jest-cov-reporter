@@ -19993,12 +19993,12 @@
             "pct": 75
         }
     },
-    "/home/runner/work/www/www/src/server/routes/videos.js": {
+    "dest/index.js": {
         "lines": {
             "total": 112,
             "covered": 93,
             "skipped": 0,
-            "pct": 83.04
+            "pct": 81.04
         },
         "functions": {
             "total": 13,
