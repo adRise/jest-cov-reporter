@@ -58,20 +58,17 @@ async function main() {
     const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
-    // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta, changedFiles);
-    
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
       .toString()
       .trim()
+
+    // Perform analysis
+    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta, changedFiles, currentDirectory);
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
-      !fullCoverage,
-      `${currentDirectory}/`
-    )
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report

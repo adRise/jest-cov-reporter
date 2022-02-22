@@ -10,12 +10,14 @@ export class DiffChecker {
     coverageReportNew,
     coverageReportOld,
     delta,
-    changedFiles
+    changedFiles,
+    currentDirectory
   ) {
     this.diffCoverageReport = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
     this.changedFiles = changedFiles;
+    this.currentDirectory = currentDirectory;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
@@ -55,6 +57,7 @@ export class DiffChecker {
   }
 
   checkOnlyChangedFiles(file) {
+    file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file) > -1;
     }
@@ -65,17 +68,16 @@ export class DiffChecker {
   /**
    * Create coverageDetails table
    * @param {*} diffOnly 
-   * @param {*} currentDirectory 
    * @returns 
    */
-  getCoverageDetails(diffOnly, currentDirectory) {
+  getCoverageDetails(diffOnly) {
     const keys = Object.keys(this.diffCoverageReport)
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
         const diffStatus = this.createDiffLine(
-          key.replace(currentDirectory, ''),
+          key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
         )
         if (diffStatus.status === 'decrease' && this.checkOnlyChangedFiles(key)) {
@@ -86,7 +88,7 @@ export class DiffChecker {
       } else {
         if (!diffOnly) {
           remainingStatusLines.push(
-            `${key.replace(currentDirectory, '')} | ${
+            `${key.replace(this.currentDirectory, '')} | ${
               this.diffCoverageReport[key].statements.newPct
             } | ${this.diffCoverageReport[key].branches.newPct} | ${
               this.diffCoverageReport[key].functions.newPct
