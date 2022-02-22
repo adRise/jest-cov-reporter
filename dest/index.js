@@ -8594,7 +8594,6 @@ class DiffChecker {
 
   checkOnlyChangedFiles(file) {
     file = file.replace(this.currentDirectory, '');
-    console.log('*** file, this.changedFiles **', file, this.changedFiles)
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file) > -1;
     }
@@ -8675,7 +8674,9 @@ class DiffChecker {
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
             // Check only changed files
-            return this.checkOnlyChangedFiles(key);
+            if (this.checkOnlyChangedFiles(key)) {
+              return true
+            }
           }
         }
       }
