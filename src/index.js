@@ -25,6 +25,13 @@ async function main() {
 
     // get the custom message
     const customMessage = core.getInput('custom-message');
+
+    // Only check changed files in PR
+    const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
+
+    // Add prefix to file name URLs
+    const prefixFilenameUrl = core.getInput('prefix-filename-url')
+    
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -40,24 +47,31 @@ async function main() {
       return;
     }
 
-    // Read the json summary files for base and branch coverage
-    const codeCoverageNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
-    const codeCoverageOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+    let changedFiles = null;
+    if (onlyCheckChangedFiles) {
+      const files = await githubClient.pulls.listFiles({
+        owner: repoOwner,
+        repo: repoName,
+        pull_number: prNumber,
+      });
+      changedFiles = files.data ? files.data.map(file => file.filename) : [];
+    }
 
-    // Perform analysis
-    const diffChecker = new DiffChecker(codeCoverageNew, codeCoverageOld, delta);
-    
+    // Read the json summary files for base and branch coverage
+    const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
+    const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
       .toString()
       .trim()
+
+    // Perform analysis
+    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(
-      !fullCoverage,
-      `${currentDirectory}/`
-    )
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     // Add a comment to PR with full coverage report
