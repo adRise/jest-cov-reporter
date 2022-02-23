@@ -63,7 +63,7 @@ export class DiffChecker {
   checkOnlyChangedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
-      return this.changedFiles.indexOf(file) > -1;
+      return this.changedFiles.indexOf(file.substring(1)) > -1;
     }
 
     return true;
