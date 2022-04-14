@@ -14,7 +14,7 @@ Failure Screenshot
 ## Usage
 ```
 - name: Coverage
-        uses: arunshan/jest-cov-reporter@main
+        uses: adRise/jest-cov-reporter@main
         with:
           branch-coverage-report-path: ./coverage/coverage-summary.json
           base-coverage-report-path: ./coverage/master-coverage-summary.json
