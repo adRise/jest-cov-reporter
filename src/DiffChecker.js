@@ -76,8 +76,6 @@ export class DiffChecker {
 
   /**
    * Create coverageDetails table
-   * @param {*} diffOnly
-   * @returns
    */
   getCoverageDetails(diffOnly) {
     const keys = Object.keys(this.diffCoverageReport)
