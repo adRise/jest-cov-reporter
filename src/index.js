@@ -61,6 +61,9 @@ async function main() {
     const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
+    console.log('[ coverageReportOld ] >', coverageReportOld.length);
+    console.log('[ coverageReportNew ] >', coverageReportNew.length);
+
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
       .toString()
@@ -118,7 +121,7 @@ async function main() {
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'
-        console.log('messageToPost7!!!', messageToPost);
+        console.log('messageToPost7!!!', messageToPost.length);
       }
     }
 

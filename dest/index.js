@@ -8925,6 +8925,9 @@ async function main() {
     const coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
+    console.log('[ coverageReportOld ] >', coverageReportOld.length);
+    console.log('[ coverageReportNew ] >', coverageReportNew.length);
+
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
       .toString()
@@ -8982,7 +8985,7 @@ async function main() {
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'
-        console.log('messageToPost7!!!', messageToPost);
+        console.log('messageToPost7!!!', messageToPost.length);
       }
     }
 
