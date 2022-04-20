@@ -31,7 +31,7 @@ async function main() {
 
     // Add prefix to file name URLs
     const prefixFilenameUrl = core.getInput('prefix-filename-url')
-    
+
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -67,8 +67,17 @@ async function main() {
       .trim()
 
     // Perform analysis
-    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
-    
+    const diffChecker = new DiffChecker({
+      changedFiles,
+      coverageReportNew,
+      coverageReportOld,
+      currentDirectory,
+      delta,
+      prefixFilenameUrl,
+      prNumber,
+      repoName,
+    });
+
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
     const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
@@ -149,7 +158,7 @@ async function main() {
       messageToPost,
       prNumber
     )
-      
+
     // check if the test coverage is falling below delta/tolerance.
     if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
       throw Error(messageToPost)
