@@ -61,8 +61,8 @@ async function main() {
     const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
-    console.log('[ coverageReportOld ] >', coverageReportOld);
-    console.log('[ coverageReportNew ] >', coverageReportNew);
+    // console.log('[ coverageReportOld ] >', coverageReportOld);
+    // console.log('[ coverageReportNew ] >', coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')

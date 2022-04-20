@@ -57,6 +57,7 @@ export class DiffChecker {
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
         }
       }
+      console.log('[ this.diffCoverageReport ] >', this.diffCoverageReport)
     }
   }
 

@@ -8589,6 +8589,7 @@ class DiffChecker {
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
         }
       }
+      console.log('[ this.diffCoverageReport ] >', this.diffCoverageReport)
     }
   }
 
@@ -8928,8 +8929,8 @@ async function main() {
     const coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
-    console.log('[ coverageReportOld ] >', coverageReportOld);
-    console.log('[ coverageReportNew ] >', coverageReportNew);
+    // console.log('[ coverageReportOld ] >', coverageReportOld);
+    // console.log('[ coverageReportNew ] >', coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
