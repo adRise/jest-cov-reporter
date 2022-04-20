@@ -8977,12 +8977,12 @@ async function main() {
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
               'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
-        console.log('messageToPost6!!!', messageToPost);
+        console.log('messageToPost6!!!', messageToPost.length);
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'
-        console.log('messageToPost7!!!', messageToPost.length);
+        console.log('messageToPost7!!!', messageToPost);
       }
     }
 
