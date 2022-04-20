@@ -7,13 +7,14 @@ const removedCoverageIcon = ':yellow_circle:'
  */
 export class DiffChecker {
   constructor({
+    changedFiles,
     coverageReportNew,
     coverageReportOld,
-    delta,
-    changedFiles,
     currentDirectory,
+    delta,
     prefixFilenameUrl,
-    prNumber
+    prNumber,
+    repoName,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -22,8 +23,8 @@ export class DiffChecker {
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
-    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split('www').pop());
-    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split('www').pop());
+    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split(repoName).pop());
+    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split(repoName).pop());
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**

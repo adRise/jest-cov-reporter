@@ -8539,13 +8539,14 @@ const removedCoverageIcon = ':yellow_circle:'
  */
 class DiffChecker {
   constructor({
+    changedFiles,
     coverageReportNew,
     coverageReportOld,
-    delta,
-    changedFiles,
     currentDirectory,
+    delta,
     prefixFilenameUrl,
-    prNumber
+    prNumber,
+    repoName,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -8554,8 +8555,8 @@ class DiffChecker {
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
-    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split('www').pop());
-    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split('www').pop());
+    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split(repoName).pop());
+    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split(repoName).pop());
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**
@@ -8933,7 +8934,16 @@ async function main() {
       .trim()
 
     // Perform analysis
-    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
+    const diffChecker = new DiffChecker({
+      currentDirectory,
+      changedFiles,
+      coverageReportNew,
+      coverageReportOld,
+      delta,
+      prefixFilenameUrl,
+      prNumber,
+      repoName,
+    });
 
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage

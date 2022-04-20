@@ -67,7 +67,16 @@ async function main() {
       .trim()
 
     // Perform analysis
-    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
+    const diffChecker = new DiffChecker({
+      currentDirectory,
+      changedFiles,
+      coverageReportNew,
+      coverageReportOld,
+      delta,
+      prefixFilenameUrl,
+      prNumber,
+      repoName,
+    });
 
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
