@@ -8556,7 +8556,7 @@ class DiffChecker {
     this.prNumber = prNumber;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
-    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]).map
+    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
     /**
      * For all filePaths in coverage, generate a percentage value
