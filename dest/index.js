@@ -8563,30 +8563,32 @@ class DiffChecker {
      * for both base and current branch
      */
     for (const filePath of reportKeys) {
+      const newCoverage = this.getFileCoverage(coverageReportNew, filePath);
+      const oldCoverage = this.getFileCoverage(coverageReportOld, filePath);
       this.diffCoverageReport[filePath] = {
         branches: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null)
+          new: newCoverage ? oldCoverage.branches : null,
+          old: oldCoverage ? oldCoverage.branches : null,
+          newPct: this.getPercentage(newCoverage ? newCoverage.branches : null),
+          oldPct: this.getPercentage(oldCoverage ? oldCoverage.branches : null)
         },
         statements: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null)
+          new: newCoverage ? newCoverage.statements : null,
+          old: oldCoverage ? oldCoverage.statements : null,
+          newPct: this.getPercentage(newCoverage ? newCoverage.statements : null),
+          oldPct: this.getPercentage(oldCoverage ? oldCoverage.statements : null)
         },
         lines: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null)
+          new: newCoverage ? newCoverage.lines : null,
+          old: oldCoverage ? oldCoverage.lines : null,
+          newPct: this.getPercentage(newCoverage ? newCoverage.lines : null),
+          oldPct: this.getPercentage(oldCoverage ? oldCoverage.lines : null)
         },
         functions: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
+          new: newCoverage ? newCoverage.functions : null,
+          old: oldCoverage ? oldCoverage.functions : null,
+          newPct: this.getPercentage(newCoverage ? newCoverage.functions : null),
+          oldPct: this.getPercentage(oldCoverage ? oldCoverage.functions : null)
         }
       }
     }
@@ -8792,7 +8794,7 @@ class DiffChecker {
   getFileCoverage(report, filePath) {
     if (report[filePath]) return report[filePath];
 
-    return report[filePath.replace('/runner/_work', '/runner/work')];
+    return report[filePath.replace('/runner/_work', '/home/runner/work')];
   }
 }
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
