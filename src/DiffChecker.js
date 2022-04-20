@@ -31,7 +31,6 @@ export class DiffChecker {
      * for both base and current branch
      */
     for (const filePath of reportKeys) {
-      console.log('[ filePath ] >', filePath);
       const newCoverage = coverageReportNew[filePath];
       const oldCoverage = coverageReportOld[filePath];
       this.diffCoverageReport[filePath] = {
