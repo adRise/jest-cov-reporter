@@ -8925,8 +8925,8 @@ async function main() {
     const coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
 
-    console.log('[ coverageReportOld ] >', coverageReportOld.length);
-    console.log('[ coverageReportNew ] >', coverageReportNew.length);
+    console.log('[ coverageReportOld ] >', coverageReportOld);
+    console.log('[ coverageReportNew ] >', coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
