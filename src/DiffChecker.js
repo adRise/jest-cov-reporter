@@ -24,7 +24,7 @@ export class DiffChecker {
     this.prNumber = prNumber;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
-    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]).map
 
     /**
      * For all filePaths in coverage, generate a percentage value
@@ -57,7 +57,6 @@ export class DiffChecker {
           oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
         }
       }
-      console.log('[ this.diffCoverageReport ] >', this.diffCoverageReport)
     }
   }
 
@@ -177,9 +176,6 @@ export class DiffChecker {
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.oldPct === 0
     )
-    if (fileNewCoverage) {
-      console.log('[ fileNewCoverage name ] >', name)
-    }
     // No new coverage found so that means we deleted a file coverage
     const fileRemovedCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.newPct === 0
@@ -259,5 +255,11 @@ export class DiffChecker {
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)
     // round off the diff to 2 decimal places
     return Math.round((diff + Number.EPSILON) * 100) / 100
+  }
+
+  getFileCoverage(report, filePath) {
+    if (report[filePath]) return report[filePath];
+
+    return report[filePath.replace('/runner/_work', '/runner/work')];
   }
 }

@@ -61,8 +61,8 @@ async function main() {
     const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
 
-    // console.log('[ coverageReportOld ] >', coverageReportOld);
-    // console.log('[ coverageReportNew ] >', coverageReportNew);
+    console.log('[ coverageReportOld ] >', coverageReportOld);
+    console.log('[ coverageReportNew ] >', coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
@@ -81,13 +81,11 @@ async function main() {
     let messageToPost = `## Coverage Report \n\n`
 
     messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
-    console.log('messageToPost1!!!', messageToPost.length);
 
     // Add the custom message if it exists
     if (customMessage !== '') {
       messageToPost += `* ${customMessage} \n`;
     }
-    console.log('messageToPost2!!!', messageToPost.length);
 
     // If coverageDetails length is 0 that means there is no change between base and head
     if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
@@ -95,20 +93,17 @@ async function main() {
               '* No changes to code coverage between the master branch and the current head branch'
       messageToPost += '\n--- \n\n'
     } else {
-      console.log('messageToPost3!!!', messageToPost.length);
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
         messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
       }
       messageToPost += '--- \n\n'
-      console.log('messageToPost4!!!', messageToPost.length);
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
         messageToPost += decreaseStatusLines.join('\n')
         messageToPost += '\n--- \n\n'
       }
-      console.log('messageToPost5!!!', messageToPost.length);
 
       // Show coverage table for all files that were affected because of this PR
       if (remainingStatusLines.length > 0) {
@@ -116,12 +111,10 @@ async function main() {
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
               'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
-        console.log('messageToPost6!!!', messageToPost.length);
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'
-        console.log('messageToPost7!!!', messageToPost.length);
       }
     }
 
@@ -135,12 +128,10 @@ async function main() {
       messageToPost +=
             `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
     }
-    console.log('messageToPost8!!!', messageToPost.length);
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
     let commentId = null
 
-    console.log('messageToPost9!!!', messageToPost.length);
 
     // If useSameComment is true, then find the comment and then update that comment.
     // If not, then create a new comment
