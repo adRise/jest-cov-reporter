@@ -23,8 +23,10 @@ export class DiffChecker {
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
-    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split(repoName).pop());
-    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split(repoName).pop());
+
+    const getRelativePath = (fullFilePath) => fullFilePath.split(repoName).pop();
+    const reportNewKeys = Object.keys(coverageReportNew).map(getRelativePath);
+    const reportOldKeys = Object.keys(coverageReportOld).map(getRelativePath);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**
@@ -32,32 +34,32 @@ export class DiffChecker {
      * for both base and current branch
      */
     for (const filePath of reportKeys) {
-      const newCoverage = coverageReportNew[filePath];
-      const oldCoverage = coverageReportOld[filePath];
+      const newCoverage = coverageReportNew[filePath] || {};
+      const oldCoverage = coverageReportOld[filePath] || {};
       this.diffCoverageReport[filePath] = {
         branches: {
-          new: newCoverage ? oldCoverage.branches : null,
-          old: oldCoverage ? oldCoverage.branches : null,
-          newPct: this.getPercentage(newCoverage ? newCoverage.branches : null),
-          oldPct: this.getPercentage(oldCoverage ? oldCoverage.branches : null)
+          new: newCoverage.branches,
+          old: oldCoverage.branches,
+          newPct: this.getPercentage(newCoverage.branches),
+          oldPct: this.getPercentage(oldCoverage.branches),
         },
         statements: {
-          new: newCoverage ? newCoverage.statements : null,
-          old: oldCoverage ? oldCoverage.statements : null,
-          newPct: this.getPercentage(newCoverage ? newCoverage.statements : null),
-          oldPct: this.getPercentage(oldCoverage ? oldCoverage.statements : null)
+          new: newCoverage.statements,
+          old:oldCoverage.statements,
+          newPct: this.getPercentage(newCoverage.statements),
+          oldPct: this.getPercentage(oldCoverage.statements),
         },
         lines: {
-          new: newCoverage ? newCoverage.lines : null,
-          old: oldCoverage ? oldCoverage.lines : null,
-          newPct: this.getPercentage(newCoverage ? newCoverage.lines : null),
-          oldPct: this.getPercentage(oldCoverage ? oldCoverage.lines : null)
+          new: newCoverage.lines,
+          old: oldCoverage.lines,
+          newPct: this.getPercentage(newCoverage.lines),
+          oldPct: this.getPercentage(oldCoverage.lines),
         },
         functions: {
-          new: newCoverage ? newCoverage.functions : null,
-          old: oldCoverage ? oldCoverage.functions : null,
-          newPct: this.getPercentage(newCoverage ? newCoverage.functions : null),
-          oldPct: this.getPercentage(oldCoverage ? oldCoverage.functions : null)
+          new: newCoverage.functions,
+          old: oldCoverage.functions,
+          newPct: this.getPercentage(newCoverage.functions),
+          oldPct: this.getPercentage(oldCoverage.functions),
         }
       }
     }
@@ -161,15 +163,12 @@ export class DiffChecker {
     const oldCoverage = diffCoverageData.old;
     if (!oldCoverage || !newCoverage) return false;
 
-    return newCoverage.covered - oldCoverage.covered < 0 &&
+    return newCoverage.covered < oldCoverage.covered &&
       (oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total)
   }
 
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
-   * @param {*} name
-   * @param {*} diffFileCoverageData
-   * @returns
    */
   createDiffLine(
     name,

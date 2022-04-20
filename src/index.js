@@ -68,10 +68,10 @@ async function main() {
 
     // Perform analysis
     const diffChecker = new DiffChecker({
-      currentDirectory,
       changedFiles,
       coverageReportNew,
       coverageReportOld,
+      currentDirectory,
       delta,
       prefixFilenameUrl,
       prNumber,
@@ -137,7 +137,6 @@ async function main() {
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
     let commentId = null
-
 
     // If useSameComment is true, then find the comment and then update that comment.
     // If not, then create a new comment
