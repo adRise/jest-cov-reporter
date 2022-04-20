@@ -8603,8 +8603,8 @@ class DiffChecker {
 
   /**
    * Create coverageDetails table
-   * @param {*} diffOnly 
-   * @returns 
+   * @param {*} diffOnly
+   * @returns
    */
   getCoverageDetails(diffOnly) {
     const keys = Object.keys(this.diffCoverageReport)
@@ -8653,8 +8653,8 @@ class DiffChecker {
 
   /**
    * Function to check if the file's coverage is below delta
-   * @param {*} delta 
-   * @returns 
+   * @param {*} delta
+   * @returns
    */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
@@ -8671,7 +8671,7 @@ class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
+          if (-this.getPercentageDiff(diffCoverageData[key]) > delta
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
             // Check only changed files
             if (this.checkOnlyChangedFiles(fileName)) {
@@ -8690,15 +8690,15 @@ class DiffChecker {
     const oldCoverage = diffCoverageData.old;
     if (!oldCoverage || !newCoverage) return false;
 
-    return newCoverage.covered - oldCoverage.covered < 0 && 
+    return newCoverage.covered - oldCoverage.covered < 0 &&
       (oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total)
   }
 
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
-   * @param {*} name 
-   * @param {*} diffFileCoverageData 
-   * @returns 
+   * @param {*} name
+   * @param {*} diffFileCoverageData
+   * @returns
    */
   createDiffLine(
     name,
@@ -8708,6 +8708,9 @@ class DiffChecker {
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.oldPct === 0
     )
+    if (fileNewCoverage) {
+      console.log('[ fileNewCoverage name ] >', name)
+    }
     // No new coverage found so that means we deleted a file coverage
     const fileRemovedCoverage = Object.values(diffFileCoverageData).every(
       coverageData => coverageData.newPct === 0
@@ -8759,8 +8762,8 @@ class DiffChecker {
 
   /**
    * Show red/green status icon for each file
-   * @param {*} diffFileCoverageData 
-   * @returns 
+   * @param {*} diffFileCoverageData
+   * @returns
    */
   getStatusIcon(
     diffFileCoverageData
@@ -8780,8 +8783,8 @@ class DiffChecker {
 
   /**
    * Get % diff for base vs current branch
-   * @param {*} diffData 
-   * @returns 
+   * @param {*} diffData
+   * @returns
    */
   getPercentageDiff(diffData) {
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)
