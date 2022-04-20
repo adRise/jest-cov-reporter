@@ -22,17 +22,18 @@ export class DiffChecker {
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
-    const reportNewKeys = Object.keys(coverageReportNew)
-    const reportOldKeys = Object.keys(coverageReportOld)
-    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+    const reportNewKeys = Object.keys(coverageReportNew).map((key) => key.split('www').pop());
+    const reportOldKeys = Object.keys(coverageReportOld).map((key) => key.split('www').pop());
+    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**
      * For all filePaths in coverage, generate a percentage value
      * for both base and current branch
      */
     for (const filePath of reportKeys) {
-      const newCoverage = this.getFileCoverage(coverageReportNew, filePath);
-      const oldCoverage = this.getFileCoverage(coverageReportOld, filePath);
+      console.log('[ filePath ] >', filePath);
+      const newCoverage = coverageReportNew[filePath];
+      const oldCoverage = coverageReportOld[filePath];
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage ? oldCoverage.branches : null,
@@ -257,11 +258,5 @@ export class DiffChecker {
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)
     // round off the diff to 2 decimal places
     return Math.round((diff + Number.EPSILON) * 100) / 100
-  }
-
-  getFileCoverage(report, filePath) {
-    if (report[filePath]) return report[filePath];
-
-    return report[filePath.replace('/runner/_work', '/home/runner/work')];
   }
 }
