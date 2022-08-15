@@ -1,7 +1,8 @@
 const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
-const newCoverageIcon = ':sparkles: :new:'
+const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
+const sparkleIcon = ':sparkles:'
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
@@ -13,7 +14,8 @@ export class DiffChecker {
     changedFiles,
     currentDirectory,
     prefixFilenameUrl,
-    prNumber
+    prNumber,
+    checkNewFileFullCoverage,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -22,6 +24,7 @@ export class DiffChecker {
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
+    this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
@@ -153,6 +156,31 @@ export class DiffChecker {
     return false
   }
 
+  /**
+   * Function to check if any new added file has not full coverage
+   */
+  checkIfNewFileNotFullCoverage() {
+    if (!this.checkNewFileFullCoverage) return false
+    const keys = Object.keys(this.diffCoverageReport);
+    return keys.some((key) => {
+      const diffCoverageData = this.diffCoverageReport[key];
+      const coverageParts = Object.values(diffCoverageData);
+      // No old coverage found so that means we added a new file coverage
+      const isFileNew = coverageParts.every((coverageData) => coverageData.oldPct === 0);
+      return isFileNew && this.checkIfNewFileAllPartsNotFullCoverage() && this.checkOnlyChangedFiles(key);
+    });
+  }
+
+  
+  /**
+   * Function to check whether all parts has full coverage
+   * @param  {} coverageParts
+   * @param  {} {return boolen}
+   */
+  checkIfNewFileAllPartsNotFullCoverage(coverageParts) {
+    return coverageParts.some((coverageData) => coverageData.newPct < 100);
+  }
+
   isDueToRemovedLines(diffCoverageData) {
     const newCoverage = diffCoverageData.new;
     const oldCoverage = diffCoverageData.old;
@@ -183,10 +211,17 @@ export class DiffChecker {
 
     const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
     if (fileNewCoverage) {
+      const newCoverageStatusIcon = `${
+        this.checkNewFileFullCoverage
+          ? this.checkIfNewFileAllPartsNotFullCoverage(Object.values(diffFileCoverageData))
+            ? decreasedCoverageIcon
+            : increasedCoverageIcon
+          : sparkleIcon
+      } ${newCoverageIcon}`;
       return {
         status: 'new',
-        statusMessage: ` ${newCoverageIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`
-      }
+        statusMessage: ` ${newCoverageStatusIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`,
+      };
     } else if (fileRemovedCoverage) {
       return {
         status: 'removed',

@@ -66,8 +66,16 @@ async function main() {
       .toString()
       .trim()
 
+    const labels = await githubClient.pulls.labels({
+      owner: repoOwner,
+      repo: repoName,
+      pull_number: prNumber,
+    });
+
+    const checkNewFileFullCoverage = !labels.some(label => label.name.includes('skip-new-file-full-coverage'));
+
     // Perform analysis
-    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber });
+    const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage });
     
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
@@ -151,8 +159,8 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    if (diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
-      throw Error(messageToPost)
+    if (diffChecker.checkIfNewFileNotFullCoverage() || diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+      throw Error(messageToPost);
     }
   } catch (error) {
     core.setFailed(error)
