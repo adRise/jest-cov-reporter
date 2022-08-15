@@ -8972,6 +8972,7 @@ async function main() {
       pull_number: prNumber,
     });
 
+    console.log(pullRequest.data)
     const checkNewFileFullCoverage = !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
 
     // Perform analysis
