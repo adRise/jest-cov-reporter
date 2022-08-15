@@ -8983,10 +8983,12 @@ async function main() {
     const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
+    const isNotFullCoverageOnNewFile = diffChecker.checkIfNewFileNotFullCoverage();
+
     // Add a comment to PR with full coverage report
     let messageToPost = `## Coverage Report \n\n`
 
-    messageToPost += `* **Status**: ${isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
+    messageToPost += `* **Status**: ${isNotFullCoverageOnNewFile || isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
 
     // Add the custom message if it exists
     if (customMessage !== '') {
@@ -8999,6 +9001,9 @@ async function main() {
               '* No changes to code coverage between the master branch and the current head branch'
       messageToPost += '\n--- \n\n'
     } else {
+      if (isNotFullCoverageOnNewFile) {
+        messageToPost += `* Current PR dose not do a full coverage of new files \n`
+      }
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
         messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
@@ -9060,7 +9065,7 @@ async function main() {
     )
       
     // check if the test coverage is falling below delta/tolerance.
-    if (diffChecker.checkIfNewFileNotFullCoverage() || diffChecker.checkIfTestCoverageFallsBelowDelta(delta)) {
+    if (isNotFullCoverageOnNewFile || isCoverageBelowDelta) {
       throw Error(messageToPost);
     }
   } catch (error) {
