@@ -162,6 +162,7 @@ export class DiffChecker {
   checkIfNewFileNotFullCoverage() {
     if (!this.checkNewFileFullCoverage) return false
     const keys = Object.keys(this.diffCoverageReport);
+    console.log(keys)
     return keys.some((key) => {
       const diffCoverageData = this.diffCoverageReport[key];
       const coverageParts = Object.values(diffCoverageData);
@@ -178,6 +179,7 @@ export class DiffChecker {
    * @param  {} {return boolen}
    */
   checkIfNewFileAllPartsNotFullCoverage(coverageParts) {
+    console.log(coverageParts)
     return coverageParts.some((coverageData) => coverageData.newPct < 100);
   }
 

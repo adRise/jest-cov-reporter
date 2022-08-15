@@ -73,8 +73,9 @@ async function main() {
       pull_number: prNumber,
     });
 
-    console.log(pullRequest.data.labels, pullRequest.data.labels.some, 'some')
+    console.log(Array.prototype.some)
     const checkNewFileFullCoverage = !((pullRequest.data.labels || []).some(label => label.name.includes('skip-new-file-full-coverage')));
+    console.log(checkNewFileFullCoverage)
 
     // Perform analysis
     const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage });
