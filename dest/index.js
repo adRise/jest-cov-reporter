@@ -8694,13 +8694,12 @@ class DiffChecker {
   checkIfNewFileNotFullCoverage() {
     if (!this.checkNewFileFullCoverage) return false
     const keys = Object.keys(this.diffCoverageReport);
-    console.log(keys)
     return keys.some((key) => {
       const diffCoverageData = this.diffCoverageReport[key];
       const coverageParts = Object.values(diffCoverageData);
       // No old coverage found so that means we added a new file coverage
       const isFileNew = coverageParts.every((coverageData) => coverageData.oldPct === 0);
-      return isFileNew && this.checkIfNewFileAllPartsNotFullCoverage() && this.checkOnlyChangedFiles(key);
+      return isFileNew && this.checkIfNewFileAllPartsNotFullCoverage(coverageParts) && this.checkOnlyChangedFiles(key);
     });
   }
 
@@ -8711,7 +8710,6 @@ class DiffChecker {
    * @param  {} {return boolen}
    */
   checkIfNewFileAllPartsNotFullCoverage(coverageParts) {
-    console.log(coverageParts)
     return coverageParts.some((coverageData) => coverageData.newPct < 100);
   }
 
@@ -8974,9 +8972,7 @@ async function main() {
       pull_number: prNumber,
     });
 
-    console.log(Array.prototype.some)
-    const checkNewFileFullCoverage = !((pullRequest.data.labels || []).some(label => label.name.includes('skip-new-file-full-coverage')));
-    console.log(checkNewFileFullCoverage)
+    const checkNewFileFullCoverage = !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
 
     // Perform analysis
     const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage });
