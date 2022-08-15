@@ -8973,7 +8973,7 @@ async function main() {
     });
 
     console.log(pullRequest.data)
-    const checkNewFileFullCoverage = !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
+    const checkNewFileFullCoverage = !((pullRequest.data.labels || []).some(label => label.name.includes('skip-new-file-full-coverage')));
 
     // Perform analysis
     const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage });
