@@ -8910,6 +8910,7 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
+    
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)
@@ -8965,13 +8966,13 @@ async function main() {
       .toString()
       .trim()
 
-    const labels = await githubClient.pulls.labels({
+    const pullRequest = await githubClient.pulls.get({
       owner: repoOwner,
       repo: repoName,
       pull_number: prNumber,
     });
 
-    const checkNewFileFullCoverage = !labels.some(label => label.name.includes('skip-new-file-full-coverage'));
+    const checkNewFileFullCoverage = !pullRequest.data.labels?.some(label => label.name.includes('skip-new-file-full-coverage'));
 
     // Perform analysis
     const diffChecker = new DiffChecker({ coverageReportNew, coverageReportOld, delta, changedFiles, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage });
