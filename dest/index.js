@@ -8559,7 +8559,8 @@ class DiffChecker {
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
-    console.log(reportNewKeys, reportOldKeys)
+    reportNewKeys.forEach(v => console.log('new>>>' + v))
+    reportOldKeys.forEach(v => console.log('old>>>' + v))
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
     /**
