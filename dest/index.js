@@ -8559,8 +8559,6 @@ class DiffChecker {
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     const reportNewKeys = Object.keys(coverageReportNew)
     const reportOldKeys = Object.keys(coverageReportOld)
-    reportNewKeys.forEach(v => console.log('new>>>' + v))
-    reportOldKeys.forEach(v => console.log('old>>>' + v))
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
 
     /**
@@ -8691,7 +8689,7 @@ class DiffChecker {
   }
 
   /**
-   * Function to check if any new added file has not full coverage
+   * Function to check if any new added file dose not do a full coverage
    */
   checkIfNewFileNotFullCoverage() {
     if (!this.checkNewFileFullCoverage) return false
@@ -8700,19 +8698,18 @@ class DiffChecker {
       const diffCoverageData = this.diffCoverageReport[key];
       const coverageParts = Object.values(diffCoverageData);
       // No old coverage found so that means we added a new file coverage
-      const isFileNew = coverageParts.every((coverageData) => coverageData.oldPct === 0);
-      console.log(key, isFileNew, this.checkIfNewFileAllPartsNotFullCoverage(coverageParts), this.checkOnlyChangedFiles(key))
-      return isFileNew && this.checkIfNewFileAllPartsNotFullCoverage(coverageParts) && this.checkOnlyChangedFiles(key);
+      const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
+      return newFileCoverage && this.checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) && this.checkOnlyChangedFiles(key);
     });
   }
 
   
   /**
-   * Function to check whether all parts has full coverage
+   * Function to check whether any part dose not do a full coverage
    * @param  {} coverageParts
    * @param  {} {return boolen}
    */
-  checkIfNewFileAllPartsNotFullCoverage(coverageParts) {
+  checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) {
     return coverageParts.some((coverageData) => coverageData.newPct < 100);
   }
 
@@ -8748,7 +8745,8 @@ class DiffChecker {
     if (fileNewCoverage) {
       const newCoverageStatusIcon = `${
         this.checkNewFileFullCoverage
-          ? this.checkIfNewFileAllPartsNotFullCoverage(Object.values(diffFileCoverageData))
+          ? this.checkIfNewFileNotFullCoverageOnAnyPart(Object.values(diffFileCoverageData)) &&
+            this.checkOnlyChangedFiles(name)
             ? decreasedCoverageIcon
             : increasedCoverageIcon
           : sparkleIcon
@@ -8780,15 +8778,20 @@ class DiffChecker {
   }
 
   compareCoverageValues(
+    file,
     diffCoverageData
   ) {
-    const keys = Object.keys(diffCoverageData)
-    for (const key of keys) {
-      if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct && !this.isDueToRemovedLines(diffCoverageData[key])) {
-        return 1
-      }
+    const values = Object.values(diffCoverageData);
+    const noOldCoverage = values.every((part) => part.oldPct === 0);
+    const noNewCoverage = values.every((part) => part.newPct === 0);
+    const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
+    const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
+
+    if (newFileWithoutCoverage || fileCoverageChanged) {
+      return 1;
     }
-    return 0
+
+    return 0;
   }
 
   getPercentage(coverageData) {
