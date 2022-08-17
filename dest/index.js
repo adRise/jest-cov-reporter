@@ -8614,7 +8614,7 @@ class DiffChecker {
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
-      if (this.compareCoverageValues(this.diffCoverageReport[key]) !== 0) {
+      if (this.compareCoverageValues(key, this.diffCoverageReport[key]) !== 0) {
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
