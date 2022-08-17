@@ -8614,7 +8614,7 @@ class DiffChecker {
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
-      if (this.compareCoverageValues(key, this.diffCoverageReport[key]) !== 0) {
+      if (this.compareCoverageValues(key) !== 0) {
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
@@ -8778,10 +8778,9 @@ class DiffChecker {
   }
 
   compareCoverageValues(
-    file,
-    diffCoverageData
+    file
   ) {
-    const values = Object.values(diffCoverageData);
+    const values = Object.values(this.diffCoverageReport[file]);
     const noOldCoverage = values.every((part) => part.oldPct === 0);
     const noNewCoverage = values.every((part) => part.newPct === 0);
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
