@@ -173,7 +173,7 @@ export class DiffChecker {
 
   
   /**
-   * Function to check whether any part dose not do a full coverage
+   * Function to check whether any part does not have full coverage
    * @param  {} coverageParts
    * @returns  {boolean}
    */
