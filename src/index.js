@@ -102,7 +102,7 @@ async function main() {
       messageToPost += '\n--- \n\n'
     } else {
       if (isNotFullCoverageOnNewFile) {
-        messageToPost += `* Current PR dose not do a full coverage of new files \n`
+        messageToPost += `* Current PR does not have full coverage for new files \n`
       }
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
