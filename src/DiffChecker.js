@@ -177,7 +177,7 @@ export class DiffChecker {
    * @param  {} coverageParts
    * @returns  {boolean}
    */
-  checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) {
+  checkIfNewFileLacksFullCoverage(coverageParts) {
     return coverageParts.some((coverageData) => coverageData.newPct < 100);
   }
 
