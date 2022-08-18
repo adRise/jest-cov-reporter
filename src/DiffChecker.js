@@ -165,7 +165,7 @@ export class DiffChecker {
     return keys.some((key) => {
       const diffCoverageData = this.diffCoverageReport[key];
       const coverageParts = Object.values(diffCoverageData);
-      // No old coverage found so that means we added a new file coverage
+      // No old coverage found so that means we added a new file
       const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
       return newFileCoverage && this.checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) && this.checkOnlyChangedFiles(key);
     });
