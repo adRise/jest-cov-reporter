@@ -157,7 +157,7 @@ export class DiffChecker {
   }
 
   /**
-   * Function to check if any new added file dose not do a full coverage
+   * Function to check if any newly added file does not have full coverage
    */
   checkIfNewFileNotFullCoverage() {
     if (!this.checkNewFileFullCoverage) return false
