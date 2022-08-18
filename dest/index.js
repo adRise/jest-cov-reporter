@@ -8689,7 +8689,7 @@ class DiffChecker {
   }
 
   /**
-   * Function to check if any new added file dose not do a full coverage
+   * Function to check if any newly added file does not have full coverage
    */
   checkIfNewFileNotFullCoverage() {
     if (!this.checkNewFileFullCoverage) return false
@@ -8697,19 +8697,19 @@ class DiffChecker {
     return keys.some((key) => {
       const diffCoverageData = this.diffCoverageReport[key];
       const coverageParts = Object.values(diffCoverageData);
-      // No old coverage found so that means we added a new file coverage
+      // No old coverage found so that means we added a new file
       const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
-      return newFileCoverage && this.checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) && this.checkOnlyChangedFiles(key);
+      return newFileCoverage && this.checkIfNewFileLacksFullCoverage(coverageParts) && this.checkOnlyChangedFiles(key);
     });
   }
 
   
   /**
-   * Function to check whether any part dose not do a full coverage
+   * Function to check whether any part does not have full coverage
    * @param  {} coverageParts
-   * @param  {} {return boolen}
+   * @returns  {boolean}
    */
-  checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) {
+  checkIfNewFileLacksFullCoverage(coverageParts) {
     return coverageParts.some((coverageData) => coverageData.newPct < 100);
   }
 
@@ -8743,14 +8743,17 @@ class DiffChecker {
 
     const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
     if (fileNewCoverage) {
-      const newCoverageStatusIcon = `${
-        this.checkNewFileFullCoverage
-          ? this.checkIfNewFileNotFullCoverageOnAnyPart(Object.values(diffFileCoverageData)) &&
-            this.checkOnlyChangedFiles(name)
-            ? decreasedCoverageIcon
-            : increasedCoverageIcon
-          : sparkleIcon
-      } ${newCoverageIcon}`;
+      let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
+      if (this.checkNewFileFullCoverage) {
+        if (
+          this.checkIfNewFileLacksFullCoverage(Object.values(diffFileCoverageData)) &&
+          this.checkOnlyChangedFiles(name)
+        ) {
+          newCoverageStatusIcon = `${decreasedCoverageIcon} ${newCoverageIcon}`;
+        } else {
+          newCoverageStatusIcon = `${increasedCoverageIcon} ${newCoverageIcon}`;
+        }
+      }
       return {
         status: 'new',
         statusMessage: ` ${newCoverageStatusIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`,
@@ -8915,7 +8918,6 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
-    
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)
@@ -9006,7 +9008,7 @@ async function main() {
       messageToPost += '\n--- \n\n'
     } else {
       if (isNotFullCoverageOnNewFile) {
-        messageToPost += `* Current PR dose not do a full coverage of new files \n`
+        messageToPost += `* Current PR does not have full coverage for new files \n`
       }
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {

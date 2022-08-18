@@ -11,7 +11,6 @@ async function main() {
     const repoName = github.context.repo.repo
     // get the repo owner
     const repoOwner = github.context.repo.owner
-    
     // github token
     const githubToken = core.getInput('accessToken')
     // Full coverage (true/false)

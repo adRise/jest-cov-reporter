@@ -167,7 +167,7 @@ export class DiffChecker {
       const coverageParts = Object.values(diffCoverageData);
       // No old coverage found so that means we added a new file
       const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
-      return newFileCoverage && this.checkIfNewFileNotFullCoverageOnAnyPart(coverageParts) && this.checkOnlyChangedFiles(key);
+      return newFileCoverage && this.checkIfNewFileLacksFullCoverage(coverageParts) && this.checkOnlyChangedFiles(key);
     });
   }
 
@@ -211,14 +211,17 @@ export class DiffChecker {
 
     const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
     if (fileNewCoverage) {
-      const newCoverageStatusIcon = `${
-        this.checkNewFileFullCoverage
-          ? this.checkIfNewFileNotFullCoverageOnAnyPart(Object.values(diffFileCoverageData)) &&
-            this.checkOnlyChangedFiles(name)
-            ? decreasedCoverageIcon
-            : increasedCoverageIcon
-          : sparkleIcon
-      } ${newCoverageIcon}`;
+      let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
+      if (this.checkNewFileFullCoverage) {
+        if (
+          this.checkIfNewFileLacksFullCoverage(Object.values(diffFileCoverageData)) &&
+          this.checkOnlyChangedFiles(name)
+        ) {
+          newCoverageStatusIcon = `${decreasedCoverageIcon} ${newCoverageIcon}`;
+        } else {
+          newCoverageStatusIcon = `${increasedCoverageIcon} ${newCoverageIcon}`;
+        }
+      }
       return {
         status: 'new',
         statusMessage: ` ${newCoverageStatusIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`,
