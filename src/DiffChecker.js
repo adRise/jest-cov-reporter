@@ -8,14 +8,15 @@ const sparkleIcon = ':sparkles:'
  */
 export class DiffChecker {
   constructor({
+    changedFiles,
     coverageReportNew,
     coverageReportOld,
-    delta,
-    changedFiles,
     currentDirectory,
+    checkNewFileFullCoverage,
+    delta,
     prefixFilenameUrl,
     prNumber,
-    checkNewFileFullCoverage,
+    repoName,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -25,39 +26,42 @@ export class DiffChecker {
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
-    const reportNewKeys = Object.keys(coverageReportNew)
-    const reportOldKeys = Object.keys(coverageReportOld)
-    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys])
+    const getRelativePath = (fullFilePath) => fullFilePath.split(repoName).pop();
+    const reportNewKeys = Object.keys(coverageReportNew).map(getRelativePath);
+    const reportOldKeys = Object.keys(coverageReportOld).map(getRelativePath);
+    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**
      * For all filePaths in coverage, generate a percentage value
      * for both base and current branch
      */
     for (const filePath of reportKeys) {
+      const newCoverage = coverageReportNew[filePath] || {};
+      const oldCoverage = coverageReportOld[filePath] || {};
       this.diffCoverageReport[filePath] = {
         branches: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].branches : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].branches : null)
+          new: newCoverage.branches,
+          old: oldCoverage.branches,
+          newPct: this.getPercentage(newCoverage.branches),
+          oldPct: this.getPercentage(oldCoverage.branches),
         },
         statements: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].statements : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].statements : null)
+          new: newCoverage.statements,
+          old:oldCoverage.statements,
+          newPct: this.getPercentage(newCoverage.statements),
+          oldPct: this.getPercentage(oldCoverage.statements),
         },
         lines: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].lines : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].lines : null)
+          new: newCoverage.lines,
+          old: oldCoverage.lines,
+          newPct: this.getPercentage(newCoverage.lines),
+          oldPct: this.getPercentage(oldCoverage.lines),
         },
         functions: {
-          new: coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null,
-          old: coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null,
-          newPct: this.getPercentage(coverageReportNew[filePath] ? coverageReportNew[filePath].functions : null),
-          oldPct: this.getPercentage(coverageReportOld[filePath] ? coverageReportOld[filePath].functions : null)
+          new: newCoverage.functions,
+          old: oldCoverage.functions,
+          newPct: this.getPercentage(newCoverage.functions),
+          oldPct: this.getPercentage(oldCoverage.functions),
         }
       }
     }
@@ -74,8 +78,6 @@ export class DiffChecker {
 
   /**
    * Create coverageDetails table
-   * @param {*} diffOnly 
-   * @returns 
    */
   getCoverageDetails(diffOnly) {
     const keys = Object.keys(this.diffCoverageReport)
@@ -124,8 +126,8 @@ export class DiffChecker {
 
   /**
    * Function to check if the file's coverage is below delta
-   * @param {*} delta 
-   * @returns 
+   * @param {*} delta
+   * @returns
    */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
@@ -142,7 +144,7 @@ export class DiffChecker {
       }
       for (const key of keys) {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta 
+          if (-this.getPercentageDiff(diffCoverageData[key]) > delta
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
             // Check only changed files
             if (this.checkOnlyChangedFiles(fileName)) {
@@ -186,15 +188,12 @@ export class DiffChecker {
     const oldCoverage = diffCoverageData.old;
     if (!oldCoverage || !newCoverage) return false;
 
-    return newCoverage.covered - oldCoverage.covered < 0 && 
+    return newCoverage.covered < oldCoverage.covered &&
       (oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total)
   }
 
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
-   * @param {*} name 
-   * @param {*} diffFileCoverageData 
-   * @returns 
    */
   createDiffLine(
     name,
@@ -270,8 +269,8 @@ export class DiffChecker {
 
   /**
    * Show red/green status icon for each file
-   * @param {*} diffFileCoverageData 
-   * @returns 
+   * @param {*} diffFileCoverageData
+   * @returns
    */
   getStatusIcon(
     diffFileCoverageData
@@ -291,8 +290,8 @@ export class DiffChecker {
 
   /**
    * Get % diff for base vs current branch
-   * @param {*} diffData 
-   * @returns 
+   * @param {*} diffData
+   * @returns
    */
   getPercentageDiff(diffData) {
     const diff = Number(diffData.newPct) - Number(diffData.oldPct)

@@ -1,6 +1,6 @@
 {
   "name": "jest-cov-reporter",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Produce a coverage report and provide a diff with base report",
   "main": "dest/index.js",
   "scripts": {
