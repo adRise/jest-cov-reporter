@@ -8618,6 +8618,7 @@ class DiffChecker {
     const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(key) !== 0) {
+        console.log(this.diffCoverageReport[key])
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
@@ -8789,7 +8790,7 @@ class DiffChecker {
     const noNewCoverage = values.every((part) => part.newPct === 0);
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
-
+    console.log(file, fileCoverageChanged, fileCoverageChanged)
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
