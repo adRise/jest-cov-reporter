@@ -38,7 +38,9 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath)
+      if (filePath.includes('src/common/selectors/worldCup.ts')) {
+        console.log('iiiiiii', newCoverage, oldCoverage)
+      }
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -86,7 +88,7 @@ export class DiffChecker {
     const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(key) !== 0) {
-        console.log(this.diffCoverageReport[key])
+        console.log(key, '0000', this.diffCoverageReport[key])
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
@@ -212,7 +214,7 @@ export class DiffChecker {
 
     const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
     if (fileNewCoverage) {
-      console.log(name, JSON.stringify(diffFileCoverageData, null, 4))
+      console.log(name, '-----', JSON.stringify(diffFileCoverageData, null, 4))
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
         if (
