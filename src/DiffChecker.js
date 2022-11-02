@@ -39,7 +39,7 @@ export class DiffChecker {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
       if (filePath.includes('src/common/selectors/worldCup.ts')) {
-        console.log('iiiiiii', newCoverage, oldCoverage)
+        console.log('iiiiiii', newCoverage, oldCoverage, JSON.stringify(coverageReportNew, null, 4), JSON.stringify(coverageReportOld, null, 4))
       }
       this.diffCoverageReport[filePath] = {
         branches: {
@@ -261,7 +261,7 @@ export class DiffChecker {
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
     if (file.includes('common/selectors/worldCup.ts')) {
-      console.log(file, fileCoverageChanged, fileCoverageChanged)
+      console.log(file, newFileWithoutCoverage, fileCoverageChanged)
     }
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
