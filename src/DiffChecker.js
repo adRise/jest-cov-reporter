@@ -258,7 +258,9 @@ export class DiffChecker {
     const noNewCoverage = values.every((part) => part.newPct === 0);
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
-    console.log(file, fileCoverageChanged, fileCoverageChanged)
+    if (file.includes('common/selectors/worldCup.ts')) {
+      console.log(file, fileCoverageChanged, fileCoverageChanged)
+    }
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
