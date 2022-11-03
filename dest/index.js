@@ -8570,7 +8570,7 @@ class DiffChecker {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
       if (filePath.includes('src/common/selectors/worldCup.ts')) {
-        console.log('iiiiiii', newCoverage, oldCoverage, JSON.stringify(coverageReportNew, null, 4), JSON.stringify(coverageReportOld, null, 4))
+        console.log('iiiiiii', newCoverage, oldCoverage)
       }
       this.diffCoverageReport[filePath] = {
         branches: {
