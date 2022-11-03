@@ -8557,7 +8557,6 @@ class DiffChecker {
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
-    // const getRelativePath = (fullFilePath) => fullFilePath.split(repoName).pop();
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -8569,9 +8568,7 @@ class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      if (filePath.includes('src/common/selectors/worldCup.ts')) {
-        console.log('iiiiiii', newCoverage, oldCoverage)
-      }
+      console.log(filePath);
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -8619,7 +8616,6 @@ class DiffChecker {
     const remainingStatusLines = [];
     for (const key of keys) {
       if (this.compareCoverageValues(key) !== 0) {
-        console.log(key, '0000', this.diffCoverageReport[key])
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
           this.diffCoverageReport[key]
@@ -8745,7 +8741,6 @@ class DiffChecker {
 
     const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
     if (fileNewCoverage) {
-      console.log(name, '-----', JSON.stringify(diffFileCoverageData, null, 4))
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
         if (
@@ -8791,9 +8786,6 @@ class DiffChecker {
     const noNewCoverage = values.every((part) => part.newPct === 0);
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
-    if (file.includes('common/selectors/worldCup.ts')) {
-      console.log(file, newFileWithoutCoverage, fileCoverageChanged)
-    }
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
