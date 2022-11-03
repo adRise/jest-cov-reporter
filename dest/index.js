@@ -8720,7 +8720,7 @@ class DiffChecker {
     if (!oldCoverage || !newCoverage) return false;
 
     return newCoverage.covered < oldCoverage.covered &&
-      (oldCoverage.covered - newCoverage.covered === oldCoverage.total - newCoverage.total)
+      (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total)
   }
 
   /**
