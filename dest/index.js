@@ -8548,7 +8548,6 @@ class DiffChecker {
     delta,
     prefixFilenameUrl,
     prNumber,
-    repoName,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -8558,9 +8557,9 @@ class DiffChecker {
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
-    const getRelativePath = (fullFilePath) => fullFilePath.split(repoName).pop();
-    const reportNewKeys = Object.keys(coverageReportNew).map(getRelativePath);
-    const reportOldKeys = Object.keys(coverageReportOld).map(getRelativePath);
+    // const getRelativePath = (fullFilePath) => fullFilePath.split(repoName).pop();
+    const reportNewKeys = Object.keys(coverageReportNew);
+    const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
 
     /**
