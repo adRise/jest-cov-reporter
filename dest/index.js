@@ -8568,7 +8568,7 @@ class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath);
+      console.log(filePath)
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -8786,6 +8786,7 @@ class DiffChecker {
     const noNewCoverage = values.every((part) => part.newPct === 0);
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyChangedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
+
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
