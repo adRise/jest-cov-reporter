@@ -41,6 +41,9 @@ async function main() {
     // branch coverage json summary report
     const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
 
+    // check newly added file whether have full coverage tests
+    const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage');
+
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
@@ -48,6 +51,7 @@ async function main() {
     }
 
     let changedFiles = null;
+    let addedFiles = null
     if (onlyCheckChangedFiles) {
       const files = await githubClient.pulls.listFiles({
         owner: repoOwner,
@@ -55,6 +59,7 @@ async function main() {
         pull_number: prNumber,
       });
       changedFiles = files.data ? files.data.map(file => file.filename) : [];
+      addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
     // Read the json summary files for base and branch coverage
@@ -72,11 +77,12 @@ async function main() {
       pull_number: prNumber,
     });
 
-    const checkNewFileFullCoverage = !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
+    const checkNewFileFullCoverage = checkNewFileFullCoverageInput && !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
 
     // Perform analysis
     const diffChecker = new DiffChecker({
       changedFiles,
+      addedFiles,
       coverageReportNew,
       coverageReportOld,
       currentDirectory,
