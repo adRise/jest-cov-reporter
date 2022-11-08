@@ -8963,7 +8963,7 @@ async function main() {
     const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
 
     // check newly added file whether have full coverage tests
-    const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage');
+    const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
 
     console.log('checkNewFileFullCoverageInput', checkNewFileFullCoverageInput, typeof checkNewFileFullCoverageInput, Boolean(checkNewFileFullCoverageInput) === checkNewFileFullCoverageInput, Boolean(checkNewFileFullCoverageInput))
     // If either of base or branch summary report does not exist, then exit with failure.
