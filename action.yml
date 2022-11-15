@@ -31,6 +31,9 @@ inputs:
   prefix-filename-url:
     description: 'Add a base URL to the filenames and make it a hyperlink'
     default: ''
+  check-new-file-full-coverage:
+    description: 'Check newly added files whether have full coverage tests'
+    default: true
 
 runs:
   using: 'node12'
