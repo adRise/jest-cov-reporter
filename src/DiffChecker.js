@@ -217,8 +217,8 @@ export class DiffChecker {
   }
 
   constructFileNameUrl(name) {
-    console.log('** nanme', name)
-    console.log('** this.showDiffView', this.showDiffView)
+    console.info('** nanme', name)
+    console.info('** this.showDiffView', this.showDiffView)
     if (this.showDiffView) {
       const data = {
         githubToken: this.githubToken,
