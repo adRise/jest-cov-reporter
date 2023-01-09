@@ -1,3 +1,4 @@
+import * as core from '@actions/core';
 const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
@@ -217,8 +218,8 @@ export class DiffChecker {
   }
 
   constructFileNameUrl(name) {
-    console.info('** nanme', name)
-    console.info('** this.showDiffView', this.showDiffView)
+    core.info('** nanme', name)
+    core.info('** this.showDiffView', this.showDiffView)
     if (this.showDiffView) {
       const data = {
         githubToken: this.githubToken,
