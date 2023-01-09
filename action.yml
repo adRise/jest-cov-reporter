@@ -30,7 +30,7 @@ inputs:
     default: true
   show-diff-view:
     description: 'Show diff view of base vs head coverage'
-    default: false
+    default: true
   prefix-filename-url:
     description: 'Add a base URL to the filenames and make it a hyperlink'
     default: ''
