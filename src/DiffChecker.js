@@ -226,7 +226,7 @@ export class DiffChecker {
         owner: this.repoOwner,
         path: name.substring(1)
       }
-      return `${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(data)}`
+      return `${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(JSON.stringify(data))}`
     }
     return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
   }
