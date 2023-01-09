@@ -45,6 +45,7 @@ async function main() {
 
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+    console.log('showDiffView', showDiffView)
 
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {

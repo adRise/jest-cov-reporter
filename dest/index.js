@@ -8530,11 +8530,14 @@ __nccwpck_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
 // CONCATENATED MODULE: ./src/DiffChecker.js
+
 const increasedCoverageIcon = ':green_circle:'
 const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
 const sparkleIcon = ':sparkles:'
+
+const DIFF_VIEWER_WEB_URL = 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/coverage-diff-viewer/index.html';
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
@@ -8548,7 +8551,11 @@ class DiffChecker {
     checkNewFileFullCoverage,
     delta,
     prefixFilenameUrl,
+    showDiffView,
     prNumber,
+    repoName,
+    repoOwner,
+    githubToken
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -8557,8 +8564,12 @@ class DiffChecker {
     this.addedFiles = addedFiles;
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
+    this.showDiffView = showDiffView;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+    this.repoName = repoName;
+    this.repoOwner = repoOwner;
+    this.githubToken = githubToken;
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -8738,6 +8749,23 @@ class DiffChecker {
       (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total)
   }
 
+  constructFileNameUrl(name) {
+    core.info('** nanme', name)
+    core.info('** this.showDiffView', this.showDiffView)
+    if (this.showDiffView) {
+      const data = {
+        githubToken: this.githubToken,
+        coveragePath: this.prefixFilenameUrl,
+        prNumber: this.prNumber,
+        repo: this.repoName,
+        owner: this.repoOwner,
+        path: name.substring(1)
+      }
+      return `${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(JSON.stringify(data))}`
+    }
+    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
+  }
+
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
    */
@@ -8754,7 +8782,7 @@ class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
-    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
+    const fileNameUrl = this.prefixFilenameUrl !== '' ? this.constructFileNameUrl(name) : name;
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
@@ -8952,6 +8980,8 @@ async function main() {
     // Add prefix to file name URLs
     const prefixFilenameUrl = core.getInput('prefix-filename-url')
 
+    const showDiffView = core.getInput('show-diff-view');
+
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -8963,6 +8993,7 @@ async function main() {
 
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+    console.log('showDiffView', showDiffView)
 
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
@@ -9009,8 +9040,11 @@ async function main() {
       checkNewFileFullCoverage,
       delta,
       prefixFilenameUrl,
+      showDiffView,
       prNumber,
-      repoName
+      repoName,
+      repoOwner,
+      githubToken
     });
 
     // Get coverage details.
