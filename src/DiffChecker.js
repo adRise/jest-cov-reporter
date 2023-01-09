@@ -218,8 +218,6 @@ export class DiffChecker {
   }
 
   constructFileNameUrl(name) {
-    core.info('** nanme', name)
-    core.info('** this.showDiffView', this.showDiffView)
     if (this.showDiffView) {
       const data = {
         githubToken: this.githubToken,
@@ -229,7 +227,7 @@ export class DiffChecker {
         owner: this.repoOwner,
         path: name.substring(1)
       }
-      return `${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(JSON.stringify(data))}`
+      return `[${name}](${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(JSON.stringify(data))})`
     }
     return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
   }
