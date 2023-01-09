@@ -3,6 +3,8 @@ const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
 const sparkleIcon = ':sparkles:'
+
+const DIFF_VIEWER_WEB_URL = 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/coverage-diff-viewer/index.html';
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
@@ -16,7 +18,11 @@ export class DiffChecker {
     checkNewFileFullCoverage,
     delta,
     prefixFilenameUrl,
+    showDiffView,
     prNumber,
+    repoName,
+    repoOwner,
+    githubToken
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -25,8 +31,12 @@ export class DiffChecker {
     this.addedFiles = addedFiles;
     this.currentDirectory = currentDirectory;
     this.prefixFilenameUrl = prefixFilenameUrl;
+    this.showDiffView = showDiffView;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+    this.repoName = repoName;
+    this.repoOwner = repoOwner;
+    this.githubToken = githubToken;
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -38,7 +48,6 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath)
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -207,6 +216,21 @@ export class DiffChecker {
       (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total)
   }
 
+  constructFileNameUrl(name) {
+    if (this.showDiffView) {
+      const data = {
+        githubToken: this.githubToken,
+        coveragePath: this.prefixFilenameUrl,
+        prNumber: this.prNumber,
+        repo: this.repoName,
+        owner: this.repoOwner,
+        path: name.substring(1)
+      }
+      return `${DIFF_VIEWER_WEB_URL}?data=${encodeURIComponent(data)}`
+    }
+    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
+  }
+
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
    */
@@ -223,7 +247,7 @@ export class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
-    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
+    const fileNameUrl = this.prefixFilenameUrl !== '' ? this.constructFileNameUrl(name) : name;
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {

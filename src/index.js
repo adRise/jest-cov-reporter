@@ -32,6 +32,8 @@ async function main() {
     // Add prefix to file name URLs
     const prefixFilenameUrl = core.getInput('prefix-filename-url')
 
+    const showDiffView = core.getInput('show-diff-view');
+
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
 
@@ -89,8 +91,11 @@ async function main() {
       checkNewFileFullCoverage,
       delta,
       prefixFilenameUrl,
+      showDiffView,
       prNumber,
-      repoName
+      repoName,
+      repoOwner,
+      githubToken
     });
 
     // Get coverage details.

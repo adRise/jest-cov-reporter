@@ -28,6 +28,9 @@ inputs:
   only-check-changed-files:
     description: 'Only test for changed files in the PR'
     default: true
+  show-diff-view:
+    description: 'Show diff view of base vs head coverage'
+    default: false
   prefix-filename-url:
     description: 'Add a base URL to the filenames and make it a hyperlink'
     default: ''
