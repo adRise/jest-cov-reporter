@@ -33,6 +33,7 @@ async function main() {
     const prefixFilenameUrl = core.getInput('prefix-filename-url')
 
     const showDiffView = core.getInput('show-diff-view');
+    console.log('** showDiffView **', showDiffView)
 
     // comment ID to uniquely identify a comment.
     const commentIdentifier = `<!-- codeCoverageDiffComment -->`
