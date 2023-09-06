@@ -8983,9 +8983,11 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
+    console.log(branchCoverageReportPath);
     // Read the json summary files for base and branch coverage
     const coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
+    console.log(coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
