@@ -1,10 +1,10 @@
 import * as core from '@actions/core';
+import * as cobertura from '@cvrg-report/cobertura-json';
 import { DiffChecker } from './DiffChecker';
 import * as github from '@actions/github';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import { createOrUpdateComment, findComment } from './utils';
-import { XMLParser } from 'fast-xml-parser';
 
 async function main() {
   try {
@@ -71,9 +71,12 @@ async function main() {
       coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
       coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
     } else if (coverageFileType === 'xml') {
-      const parser = new XMLParser();
-      coverageReportNew = parser.parse(fs.readFileSync(branchCoverageReportPath).toString());
-      coverageReportOld = parser.parse(fs.readFileSync(baseCoverageReportPath).toString());
+      cobertura.parseContent(fs.readFileSync(branchCoverageReportPath).toString())
+        .then(function (result) {
+          console.log(JSON.stringify(result));
+        }).catch(function (err) {
+          console.error(err);
+        });
     }
 
     console.log(coverageReportNew);
