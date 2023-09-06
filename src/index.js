@@ -62,9 +62,11 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
+    console.log(branchCoverageReportPath);
     // Read the json summary files for base and branch coverage
     const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
     const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+    console.log(coverageReportNew);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
