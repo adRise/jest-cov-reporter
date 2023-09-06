@@ -4,6 +4,7 @@ import * as github from '@actions/github';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import { createOrUpdateComment, findComment } from './utils';
+import { XMLParser } from 'fast-xml-parser';
 
 async function main() {
   try {
@@ -70,12 +71,9 @@ async function main() {
       coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
       coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
     } else if (coverageFileType === 'xml') {
-      if (window.DOMParser)
-      {
-        const parser = new DOMParser();
-        coverageReportNew = parser.parseFromString(fs.readFileSync(branchCoverageReportPath).toString(), "text/xml");
-        coverageReportOld = parser.parseFromString(fs.readFileSync(baseCoverageReportPath).toString(), "text/xml");
-      }
+      const parser = new XMLParser();
+      coverageReportNew = parser.parse(fs.readFileSync(branchCoverageReportPath).toString());
+      coverageReportOld = parser.parse(fs.readFileSync(baseCoverageReportPath).toString());
     }
 
     console.log(coverageReportNew);

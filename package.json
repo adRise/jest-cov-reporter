@@ -12,7 +12,9 @@
   "repository": "git@github.com:arunshan/jest-cov-reporter.git",
   "license": "MIT",
   "private": false,
-  "dependencies": {},
+  "dependencies": {
+    "fast-xml-parser": "^4.2.7"
+  },
   "devDependencies": {
     "@actions/core": "^1.2.6",
     "@actions/github": "^4.0.0",
