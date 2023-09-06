@@ -62,10 +62,22 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
-    console.log(branchCoverageReportPath);
-    // Read the json summary files for base and branch coverage
-    const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
-    const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+    const coverageFileType = branchCoverageReportPath.match(/\.([^\.]+$)/)[1];
+    let coverageReportNew;
+    let coverageReportOld;
+    if (coverageFileType === 'json') {
+      // Read the json summary files for base and branch coverage
+      coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
+      coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+    } else if (coverageFileType === 'xml') {
+      if (window.DOMParser)
+      {
+        const parser = new DOMParser();
+        coverageReportNew = parser.parseFromString(fs.readFileSync(branchCoverageReportPath).toString(), "text/xml");
+        coverageReportOld = parser.parseFromString(fs.readFileSync(baseCoverageReportPath).toString(), "text/xml");
+      }
+    }
+
     console.log(coverageReportNew);
 
     // Get the current directory to replace the file name paths
