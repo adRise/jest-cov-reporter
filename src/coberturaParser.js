@@ -17,7 +17,30 @@ const classesFromPackages = (packages) => {
 
 const unpackage = (packages) => {
   const classes = classesFromPackages(packages);
-  const summary = {};
+  const summary = {
+    total: {
+      lines: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+      },
+      functions: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+      },
+      branches: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+      },
+      statements: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+      },
+    }
+  }
 
   classes.forEach((c) => {
     const linesCovered = !c.lines || !c.lines[0].line ? [] : c.lines[0].line.map((l) => {
@@ -53,35 +76,27 @@ const unpackage = (packages) => {
         covered: functionsCovered,
         skipped: functionsTotal - functionsCovered,
         pct: functionsCovered/functionsTotal,
-      }
-    }
-    const classCov = {
-      title: c.$.name,
-      file: c.$.filename,
-      functions: {
-        found: c.methods && c.methods[ 0 ].method ? c.methods[ 0 ].method.length : 0,
-        hit: 0,
-        details: !c.methods || !c.methods[ 0 ].method ? [] : c.methods[ 0 ].method.map((m) => {
-          return {
-            name: m.$.name,
-            line: Number(m.lines[ 0 ].line[ 0 ].$.number),
-            hit: Number(m.lines[ 0 ].line[ 0 ].$.hits)
-          };
-        })
       },
-      lines: {
-        found: c.lines && c.lines[ 0 ].line ? c.lines[ 0 ].line.length : 0,
-        hit: 0,
-        details: !c.lines || !c.lines[ 0 ].line ? [] : c.lines[ 0 ].line.map((l) => {
-          return {
-            line: Number(l.$.number),
-            hit: Number(l.$.hits)
-          };
-        })
-      }
-    };
+      branches: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+        pct: c.$['branch-rate'],
+      },
+      statements: {
+        total: 0,
+        covered: 0,
+        skipped: 0,
+        pct: 0,
+      },
+    }
 
-    return classCov;
+    Object.keys(summary.total).forEach((i) => {
+      Object.keys(summary.total[i]).forEach((j) => {
+        summary.total[i][j] += summary[c.$.name][i][j];
+      });
+      summary.total[i].pct = summary.total[i].covered / summary.total[i].total;
+    })
   });
 
   return summary;
