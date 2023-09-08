@@ -15574,7 +15574,7 @@ const coberturaParseContent = (xmlString) => {
       if (err) {
         reject(err);
       }
-      console.log(parseResult);
+      console.log('parseString: ', parseResult);
       resolve(unpackage(parseResult.coverage.packages));
     });
   });
@@ -15656,7 +15656,7 @@ async function main() {
     } else if (coverageFileType === 'xml') {
       coberturaParseContent(external_fs_default().readFileSync(branchCoverageReportPath).toString())
         .then(function (result) {
-          console.log(JSON.stringify(result));
+          console.log('coberturaParseContent: ', JSON.stringify(result));
         }).catch(function (err) {
           console.error(err);
         });

@@ -62,7 +62,7 @@ export const coberturaParseContent = (xmlString) => {
       if (err) {
         reject(err);
       }
-      console.log(parseResult);
+      console.log('parseString: ', parseResult);
       resolve(unpackage(parseResult.coverage.packages));
     });
   });
