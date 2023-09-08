@@ -79,8 +79,6 @@ async function main() {
         });
     }
 
-    console.log(coverageReportNew);
-
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
       .toString()

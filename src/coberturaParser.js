@@ -11,13 +11,50 @@ const classesFromPackages = (packages) => {
     });
   });
 
+  console.log('classes: ', classes);
   return classes;
 };
 
 const unpackage = (packages) => {
   const classes = classesFromPackages(packages);
+  const summary = {};
 
-  return classes.map((c) => {
+  classes.forEach((c) => {
+    const linesCovered = !c.lines || !c.lines[0].line ? [] : c.lines[0].line.map((l) => {
+      return {
+        line: Number(l.$.number),
+        hit: Number(l.$.hits)
+      };
+    }).reduce((acc, val) => {
+      return acc + (val.hit > 0 ? 1 : 0);
+    }, 0);
+    const linesTotal = c.lines && c.lines[0].line ? c.lines[0].line.length : 0;
+
+    const functionsCovered = !c.methods || !c.methods[0].method ? [] : c.methods[0].method.map((m) => {
+      return {
+        name: m.$.name,
+        line: Number(m.lines[0].line[0].$.number),
+        hit: Number(m.lines[0].line[0].$.hits)
+      };
+    }).reduce((acc, val) => {
+      return acc + (val.hit > 0 ? 1 : 0);
+    }, 0);
+    const functionsTotal = c.methods && c.methods[0].method ? c.methods[0].method.length : 0;
+
+    summary[c.$.name] = {
+      lines: {
+        total: linesTotal,
+        covered: linesCovered,
+        skipped: linesTotal - linesCovered,
+        pct: linesCovered/linesTotal,
+      },
+      functions: {
+        total: functionsTotal,
+        covered: functionsCovered,
+        skipped: functionsTotal - functionsCovered,
+        pct: functionsCovered/functionsTotal,
+      }
+    }
     const classCov = {
       title: c.$.name,
       file: c.$.filename,
@@ -44,16 +81,10 @@ const unpackage = (packages) => {
       }
     };
 
-    classCov.functions.hit = classCov.functions.details.reduce((acc, val) => {
-      return acc + (val.hit > 0 ? 1 : 0);
-    }, 0);
-
-    classCov.lines.hit = classCov.lines.details.reduce((acc, val) => {
-      return acc + (val.hit > 0 ? 1 : 0);
-    }, 0);
-
     return classCov;
   });
+
+  return summary;
 };
 
 export const coberturaParseContent = (xmlString) => {
@@ -62,7 +93,7 @@ export const coberturaParseContent = (xmlString) => {
       if (err) {
         reject(err);
       }
-      console.log('parseString: ', parseResult);
+      console.log('parseString: ', parseResult.toString());
       resolve(unpackage(parseResult.coverage.packages));
     });
   });
