@@ -11,7 +11,7 @@ const classesFromPackages = (packages) => {
     });
   });
 
-  console.log('classes: ', classes);
+  console.log('classes: ', JSON.stringify(classes));
   return classes;
 };
 
@@ -69,19 +69,19 @@ const unpackage = (packages) => {
         total: linesTotal,
         covered: linesCovered,
         skipped: linesTotal - linesCovered,
-        pct: linesCovered/linesTotal,
+        pct: (linesCovered/linesTotal * 100).toFixed(2),
       },
       functions: {
         total: functionsTotal,
         covered: functionsCovered,
         skipped: functionsTotal - functionsCovered,
-        pct: functionsCovered/functionsTotal,
+        pct: (functionsCovered/functionsTotal * 100).toFixed(2),
       },
       branches: {
         total: 0,
         covered: 0,
         skipped: 0,
-        pct: c.$['branch-rate'],
+        pct: (c.$['branch-rate'] * 100).toFixed(2),
       },
       statements: {
         total: 0,
@@ -95,7 +95,7 @@ const unpackage = (packages) => {
       Object.keys(summary.total[i]).forEach((j) => {
         summary.total[i][j] += summary[c.$.name][i][j];
       });
-      summary.total[i].pct = summary.total[i].covered / summary.total[i].total;
+      summary.total[i].pct = (summary.total[i].covered / summary.total[i].total * 100).toFixed(2);
     })
   });
 
@@ -108,7 +108,6 @@ export const coberturaParseContent = (xmlString) => {
       if (err) {
         reject(err);
       }
-      console.log('parseString: ', parseResult.toString());
       resolve(unpackage(parseResult.coverage.packages));
     });
   });

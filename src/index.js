@@ -74,6 +74,13 @@ async function main() {
       coberturaParseContent(fs.readFileSync(branchCoverageReportPath).toString())
         .then(function (result) {
           console.log('coberturaParseContent: ', JSON.stringify(result));
+          coverageReportNew = result;
+        }).catch(function (err) {
+          console.error(err);
+        });
+      coberturaParseContent(fs.readFileSync(baseCoverageReportPath).toString())
+        .then(function (result) {
+          coverageReportOld = result;
         }).catch(function (err) {
           console.error(err);
         });
