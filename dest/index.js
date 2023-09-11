@@ -15536,14 +15536,18 @@ const unpackage = (packages) => {
   const coverageType = ['lines', 'functions', 'branches', 'statements'];
   const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
   const coverageSummary = {};
+  coverageSummary.total = {};
   coverageType.forEach(type => {
+    coverageSummary.total[type] = {};
     coverageDetails.forEach(detail => {
       coverageSummary.total[type][detail] = 0;
     });
   });
 
   classes.forEach((c) => {
+    coverageSummary[c.$.name] = {};
     coverageType.forEach(type => {
+      coverageSummary[c.$.name][type] = {};
       coverageDetails.forEach(detail => {
         coverageSummary[c.$.name][type][detail] = 0;
       });
