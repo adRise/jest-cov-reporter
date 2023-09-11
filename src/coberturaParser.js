@@ -1,5 +1,9 @@
 import { parseString } from 'xml2js';
 
+const percentage = (covered, total) => {
+  return total ? Number((covered / total * 100).toFixed(2)) : 0;
+};
+
 const classesFromPackages = (packages) => {
   let classes = [];
 
@@ -17,89 +21,51 @@ const classesFromPackages = (packages) => {
 
 const unpackage = (packages) => {
   const classes = classesFromPackages(packages);
-  const summary = {
-    total: {
-      lines: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-      },
-      functions: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-      },
-      branches: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-      },
-      statements: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-      },
-    }
-  }
-
-  classes.forEach((c) => {
-    const linesCovered = !c.lines || !c.lines[0].line ? [] : c.lines[0].line.map((l) => {
-      return {
-        line: Number(l.$.number),
-        hit: Number(l.$.hits)
-      };
-    }).reduce((acc, val) => {
-      return acc + (val.hit > 0 ? 1 : 0);
-    }, 0);
-    const linesTotal = c.lines && c.lines[0].line ? c.lines[0].line.length : 0;
-
-    const functionsCovered = !c.methods || !c.methods[0].method ? [] : c.methods[0].method.map((m) => {
-      return {
-        name: m.$.name,
-        line: Number(m.lines[0].line[0].$.number),
-        hit: Number(m.lines[0].line[0].$.hits)
-      };
-    }).reduce((acc, val) => {
-      return acc + (val.hit > 0 ? 1 : 0);
-    }, 0);
-    const functionsTotal = c.methods && c.methods[0].method ? c.methods[0].method.length : 0;
-
-    summary[c.$.name] = {
-      lines: {
-        total: linesTotal,
-        covered: linesCovered,
-        skipped: linesTotal - linesCovered,
-        pct: (linesCovered/linesTotal * 100).toFixed(2),
-      },
-      functions: {
-        total: functionsTotal,
-        covered: functionsCovered,
-        skipped: functionsTotal - functionsCovered,
-        pct: (functionsCovered/functionsTotal * 100).toFixed(2),
-      },
-      branches: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-        pct: (c.$['branch-rate'] * 100).toFixed(2),
-      },
-      statements: {
-        total: 0,
-        covered: 0,
-        skipped: 0,
-        pct: 0,
-      },
-    }
-
-    Object.keys(summary.total).forEach((i) => {
-      Object.keys(summary.total[i]).forEach((j) => {
-        summary.total[i][j] += summary[c.$.name][i][j];
-      });
-      summary.total[i].pct = (summary.total[i].covered / summary.total[i].total * 100).toFixed(2);
-    })
+  const coverageType = ['lines', 'functions', 'branches', 'statements'];
+  const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
+  const coverageSummary = {};
+  coverageType.forEach(type => {
+    coverageDetails.forEach(detail => {
+      coverageSummary.total[type][detail] = 0;
+    });
   });
 
-  return summary;
+  classes.forEach((c) => {
+    coverageType.forEach(type => {
+      coverageDetails.forEach(detail => {
+        coverageSummary[c.$.name][type][detail] = 0;
+      });
+    });
+
+    c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
+      coverageSummary[c.$.name].statements.total ++;
+      if (l.$.hits) {
+        coverageSummary[c.$.name].statements.covered ++;
+      }
+
+      if (l.$.branch) {
+        coverageSummary[c.$.name].branch.total ++;
+        if (l.$.hits) {
+          coverageSummary[c.$.name].branch.covered ++;
+        }
+      }
+    });
+    c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
+      coverageSummary[c.$.name].functions.total ++;
+      if (m.$.hits) {
+        coverageSummary[c.$.name].functions.covered ++;
+      }
+    })
+    coverageType.forEach(type => {
+      coverageDetails.forEach((detail) => {
+        coverageSummary.total[type][detail] += coverageSummary[c.$.name][type][detail];
+      });
+      coverageSummary.total[type].pct = percentage(coverageSummary.total[type].covered, coverageSummary.total[type].total);
+      coverageSummary[c.$.name][type].pct = percentage(coverageSummary[c.$.name][type].covered, coverageSummary[c.$.name][type].total);
+    });
+  });
+
+  return coverageSummary;
 };
 
 export const coberturaParseContent = (xmlString) => {
