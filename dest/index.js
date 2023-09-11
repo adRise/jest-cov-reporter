@@ -15555,20 +15555,20 @@ const unpackage = (packages) => {
 
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       coverageSummary[c.$.name].statements.total ++;
-      if (l.$.hits) {
+      if (l.$.hits === '1') {
         coverageSummary[c.$.name].statements.covered ++;
       }
 
-      if (l.$.branch) {
-        coverageSummary[c.$.name].branch.total ++;
-        if (l.$.hits) {
-          coverageSummary[c.$.name].branch.covered ++;
+      if (l.$.branch === 'true') {
+        coverageSummary[c.$.name].branches.total ++;
+        if (l.$.hits === '1') {
+          coverageSummary[c.$.name].branches.covered ++;
         }
       }
     });
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       coverageSummary[c.$.name].functions.total ++;
-      if (m.$.hits) {
+      if (m.$.hits === '1') {
         coverageSummary[c.$.name].functions.covered ++;
       }
     })
