@@ -55,16 +55,17 @@ const unpackage = (packages) => {
     });
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       coverageSummary[c.$.name].functions.total ++;
-      if (m.$.hits === '1') {
+      if (Number(m.$['line-rate']) + Number(m.$['branch-rate']) > 0) {
         coverageSummary[c.$.name].functions.covered ++;
       }
     })
     coverageType.forEach(type => {
+      coverageSummary[c.$.name][type].pct = percentage(coverageSummary[c.$.name][type].covered, coverageSummary[c.$.name][type].total);
+      coverageSummary[c.$.name][type].skipped = coverageSummary[c.$.name][type].total - coverageSummary[c.$.name][type].covered;
       coverageDetails.forEach((detail) => {
         coverageSummary.total[type][detail] += coverageSummary[c.$.name][type][detail];
       });
       coverageSummary.total[type].pct = percentage(coverageSummary.total[type].covered, coverageSummary.total[type].total);
-      coverageSummary[c.$.name][type].pct = percentage(coverageSummary[c.$.name][type].covered, coverageSummary[c.$.name][type].total);
     });
   });
 
