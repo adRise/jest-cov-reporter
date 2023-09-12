@@ -15512,8 +15512,21 @@ var xml2js = __nccwpck_require__(6189);
 // CONCATENATED MODULE: ./src/coberturaParser.js
 
 
+const coverageType = ['lines', 'functions', 'branches', 'statements'];
+const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
+
 const percentage = (covered, total) => {
   return total ? Number((covered / total * 100).toFixed(2)) : 100;
+};
+
+const initialCoverageWithZero = (coverageSummary, name) => {
+  coverageSummary[name] = {};
+  coverageType.forEach(type => {
+    coverageSummary[name][type] = {};
+    coverageDetails.forEach(detail => {
+      coverageSummary[name][type][detail] = 0;
+    });
+  });
 };
 
 const classesFromPackages = (packages) => {
@@ -15532,70 +15545,64 @@ const classesFromPackages = (packages) => {
 
 const unpackage = (packages) => {
   const classes = classesFromPackages(packages);
-  const coverageType = ['lines', 'functions', 'branches', 'statements'];
-  const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
   const coverageSummary = {};
-  coverageSummary.total = {};
-  coverageType.forEach(type => {
-    coverageSummary.total[type] = {};
-    coverageDetails.forEach(detail => {
-      coverageSummary.total[type][detail] = 0;
-    });
-  });
+  const packageName = 'total';
+  initialCoverageWithZero(coverageSummary, packageName);
 
+  // calculate coverage of each class in this package
   classes.forEach((c) => {
-    coverageSummary[c.$.name] = {};
-    coverageType.forEach(type => {
-      coverageSummary[c.$.name][type] = {};
-      coverageDetails.forEach(detail => {
-        coverageSummary[c.$.name][type][detail] = 0;
-      });
-    });
+    const className = c.$.name;
+    initialCoverageWithZero(coverageSummary, className);
 
     let lineEnd = 0;
     const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
-      coverageSummary[c.$.name].statements.total ++;
+      // calculate statements coverage
+      coverageSummary[className].statements.total ++;
       if (l.$.hits === '1') {
-        coverageSummary[c.$.name].statements.covered ++;
+        coverageSummary[className].statements.covered ++;
       } else {
-        coverageSummary[c.$.name].statements.skipped ++;
+        coverageSummary[className].statements.skipped ++;
         if (!skippedLine.includes(Number(l.$.number))) {
           skippedLine.push(Number(l.$.number));
         }
       }
 
+      // calculate branches coverage
       if (l.$.branch === 'true') {
-        coverageSummary[c.$.name].branches.total ++;
+        coverageSummary[className].branches.total ++;
         if (l.$.hits === '1') {
-          coverageSummary[c.$.name].branches.covered ++;
+          coverageSummary[className].branches.covered ++;
         } else {
-          coverageSummary[c.$.name].branches.skipped ++;
+          coverageSummary[className].branches.skipped ++;
         }
       }
 
       if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
 
-    coverageSummary[c.$.name].lines.total = lineEnd;
-    coverageSummary[c.$.name].lines.skipped = skippedLine.length;
-    coverageSummary[c.$.name].lines.covered = coverageSummary[c.$.name].lines.total - coverageSummary[c.$.name].lines.skipped;
+    // calculate lines coverage
+    coverageSummary[className].lines.total = lineEnd;
+    coverageSummary[className].lines.skipped = skippedLine.length;
+    coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
-      coverageSummary[c.$.name].functions.total ++;
+      // calculate functions coverage
+      coverageSummary[className].functions.total ++;
       if (Number(m.$['line-rate']) + Number(m.$['branch-rate']) > 0) {
-        coverageSummary[c.$.name].functions.covered ++;
+        coverageSummary[className].functions.covered ++;
       } else {
-        coverageSummary[c.$.name].functions.skipped ++;
+        coverageSummary[className].functions.skipped ++;
       }
     })
 
+    // accumulate package total coverage
     coverageType.forEach(type => {
       coverageDetails.forEach((detail) => {
-        coverageSummary.total[type][detail] += coverageSummary[c.$.name][type][detail];
+        coverageSummary[packageName][type][detail] += coverageSummary[className][type][detail];
       });
-      coverageSummary[c.$.name][type].pct = percentage(coverageSummary[c.$.name][type].covered, coverageSummary[c.$.name][type].total);
-      coverageSummary.total[type].pct = percentage(coverageSummary.total[type].covered, coverageSummary.total[type].total);
+      coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
+      coverageSummary[packageName][type].pct = percentage(coverageSummary[packageName][type].covered, coverageSummary[packageName][type].total);
     });
   });
 

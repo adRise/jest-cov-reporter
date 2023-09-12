@@ -1,7 +1,20 @@
 import { parseString } from 'xml2js';
 
+const coverageType = ['lines', 'functions', 'branches', 'statements'];
+const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
+
 const percentage = (covered, total) => {
   return total ? Number((covered / total * 100).toFixed(2)) : 100;
+};
+
+const initialCoverageWithZero = (coverageSummary, name) => {
+  coverageSummary[name] = {};
+  coverageType.forEach(type => {
+    coverageSummary[name][type] = {};
+    coverageDetails.forEach(detail => {
+      coverageSummary[name][type][detail] = 0;
+    });
+  });
 };
 
 const classesFromPackages = (packages) => {
@@ -20,31 +33,14 @@ const classesFromPackages = (packages) => {
 
 const unpackage = (packages) => {
   const classes = classesFromPackages(packages);
-  const coverageType = ['lines', 'functions', 'branches', 'statements'];
-  const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
   const coverageSummary = {};
-
-  // initial package total coverage with 0
-  coverageSummary.total = {};
-  coverageType.forEach(type => {
-    coverageSummary.total[type] = {};
-    coverageDetails.forEach(detail => {
-      coverageSummary.total[type][detail] = 0;
-    });
-  });
+  const packageName = 'total';
+  initialCoverageWithZero(coverageSummary, packageName);
 
   // calculate coverage of each class in this package
   classes.forEach((c) => {
     const className = c.$.name;
-
-    // initial class coverage with 0
-    coverageSummary[className] = {};
-    coverageType.forEach(type => {
-      coverageSummary[className][type] = {};
-      coverageDetails.forEach(detail => {
-        coverageSummary[className][type][detail] = 0;
-      });
-    });
+    initialCoverageWithZero(coverageSummary, className);
 
     let lineEnd = 0;
     const skippedLine = [];
@@ -88,13 +84,13 @@ const unpackage = (packages) => {
       }
     })
 
-    // calculate package total coverage
+    // accumulate package total coverage
     coverageType.forEach(type => {
       coverageDetails.forEach((detail) => {
-        coverageSummary.total[type][detail] += coverageSummary[className][type][detail];
+        coverageSummary[packageName][type][detail] += coverageSummary[className][type][detail];
       });
       coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
-      coverageSummary.total[type].pct = percentage(coverageSummary.total[type].covered, coverageSummary.total[type].total);
+      coverageSummary[packageName][type].pct = percentage(coverageSummary[packageName][type].covered, coverageSummary[packageName][type].total);
     });
   });
 
