@@ -15513,7 +15513,7 @@ var xml2js = __nccwpck_require__(6189);
 
 
 const percentage = (covered, total) => {
-  return total ? Number((covered / total * 100).toFixed(2)) : 0;
+  return total ? Number((covered / total * 100).toFixed(2)) : 100;
 };
 
 const classesFromPackages = (packages) => {
@@ -15527,7 +15527,6 @@ const classesFromPackages = (packages) => {
     });
   });
 
-  console.log('classes: ', JSON.stringify(classes));
   return classes;
 };
 
@@ -15671,7 +15670,7 @@ async function main() {
     } else if (coverageFileType === 'xml') {
       coberturaParseContent(external_fs_default().readFileSync(branchCoverageReportPath).toString())
         .then(function (result) {
-          console.log('coberturaParseContent: ', JSON.stringify(result));
+          console.log(JSON.stringify(result));
           coverageReportNew = result;
         }).catch(function (err) {
           console.error(err);

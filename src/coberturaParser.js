@@ -1,7 +1,7 @@
 import { parseString } from 'xml2js';
 
 const percentage = (covered, total) => {
-  return total ? Number((covered / total * 100).toFixed(2)) : 0;
+  return total ? Number((covered / total * 100).toFixed(2)) : 100;
 };
 
 const classesFromPackages = (packages) => {
@@ -15,7 +15,6 @@ const classesFromPackages = (packages) => {
     });
   });
 
-  console.log('classes: ', JSON.stringify(classes));
   return classes;
 };
 
