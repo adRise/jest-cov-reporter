@@ -73,13 +73,13 @@ async function main() {
     } else if (coverageFileType === 'xml') {
       coberturaParseContent(fs.readFileSync(branchCoverageReportPath).toString())
         .then(function (result) {
-          console.log(JSON.stringify(result));
           coverageReportNew = result;
         }).catch(function (err) {
           console.error(err);
         });
       coberturaParseContent(fs.readFileSync(baseCoverageReportPath).toString())
         .then(function (result) {
+          console.log(JSON.stringify(result));
           coverageReportOld = result;
         }).catch(function (err) {
           console.error(err);

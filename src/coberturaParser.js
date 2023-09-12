@@ -67,7 +67,7 @@ const unpackage = (packages) => {
 
     coverageSummary[c.$.name].lines.total = lineEnd;
     coverageSummary[c.$.name].lines.skipped = skippedLine.length;
-    coverageSummary[c.$.name].lines.covered = coverageSummary[c.$.name].lines.total - coverageSummary[c.$.name].statements.skipped;
+    coverageSummary[c.$.name].lines.covered = coverageSummary[c.$.name].lines.total - coverageSummary[c.$.name].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       coverageSummary[c.$.name].functions.total ++;
