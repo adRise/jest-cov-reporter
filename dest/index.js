@@ -15695,16 +15695,15 @@ async function main() {
       coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
     } else if (coverageFileType === 'xml') {
       coberturaParseContent(external_fs_default().readFileSync(branchCoverageReportPath).toString())
-        .then(function (result) {
+        .then(result => {
           coverageReportNew = result;
-        }).catch(function (err) {
+        }).catch(err => {
           console.error(err);
         });
       coberturaParseContent(external_fs_default().readFileSync(baseCoverageReportPath).toString())
-        .then(function (result) {
-          console.log(JSON.stringify(result));
+        .then(result => {
           coverageReportOld = result;
-        }).catch(function (err) {
+        }).catch(err => {
           console.error(err);
         });
     }
