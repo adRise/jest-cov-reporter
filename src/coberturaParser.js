@@ -23,6 +23,8 @@ const unpackage = (packages) => {
   const coverageType = ['lines', 'functions', 'branches', 'statements'];
   const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
   const coverageSummary = {};
+
+  // initial package total coverage with 0
   coverageSummary.total = {};
   coverageType.forEach(type => {
     coverageSummary.total[type] = {};
@@ -31,58 +33,67 @@ const unpackage = (packages) => {
     });
   });
 
+  // calculate coverage of each class in this package
   classes.forEach((c) => {
-    coverageSummary[c.$.name] = {};
+    const className = c.$.name;
+
+    // initial class coverage with 0
+    coverageSummary[className] = {};
     coverageType.forEach(type => {
-      coverageSummary[c.$.name][type] = {};
+      coverageSummary[className][type] = {};
       coverageDetails.forEach(detail => {
-        coverageSummary[c.$.name][type][detail] = 0;
+        coverageSummary[className][type][detail] = 0;
       });
     });
 
     let lineEnd = 0;
     const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
-      coverageSummary[c.$.name].statements.total ++;
+      // calculate statements coverage
+      coverageSummary[className].statements.total ++;
       if (l.$.hits === '1') {
-        coverageSummary[c.$.name].statements.covered ++;
+        coverageSummary[className].statements.covered ++;
       } else {
-        coverageSummary[c.$.name].statements.skipped ++;
+        coverageSummary[className].statements.skipped ++;
         if (!skippedLine.includes(Number(l.$.number))) {
           skippedLine.push(Number(l.$.number));
         }
       }
 
+      // calculate branches coverage
       if (l.$.branch === 'true') {
-        coverageSummary[c.$.name].branches.total ++;
+        coverageSummary[className].branches.total ++;
         if (l.$.hits === '1') {
-          coverageSummary[c.$.name].branches.covered ++;
+          coverageSummary[className].branches.covered ++;
         } else {
-          coverageSummary[c.$.name].branches.skipped ++;
+          coverageSummary[className].branches.skipped ++;
         }
       }
 
       if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
 
-    coverageSummary[c.$.name].lines.total = lineEnd;
-    coverageSummary[c.$.name].lines.skipped = skippedLine.length;
-    coverageSummary[c.$.name].lines.covered = coverageSummary[c.$.name].lines.total - coverageSummary[c.$.name].lines.skipped;
+    // calculate lines coverage
+    coverageSummary[className].lines.total = lineEnd;
+    coverageSummary[className].lines.skipped = skippedLine.length;
+    coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
-      coverageSummary[c.$.name].functions.total ++;
+      // calculate functions coverage
+      coverageSummary[className].functions.total ++;
       if (Number(m.$['line-rate']) + Number(m.$['branch-rate']) > 0) {
-        coverageSummary[c.$.name].functions.covered ++;
+        coverageSummary[className].functions.covered ++;
       } else {
-        coverageSummary[c.$.name].functions.skipped ++;
+        coverageSummary[className].functions.skipped ++;
       }
     })
 
+    // calculate package total coverage
     coverageType.forEach(type => {
       coverageDetails.forEach((detail) => {
-        coverageSummary.total[type][detail] += coverageSummary[c.$.name][type][detail];
+        coverageSummary.total[type][detail] += coverageSummary[className][type][detail];
       });
-      coverageSummary[c.$.name][type].pct = percentage(coverageSummary[c.$.name][type].covered, coverageSummary[c.$.name][type].total);
+      coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
       coverageSummary.total[type].pct = percentage(coverageSummary.total[type].covered, coverageSummary.total[type].total);
     });
   });
