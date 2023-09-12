@@ -40,14 +40,17 @@ const unpackage = (packages) => {
       });
     });
 
-    let lineStart = Infinity;
     let lineEnd = 0;
+    const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       coverageSummary[c.$.name].statements.total ++;
       if (l.$.hits === '1') {
         coverageSummary[c.$.name].statements.covered ++;
       } else {
         coverageSummary[c.$.name].statements.skipped ++;
+        if (!skippedLine.includes(Number(l.$.number))) {
+          skippedLine.push(Number(l.$.number));
+        }
       }
 
       if (l.$.branch === 'true') {
@@ -59,12 +62,11 @@ const unpackage = (packages) => {
         }
       }
 
-      if (lineStart > Number(l.$.number)) lineStart = Number(l.$.number);
       if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
 
-    coverageSummary[c.$.name].lines.total = lineEnd - lineStart + 1;
-    coverageSummary[c.$.name].lines.skipped = coverageSummary[c.$.name].statements.skipped;
+    coverageSummary[c.$.name].lines.total = lineEnd;
+    coverageSummary[c.$.name].lines.skipped = skippedLine.length;
     coverageSummary[c.$.name].lines.covered = coverageSummary[c.$.name].lines.total - coverageSummary[c.$.name].statements.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
