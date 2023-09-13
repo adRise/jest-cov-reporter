@@ -15583,7 +15583,7 @@ const unpackage = (packages) => {
 
     // calculate lines coverage
     coverageSummary[className].lines.total = lineEnd;
-    coverageSummary[className].lines.skipped = skippedLine.length;
+    coverageSummary[className].lines.skipped = coverageSummary[className].statements.covered === 0 ? coverageSummary[className].lines.total : skippedLine.length;
     coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
