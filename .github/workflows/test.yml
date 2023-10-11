@@ -33,4 +33,5 @@ jobs:
         with:
           branch-coverage-report-path: ./coverage/cobertura.xml
           base-coverage-report-path: ./coverage/cobertura-master.xml
-          useSameComment: true          
+          useSameComment: true
+          coverageType: cobertura

@@ -97,7 +97,7 @@ const unpackage = (packages) => {
   return coverageSummary;
 };
 
-export const coberturaParseContent = (xmlString) => {
+export default (xmlString) => {
   return new Promise((resolve, reject) => {
     parseString(xmlString, (err, parseResult) => {
       if (err) {

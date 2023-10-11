@@ -1,10 +1,9 @@
 import * as core from '@actions/core';
 import { DiffChecker } from './DiffChecker';
 import * as github from '@actions/github';
-import fs from 'fs';
 import { execSync } from 'child_process';
 import { createOrUpdateComment, findComment } from './utils';
-import { coberturaParseContent } from './coberturaParser';
+import parseContent from './parsers';
 
 async function main() {
   try {
@@ -45,6 +44,9 @@ async function main() {
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
 
+    const coverageType = core.getInput('coverageType');
+
+
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
@@ -63,27 +65,8 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
-    const coverageFileType = branchCoverageReportPath.match(/\.([^\.]+$)/)[1];
-    let coverageReportNew;
-    let coverageReportOld;
-    if (coverageFileType === 'json') {
-      // Read the json summary files for base and branch coverage
-      coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
-      coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
-    } else if (coverageFileType === 'xml') {
-      coberturaParseContent(fs.readFileSync(branchCoverageReportPath).toString())
-        .then(result => {
-          coverageReportNew = result;
-        }).catch(err => {
-          console.error(err);
-        });
-      coberturaParseContent(fs.readFileSync(baseCoverageReportPath).toString())
-        .then(result => {
-          coverageReportOld = result;
-        }).catch(err => {
-          console.error(err);
-        });
-    }
+    const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
+    const coverageReportOld = parseContent(baseCoverageReportPath, coverageType);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')

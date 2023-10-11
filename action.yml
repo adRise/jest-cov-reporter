@@ -34,6 +34,10 @@ inputs:
   check-new-file-full-coverage:
     description: 'Check newly added files whether have full coverage tests'
     default: true
+  coverageType:
+    required: false
+    description: 'Tools that generate code coverage'
+    default: 'jest'
 
 runs:
   using: 'node16'
