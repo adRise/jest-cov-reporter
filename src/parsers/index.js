@@ -2,14 +2,14 @@ import fs from "fs";
 import coberturaParser from "./cobertura";
 
 export default (filePath, type) => {
-  let parsedResult;
+  let parsedResult = fs.readFileSync(filePath).toString();
 
   switch (type) {
   case "jest":
-    parsedResult = JSON.parse(fs.readFileSync(filePath).toString());
+    parsedResult = JSON.parse(parsedResult);
     break;
   case "cobertura":
-    coberturaParser(fs.readFileSync(filePath).toString())
+    coberturaParser(parsedResult)
       .then((result) => {
         parsedResult = result;
       })
