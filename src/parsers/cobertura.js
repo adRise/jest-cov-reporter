@@ -98,12 +98,13 @@ const unpackage = (packages) => {
 };
 
 export default (xmlString) => {
-  return new Promise((resolve, reject) => {
-    parseString(xmlString, (err, parseResult) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(unpackage(parseResult.coverage.packages));
-    });
+  let result = {};
+  parseString(xmlString, (err, parseResult) => {
+    if (err) {
+      console.error('Error encountered during Cobertura parsing: ', err);
+    } else {
+      result = unpackage(parseResult.coverage.packages);
+    }
   });
+  return result;
 };

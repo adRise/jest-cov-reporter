@@ -15109,7 +15109,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 7292:
+/***/ 7393:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
@@ -15437,10 +15437,6 @@ class DiffChecker {
 }
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
 var github = __nccwpck_require__(5438);
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(5747);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-
 // CONCATENATED MODULE: external "child_process"
 const external_child_process_namespaceObject = require("child_process");;
 // CONCATENATED MODULE: ./src/utils.js
@@ -15507,9 +15503,13 @@ async function findComment(
   }
   return 0
 }
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(5747);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+
 // EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
 var xml2js = __nccwpck_require__(6189);
-// CONCATENATED MODULE: ./src/coberturaParser.js
+// CONCATENATED MODULE: ./src/parsers/cobertura.js
 
 
 const coverageType = ['lines', 'functions', 'branches', 'statements'];
@@ -15609,19 +15609,40 @@ const unpackage = (packages) => {
   return coverageSummary;
 };
 
-const coberturaParseContent = (xmlString) => {
-  return new Promise((resolve, reject) => {
-    (0,xml2js.parseString)(xmlString, (err, parseResult) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(unpackage(parseResult.coverage.packages));
-    });
+/* harmony default export */ const cobertura = ((xmlString) => {
+  let result = {};
+  (0,xml2js.parseString)(xmlString, (err, parseResult) => {
+    if (err) {
+      console.error('Error encountered during Cobertura parsing: ', err);
+    } else {
+      result = unpackage(parseResult.coverage.packages);
+    }
   });
-};
+  return result;
+});
+
+// CONCATENATED MODULE: ./src/parsers/index.js
+
+
+
+/* harmony default export */ const parsers = ((filePath, type) => {
+  let parsedResult = external_fs_default().readFileSync(filePath).toString();
+
+  switch (type) {
+  case "jest":
+    parsedResult = JSON.parse(parsedResult);
+    break;
+  case "cobertura":
+    parsedResult = cobertura(parsedResult)
+    break;
+  default:
+    break;
+  }
+
+  return parsedResult;
+});
 
 // CONCATENATED MODULE: ./src/index.js
-
 
 
 
@@ -15668,6 +15689,9 @@ async function main() {
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
 
+    const coverageType = core.getInput('coverageType');
+
+
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
@@ -15686,27 +15710,8 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
-    const coverageFileType = branchCoverageReportPath.match(/\.([^\.]+$)/)[1];
-    let coverageReportNew;
-    let coverageReportOld;
-    if (coverageFileType === 'json') {
-      // Read the json summary files for base and branch coverage
-      coverageReportNew = JSON.parse(external_fs_default().readFileSync(branchCoverageReportPath).toString());
-      coverageReportOld = JSON.parse(external_fs_default().readFileSync(baseCoverageReportPath).toString());
-    } else if (coverageFileType === 'xml') {
-      coberturaParseContent(external_fs_default().readFileSync(branchCoverageReportPath).toString())
-        .then(result => {
-          coverageReportNew = result;
-        }).catch(err => {
-          console.error(err);
-        });
-      coberturaParseContent(external_fs_default().readFileSync(baseCoverageReportPath).toString())
-        .then(result => {
-          coverageReportOld = result;
-        }).catch(err => {
-          console.error(err);
-        });
-    }
+    const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
+    const coverageReportOld = parsers(baseCoverageReportPath, coverageType);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
@@ -16057,6 +16062,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(7292);
+/******/ 	return __nccwpck_require__(7393);
 /******/ })()
 ;

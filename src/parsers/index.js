@@ -9,13 +9,7 @@ export default (filePath, type) => {
     parsedResult = JSON.parse(parsedResult);
     break;
   case "cobertura":
-    coberturaParser(parsedResult)
-      .then((result) => {
-        parsedResult = result;
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    parsedResult = coberturaParser(parsedResult)
     break;
   default:
     break;
