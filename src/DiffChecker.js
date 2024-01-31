@@ -223,7 +223,7 @@ export class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
-    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
+    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${name === 'total' ? 'index' : name.replace(/\./g, '/')}.scala.html)` : name;
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
