@@ -92,7 +92,8 @@ async function main() {
       delta,
       prefixFilenameUrl,
       prNumber,
-      repoName
+      repoName,
+      coverageType,
     });
 
     // Get coverage details.
