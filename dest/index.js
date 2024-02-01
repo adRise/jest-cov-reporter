@@ -15161,7 +15161,6 @@ class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath)
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -15270,7 +15269,6 @@ class DiffChecker {
    */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
-    console.log(keys);
     for (const fileName of keys) {
       const diffCoverageData = this.diffCoverageReport[fileName]
       const keys = Object.keys(diffCoverageData)
@@ -15729,6 +15727,7 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
+    console.log(onlyCheckChangedFiles, changedFiles);
     const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
     const coverageReportOld = parsers(baseCoverageReportPath, coverageType);
 

@@ -40,7 +40,6 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath)
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
@@ -149,7 +148,6 @@ export class DiffChecker {
    */
   checkIfTestCoverageFallsBelowDelta(delta) {
     const keys = Object.keys(this.diffCoverageReport)
-    console.log(keys);
     for (const fileName of keys) {
       const diffCoverageData = this.diffCoverageReport[fileName]
       const keys = Object.keys(diffCoverageData)

@@ -65,6 +65,7 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
+    console.log(onlyCheckChangedFiles, changedFiles);
     const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
     const coverageReportOld = parseContent(baseCoverageReportPath, coverageType);
 
