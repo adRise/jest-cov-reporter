@@ -35,4 +35,5 @@ jobs:
           base-coverage-report-path: ./coverage/cobertura-master.xml
           useSameComment: true
           coverageType: cobertura
+          only-check-changed-files: false
           prefix-filename-url: 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/larnaca-coverage-artifacts'
