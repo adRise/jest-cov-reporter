@@ -55,8 +55,7 @@ async function main() {
 
     let changedFiles = null;
     let addedFiles = null
-    console.log(changedFiles, typeof onlyCheckChangedFiles, onlyCheckChangedFiles);
-    if (onlyCheckChangedFiles) {
+    if (onlyCheckChangedFiles === 'true') {
       const files = await githubClient.pulls.listFiles({
         owner: repoOwner,
         repo: repoName,
@@ -64,7 +63,6 @@ async function main() {
       });
       changedFiles = files.data ? files.data.map(file => file.filename) : [];
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
-      console.log(changedFiles);
     }
 
     const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
