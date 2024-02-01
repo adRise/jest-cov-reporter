@@ -15191,7 +15191,6 @@ class DiffChecker {
   }
 
   checkOnlyChangedFiles(file) {
-    console.log(file, this.currentDirectory, this.changedFiles);
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -15284,7 +15283,6 @@ class DiffChecker {
         if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
           if (-this.getPercentageDiff(diffCoverageData[key]) > delta
             && !this.isDueToRemovedLines(diffCoverageData[key])) {
-            console.log(fileName, key, -this.getPercentageDiff(diffCoverageData[key]), this.checkOnlyChangedFiles(fileName))
             // Check only changed files
             if (this.checkOnlyChangedFiles(fileName)) {
               return true
@@ -15707,7 +15705,6 @@ async function main() {
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
 
     const coverageType = core.getInput('coverageType');
-
 
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
