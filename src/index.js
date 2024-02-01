@@ -55,7 +55,7 @@ async function main() {
 
     let changedFiles = null;
     let addedFiles = null
-    console.log(changedFiles);
+    console.log(changedFiles, typeof onlyCheckChangedFiles, onlyCheckChangedFiles);
     if (onlyCheckChangedFiles) {
       const files = await githubClient.pulls.listFiles({
         owner: repoOwner,
