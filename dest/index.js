@@ -15354,11 +15354,11 @@ class DiffChecker {
   ) {
     // No old coverage found so that means we added a new file coverage
     const fileNewCoverage = Object.values(diffFileCoverageData).every(
-      coverageData => coverageData.oldPct === 0
+      coverageData => coverageData.oldPct === 0 && coverageData.newPct !== 0
     )
     // No new coverage found so that means we deleted a file coverage
     const fileRemovedCoverage = Object.values(diffFileCoverageData).every(
-      coverageData => coverageData.newPct === 0
+      coverageData => coverageData.newPct === 0 && coverageData.oldPct !== 0 
     )
 
     const fileNameUrl = this.getFileNameUrl(name);
