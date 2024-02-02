@@ -15336,7 +15336,7 @@ class DiffChecker {
     case 'jest':
       return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
     case 'cobertura':
-      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
+      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
     default:
       return name;
     }
