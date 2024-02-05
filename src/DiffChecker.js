@@ -17,6 +17,7 @@ export class DiffChecker {
     delta,
     prefixFilenameUrl,
     prNumber,
+    coverageType,
   }) {
     this.diffCoverageReport = {};
     this.delta = delta;
@@ -27,6 +28,7 @@ export class DiffChecker {
     this.prefixFilenameUrl = prefixFilenameUrl;
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+    this.coverageType = coverageType;
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -207,6 +209,20 @@ export class DiffChecker {
       (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total)
   }
 
+  getFileNameUrl(name) {
+    if (this.prefixFilenameUrl === '') return name;
+
+    switch (this.coverageType) {
+    case 'jest':
+      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
+    case 'cobertura':
+      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
+    default:
+      return name;
+    }
+
+  }
+
   /**
    * Create the table row for the file with higher/lower coverage compared to base branch
    */
@@ -223,7 +239,7 @@ export class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
-    const fileNameUrl = this.prefixFilenameUrl !== '' ? `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)` : name;
+    const fileNameUrl = this.getFileNameUrl(name);
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {

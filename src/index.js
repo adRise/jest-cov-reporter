@@ -1,9 +1,9 @@
 import * as core from '@actions/core';
 import { DiffChecker } from './DiffChecker';
 import * as github from '@actions/github';
-import fs from 'fs';
 import { execSync } from 'child_process';
 import { createOrUpdateComment, findComment } from './utils';
+import parseContent from './parsers';
 
 async function main() {
   try {
@@ -44,6 +44,8 @@ async function main() {
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
 
+    const coverageType = core.getInput('coverageType');
+
     // If either of base or branch summary report does not exist, then exit with failure.
     if (!baseCoverageReportPath || !branchCoverageReportPath) {
       core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
@@ -52,7 +54,7 @@ async function main() {
 
     let changedFiles = null;
     let addedFiles = null
-    if (onlyCheckChangedFiles) {
+    if (onlyCheckChangedFiles === 'true') {
       const files = await githubClient.pulls.listFiles({
         owner: repoOwner,
         repo: repoName,
@@ -62,9 +64,8 @@ async function main() {
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
     }
 
-    // Read the json summary files for base and branch coverage
-    const coverageReportNew = JSON.parse(fs.readFileSync(branchCoverageReportPath).toString());
-    const coverageReportOld = JSON.parse(fs.readFileSync(baseCoverageReportPath).toString());
+    const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
+    const coverageReportOld = parseContent(baseCoverageReportPath, coverageType);
 
     // Get the current directory to replace the file name paths
     const currentDirectory = execSync('pwd')
@@ -90,7 +91,8 @@ async function main() {
       delta,
       prefixFilenameUrl,
       prNumber,
-      repoName
+      repoName,
+      coverageType,
     });
 
     // Get coverage details.

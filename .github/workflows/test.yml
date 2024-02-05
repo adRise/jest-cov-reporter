@@ -7,7 +7,7 @@ env:
 on:
   push:
     branches:
-      - 'master'
+      - 'main'
   pull_request:
     branches:
       - '**'
@@ -25,4 +25,15 @@ jobs:
         with:
           branch-coverage-report-path: ./coverage/coverage-summary.json
           base-coverage-report-path: ./coverage/coverage-summary-master.json
-          useSameComment: true          
+          useSameComment: true   
+
+      - name: cobertura coverage reporter
+        uses: ./ # Uses an action in the root directory
+        id: cobertura-coverage-reporter
+        with:
+          branch-coverage-report-path: ./coverage/cobertura.xml
+          base-coverage-report-path: ./coverage/cobertura-master.xml
+          useSameComment: true
+          coverageType: cobertura
+          only-check-changed-files: false
+          prefix-filename-url: 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/larnaca-coverage-artifacts'
