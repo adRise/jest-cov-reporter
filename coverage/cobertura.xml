@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE coverage SYSTEM "http://cobertura.sourceforge.net/xml/coverage-04.dtd">
 <coverage 
-line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" branches-covered="24" branch-rate="0.37" complexity="0" version="1.0" timestamp="1706773400966">
+line-rate="0.67" lines-valid="7390" lines-covered="4933" branches-valid="65" branches-covered="29" branch-rate="0.45" complexity="0" version="1.0" timestamp="1706624296963">
     <sources>
         <source>--source</source>
         <source>/home/runner/work/larnaca/larnaca/slick-codegen/src/main/scala</source>
@@ -2934,7 +2934,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
 </class>
             </classes>
         </package>
-        <package name="com.tubitv.ads.manager.dependency.grpc" line-rate="0.38" branch-rate="0.00" complexity="0">
+        <package name="com.tubitv.ads.manager.dependency.grpc" line-rate="0.40" branch-rate="0.00" complexity="0">
             <classes>
                 <class 
                 name="com.tubitv.ads.manager.dependency.grpc.AppClient" filename="com/tubitv/ads/manager/dependency/grpc/AppClient.scala" line-rate="0.75" branch-rate="1.00" complexity="0">
@@ -3232,69 +3232,69 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <method 
                         name="com.tubitv.ads.manager.dependency.grpc/AuthenticateIntercept/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="10" hits="1" branch="false"/>
+                                <line number="10" hits="2" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="10" hits="1" branch="false"/>
+                        <line number="10" hits="2" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.ads.manager.dependency.grpc.ImageCdnConfigClient" filename="com/tubitv/ads/manager/dependency/grpc/ImageCdnConfigClient.scala" line-rate="0.60" branch-rate="1.00" complexity="0">
+                name="com.tubitv.ads.manager.dependency.grpc.ImageCdnConfigClient" filename="com/tubitv/ads/manager/dependency/grpc/ImageCdnConfigClient.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
                         name="com.tubitv.ads.manager.dependency.grpc/ImageCdnConfigClient/getImageCdnConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="36" hits="1" branch="false"/>
-                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="2" branch="false"/>
+                                <line number="36" hits="2" branch="false"/>
                             </lines>
 </method>
                         <method 
                         name="com.tubitv.ads.manager.dependency.grpc/ImageCdnConfigClient/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="43" hits="1" branch="false"/>
+                                <line number="43" hits="2" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.ads.manager.dependency.grpc/ImageCdnConfigClient/retrieveImageCdnConfig" signature="()V" line-rate="0.33" branch-rate="1.00" complexity="0">
+                        name="com.tubitv.ads.manager.dependency.grpc/ImageCdnConfigClient/retrieveImageCdnConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="24" hits="1" branch="false"/>
-                                <line number="28" hits="0" branch="false"/>
-                                <line number="28" hits="0" branch="false"/>
-                                <line number="26" hits="0" branch="false"/>
-                                <line number="28" hits="0" branch="false"/>
-                                <line number="23" hits="1" branch="false"/>
-                                <line number="26" hits="0" branch="false"/>
-                                <line number="26" hits="0" branch="false"/>
-                                <line number="24" hits="1" branch="false"/>
+                                <line number="24" hits="2" branch="false"/>
+                                <line number="28" hits="1" branch="false"/>
+                                <line number="28" hits="1" branch="false"/>
+                                <line number="26" hits="1" branch="false"/>
+                                <line number="28" hits="1" branch="false"/>
+                                <line number="23" hits="2" branch="false"/>
+                                <line number="26" hits="1" branch="false"/>
+                                <line number="26" hits="1" branch="false"/>
+                                <line number="24" hits="2" branch="false"/>
                             </lines>
 </method>
                         <method 
                         name="com.tubitv.ads.manager.dependency.grpc/ImageCdnConfigClient/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="20" hits="1" branch="false"/>
-                                <line number="18" hits="1" branch="false"/>
-                                <line number="20" hits="1" branch="false"/>
+                                <line number="20" hits="2" branch="false"/>
+                                <line number="18" hits="2" branch="false"/>
+                                <line number="20" hits="2" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="36" hits="1" branch="false"/>
-                        <line number="43" hits="1" branch="false"/>
-                        <line number="24" hits="1" branch="false"/>
-                        <line number="28" hits="0" branch="false"/>
-                        <line number="28" hits="0" branch="false"/>
-                        <line number="26" hits="0" branch="false"/>
-                        <line number="28" hits="0" branch="false"/>
-                        <line number="23" hits="1" branch="false"/>
-                        <line number="36" hits="1" branch="false"/>
-                        <line number="20" hits="1" branch="false"/>
-                        <line number="26" hits="0" branch="false"/>
-                        <line number="26" hits="0" branch="false"/>
-                        <line number="24" hits="1" branch="false"/>
-                        <line number="18" hits="1" branch="false"/>
-                        <line number="20" hits="1" branch="false"/>
+                        <line number="36" hits="2" branch="false"/>
+                        <line number="43" hits="2" branch="false"/>
+                        <line number="24" hits="2" branch="false"/>
+                        <line number="28" hits="1" branch="false"/>
+                        <line number="28" hits="1" branch="false"/>
+                        <line number="26" hits="1" branch="false"/>
+                        <line number="28" hits="1" branch="false"/>
+                        <line number="23" hits="2" branch="false"/>
+                        <line number="36" hits="2" branch="false"/>
+                        <line number="20" hits="2" branch="false"/>
+                        <line number="26" hits="1" branch="false"/>
+                        <line number="26" hits="1" branch="false"/>
+                        <line number="24" hits="2" branch="false"/>
+                        <line number="18" hits="2" branch="false"/>
+                        <line number="20" hits="2" branch="false"/>
                     </lines>
 </class>
                 <class 
@@ -5155,7 +5155,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
 </class>
             </classes>
         </package>
-        <package name="com.tubitv.ads.manager.graphqlapi.model" line-rate="0.68" branch-rate="0.17" complexity="0">
+        <package name="com.tubitv.ads.manager.graphqlapi.model" line-rate="0.73" branch-rate="0.33" complexity="0">
             <classes>
                 <class 
                 name="com.tubitv.ads.manager.graphqlapi.model.CreativeAssetModels.VideoCreativeUploadRequest" filename="com/tubitv/ads/manager/graphqlapi/model/CreativeAssetModels.scala" line-rate="0.83" branch-rate="1.00" complexity="0">
@@ -5405,7 +5405,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.ads.manager.graphqlapi.model.CreativeAssetModels" filename="com/tubitv/ads/manager/graphqlapi/model/CreativeAssetModels.scala" line-rate="0.39" branch-rate="0.00" complexity="0">
+                name="com.tubitv.ads.manager.graphqlapi.model.CreativeAssetModels" filename="com/tubitv/ads/manager/graphqlapi/model/CreativeAssetModels.scala" line-rate="0.74" branch-rate="0.25" complexity="0">
                     <methods>
                         <method 
                         name="com.tubitv.ads.manager.graphqlapi.model/CreativeAssetModels/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
@@ -5422,22 +5422,22 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.ads.manager.graphqlapi.model/CreativeAssetModels/s3PathToOriginalImageCdnUrl" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.ads.manager.graphqlapi.model/CreativeAssetModels/s3PathToOriginalImageCdnUrl" signature="()V" line-rate="0.57" branch-rate="0.25" complexity="0">
                             <lines>
                                 <line number="139" hits="0" branch="true"/>
                                 <line number="140" hits="0" branch="false"/>
-                                <line number="135" hits="0" branch="false"/>
-                                <line number="137" hits="0" branch="false"/>
-                                <line number="136" hits="0" branch="false"/>
-                                <line number="138" hits="0" branch="true"/>
-                                <line number="137" hits="0" branch="false"/>
+                                <line number="135" hits="1" branch="false"/>
+                                <line number="137" hits="1" branch="false"/>
+                                <line number="136" hits="1" branch="false"/>
+                                <line number="138" hits="1" branch="true"/>
+                                <line number="137" hits="1" branch="false"/>
                                 <line number="140" hits="0" branch="true"/>
                                 <line number="139" hits="0" branch="false"/>
                                 <line number="139" hits="0" branch="true"/>
-                                <line number="138" hits="0" branch="false"/>
-                                <line number="137" hits="0" branch="false"/>
+                                <line number="138" hits="1" branch="false"/>
+                                <line number="137" hits="1" branch="false"/>
                                 <line number="139" hits="0" branch="false"/>
-                                <line number="137" hits="0" branch="false"/>
+                                <line number="137" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
@@ -5448,23 +5448,23 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="32" hits="1" branch="false"/>
                         <line number="140" hits="0" branch="false"/>
                         <line number="32" hits="1" branch="false"/>
-                        <line number="135" hits="0" branch="false"/>
-                        <line number="137" hits="0" branch="false"/>
-                        <line number="136" hits="0" branch="false"/>
+                        <line number="135" hits="1" branch="false"/>
+                        <line number="137" hits="1" branch="false"/>
+                        <line number="136" hits="1" branch="false"/>
                         <line number="32" hits="1" branch="false"/>
                         <line number="32" hits="1" branch="false"/>
-                        <line number="138" hits="0" branch="true"/>
-                        <line number="137" hits="0" branch="false"/>
+                        <line number="138" hits="1" branch="true"/>
+                        <line number="137" hits="1" branch="false"/>
                         <line number="32" hits="1" branch="false"/>
                         <line number="140" hits="0" branch="true"/>
                         <line number="139" hits="0" branch="false"/>
                         <line number="139" hits="0" branch="true"/>
-                        <line number="138" hits="0" branch="false"/>
-                        <line number="137" hits="0" branch="false"/>
+                        <line number="138" hits="1" branch="false"/>
+                        <line number="137" hits="1" branch="false"/>
                         <line number="32" hits="1" branch="false"/>
                         <line number="30" hits="1" branch="false"/>
                         <line number="139" hits="0" branch="false"/>
-                        <line number="137" hits="0" branch="false"/>
+                        <line number="137" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
@@ -5806,7 +5806,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
 </class>
             </classes>
         </package>
-        <package name="com.tubitv.ads.manager.graphqlapi.routes" line-rate="0.41" branch-rate="0.00" complexity="0">
+        <package name="com.tubitv.ads.manager.graphqlapi.routes" line-rate="0.47" branch-rate="0.50" complexity="0">
             <classes>
                 <class 
                 name="com.tubitv.ads.manager.graphqlapi.routes.AdserverApiRoute" filename="com/tubitv/ads/manager/graphqlapi/routes/AdserverApiRoute.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
@@ -6740,7 +6740,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.ads.manager.graphqlapi.routes.CreativeRoutes" filename="com/tubitv/ads/manager/graphqlapi/routes/CreativeRoutes.scala" line-rate="0.61" branch-rate="0.00" complexity="0">
+                name="com.tubitv.ads.manager.graphqlapi.routes.CreativeRoutes" filename="com/tubitv/ads/manager/graphqlapi/routes/CreativeRoutes.scala" line-rate="0.80" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
                         name="com.tubitv.ads.manager.graphqlapi.routes/CreativeRoutes/getAdvertiserVideos" signature="()V" line-rate="0.55" branch-rate="1.00" complexity="0">
@@ -6891,51 +6891,51 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.ads.manager.graphqlapi.routes/CreativeRoutes/generateImageCdnUrls" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.ads.manager.graphqlapi.routes/CreativeRoutes/generateImageCdnUrls" signature="()V" line-rate="0.81" branch-rate="1.00" complexity="0">
                             <lines>
                                 <line number="150" hits="0" branch="false"/>
-                                <line number="132" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
+                                <line number="132" hits="1" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
                                 <line number="151" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="150" hits="1" branch="false"/>
                                 <line number="150" hits="0" branch="false"/>
-                                <line number="150" hits="0" branch="false"/>
-                                <line number="146" hits="0" branch="false"/>
+                                <line number="146" hits="1" branch="false"/>
                                 <line number="151" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="130" hits="0" branch="false"/>
-                                <line number="143" hits="0" branch="true"/>
-                                <line number="132" hits="0" branch="false"/>
-                                <line number="137" hits="0" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="130" hits="1" branch="false"/>
+                                <line number="143" hits="1" branch="true"/>
+                                <line number="132" hits="1" branch="false"/>
+                                <line number="137" hits="1" branch="false"/>
                                 <line number="151" hits="0" branch="false"/>
                                 <line number="151" hits="0" branch="false"/>
-                                <line number="145" hits="0" branch="false"/>
-                                <line number="134" hits="0" branch="false"/>
-                                <line number="138" hits="0" branch="true"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="142" hits="0" branch="true"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="132" hits="0" branch="false"/>
+                                <line number="145" hits="1" branch="false"/>
+                                <line number="134" hits="1" branch="false"/>
+                                <line number="138" hits="1" branch="true"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="142" hits="1" branch="true"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="132" hits="1" branch="false"/>
                                 <line number="150" hits="0" branch="false"/>
-                                <line number="134" hits="0" branch="false"/>
-                                <line number="137" hits="0" branch="false"/>
+                                <line number="134" hits="1" branch="false"/>
+                                <line number="137" hits="1" branch="false"/>
                                 <line number="150" hits="0" branch="false"/>
-                                <line number="132" hits="0" branch="false"/>
-                                <line number="143" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="130" hits="0" branch="false"/>
-                                <line number="142" hits="0" branch="false"/>
-                                <line number="132" hits="0" branch="false"/>
-                                <line number="129" hits="0" branch="false"/>
-                                <line number="129" hits="0" branch="false"/>
-                                <line number="130" hits="0" branch="false"/>
-                                <line number="142" hits="0" branch="false"/>
-                                <line number="145" hits="0" branch="true"/>
-                                <line number="130" hits="0" branch="false"/>
-                                <line number="145" hits="0" branch="false"/>
-                                <line number="128" hits="0" branch="false"/>
-                                <line number="138" hits="0" branch="false"/>
+                                <line number="132" hits="1" branch="false"/>
+                                <line number="143" hits="1" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="130" hits="1" branch="false"/>
+                                <line number="142" hits="1" branch="false"/>
+                                <line number="132" hits="1" branch="false"/>
+                                <line number="129" hits="1" branch="false"/>
+                                <line number="129" hits="1" branch="false"/>
+                                <line number="130" hits="1" branch="false"/>
+                                <line number="142" hits="1" branch="false"/>
+                                <line number="145" hits="1" branch="true"/>
+                                <line number="130" hits="1" branch="false"/>
+                                <line number="145" hits="1" branch="false"/>
+                                <line number="128" hits="1" branch="false"/>
+                                <line number="138" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
@@ -6957,9 +6957,9 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                     <lines>
                         <line number="108" hits="1" branch="false"/>
                         <line number="150" hits="0" branch="false"/>
-                        <line number="132" hits="0" branch="false"/>
+                        <line number="132" hits="1" branch="false"/>
                         <line number="108" hits="1" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="103" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
@@ -6972,10 +6972,10 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="45" hits="1" branch="false"/>
                         <line number="45" hits="1" branch="false"/>
                         <line number="115" hits="0" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
                         <line number="45" hits="1" branch="false"/>
-                        <line number="150" hits="0" branch="false"/>
+                        <line number="150" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="64" hits="1" branch="false"/>
                         <line number="113" hits="1" branch="false"/>
@@ -6994,7 +6994,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="79" hits="1" branch="false"/>
                         <line number="82" hits="1" branch="false"/>
                         <line number="81" hits="1" branch="false"/>
-                        <line number="146" hits="0" branch="false"/>
+                        <line number="146" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
@@ -7002,19 +7002,19 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="85" hits="1" branch="false"/>
                         <line number="151" hits="0" branch="false"/>
                         <line number="113" hits="1" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="63" hits="1" branch="false"/>
-                        <line number="130" hits="0" branch="false"/>
+                        <line number="130" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="62" hits="1" branch="false"/>
-                        <line number="143" hits="0" branch="true"/>
+                        <line number="143" hits="1" branch="true"/>
                         <line number="103" hits="1" branch="false"/>
                         <line number="117" hits="0" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
-                        <line number="132" hits="0" branch="false"/>
+                        <line number="132" hits="1" branch="false"/>
                         <line number="67" hits="1" branch="false"/>
-                        <line number="137" hits="0" branch="false"/>
+                        <line number="137" hits="1" branch="false"/>
                         <line number="47" hits="1" branch="false"/>
                         <line number="45" hits="1" branch="false"/>
                         <line number="151" hits="0" branch="false"/>
@@ -7022,34 +7022,34 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="78" hits="1" branch="false"/>
                         <line number="82" hits="1" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
-                        <line number="145" hits="0" branch="false"/>
+                        <line number="145" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
-                        <line number="134" hits="0" branch="false"/>
+                        <line number="134" hits="1" branch="false"/>
                         <line number="45" hits="1" branch="false"/>
-                        <line number="138" hits="0" branch="true"/>
+                        <line number="138" hits="1" branch="true"/>
                         <line number="62" hits="1" branch="false"/>
                         <line number="108" hits="1" branch="false"/>
                         <line number="108" hits="1" branch="false"/>
                         <line number="64" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="86" hits="1" branch="false"/>
                         <line number="50" hits="1" branch="false"/>
                         <line number="66" hits="1" branch="false"/>
                         <line number="54" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
-                        <line number="142" hits="0" branch="true"/>
+                        <line number="142" hits="1" branch="true"/>
                         <line number="81" hits="1" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="49" hits="1" branch="false"/>
                         <line number="45" hits="1" branch="false"/>
                         <line number="113" hits="1" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="62" hits="1" branch="false"/>
                         <line number="46" hits="1" branch="false"/>
-                        <line number="132" hits="0" branch="false"/>
+                        <line number="132" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="63" hits="1" branch="false"/>
                         <line number="113" hits="1" branch="false"/>
@@ -7063,7 +7063,7 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="82" hits="1" branch="false"/>
                         <line number="150" hits="0" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
-                        <line number="134" hits="0" branch="false"/>
+                        <line number="134" hits="1" branch="false"/>
                         <line number="85" hits="1" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
                         <line number="84" hits="1" branch="false"/>
@@ -7078,19 +7078,19 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="105" hits="1" branch="false"/>
                         <line number="30" hits="1" branch="false"/>
                         <line number="108" hits="1" branch="false"/>
-                        <line number="137" hits="0" branch="false"/>
+                        <line number="137" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="115" hits="0" branch="false"/>
                         <line number="67" hits="1" branch="false"/>
                         <line number="150" hits="0" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
-                        <line number="132" hits="0" branch="false"/>
+                        <line number="132" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="109" hits="0" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
                         <line number="62" hits="1" branch="false"/>
                         <line number="50" hits="1" branch="false"/>
-                        <line number="143" hits="0" branch="false"/>
+                        <line number="143" hits="1" branch="false"/>
                         <line number="113" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="108" hits="0" branch="false"/>
@@ -7107,40 +7107,40 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                         <line number="113" hits="1" branch="false"/>
                         <line number="53" hits="1" branch="false"/>
                         <line number="71" hits="1" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="82" hits="1" branch="false"/>
                         <line number="62" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
                         <line number="116" hits="0" branch="false"/>
                         <line number="103" hits="1" branch="false"/>
-                        <line number="130" hits="0" branch="false"/>
-                        <line number="142" hits="0" branch="false"/>
+                        <line number="130" hits="1" branch="false"/>
+                        <line number="142" hits="1" branch="false"/>
                         <line number="117" hits="0" branch="false"/>
-                        <line number="132" hits="0" branch="false"/>
+                        <line number="132" hits="1" branch="false"/>
                         <line number="51" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
-                        <line number="129" hits="0" branch="false"/>
+                        <line number="129" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="64" hits="1" branch="false"/>
                         <line number="108" hits="1" branch="false"/>
                         <line number="70" hits="1" branch="false"/>
-                        <line number="129" hits="0" branch="false"/>
+                        <line number="129" hits="1" branch="false"/>
                         <line number="34" hits="1" branch="false"/>
-                        <line number="130" hits="0" branch="false"/>
-                        <line number="142" hits="0" branch="false"/>
+                        <line number="130" hits="1" branch="false"/>
+                        <line number="142" hits="1" branch="false"/>
                         <line number="105" hits="1" branch="false"/>
                         <line number="111" hits="0" branch="false"/>
-                        <line number="145" hits="0" branch="true"/>
-                        <line number="130" hits="0" branch="false"/>
+                        <line number="145" hits="1" branch="true"/>
+                        <line number="130" hits="1" branch="false"/>
                         <line number="79" hits="1" branch="false"/>
                         <line number="88" hits="1" branch="false"/>
-                        <line number="145" hits="0" branch="false"/>
-                        <line number="128" hits="0" branch="false"/>
+                        <line number="145" hits="1" branch="false"/>
+                        <line number="128" hits="1" branch="false"/>
                         <line number="62" hits="1" branch="false"/>
                         <line number="103" hits="1" branch="false"/>
                         <line number="67" hits="1" branch="false"/>
-                        <line number="138" hits="0" branch="false"/>
+                        <line number="138" hits="1" branch="false"/>
                     </lines>
 </class>
             </classes>
@@ -17848,124 +17848,124 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
 </class>
             </classes>
         </package>
-        <package name="com.tubitv.adserver.jobs.discrepancyreport" line-rate="0.00" branch-rate="0.00" complexity="0">
+        <package name="com.tubitv.adserver.jobs.discrepancyreport" line-rate="0.96" branch-rate="1.00" complexity="0">
             <classes>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.CentroDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/CentroDiscrepancyReport.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.CentroDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/CentroDiscrepancyReport.scala" line-rate="0.96" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="47" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="46" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="42" hits="0" branch="false"/>
-                                <line number="46" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="47" hits="0" branch="false"/>
-                                <line number="51" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="51" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="43" hits="0" branch="false"/>
-                                <line number="51" hits="0" branch="false"/>
+                                <line number="47" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="42" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="47" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="51" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/queryFromDb" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/queryFromDb" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="38" hits="0" branch="false"/>
-                                <line number="38" hits="0" branch="false"/>
-                                <line number="38" hits="0" branch="false"/>
-                                <line number="38" hits="0" branch="false"/>
+                                <line number="38" hits="1" branch="false"/>
+                                <line number="38" hits="1" branch="false"/>
+                                <line number="38" hits="1" branch="false"/>
+                                <line number="38" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.50" branch-rate="1.00" complexity="0">
                             <lines>
                                 <line number="13" hits="0" branch="false"/>
-                                <line number="20" hits="0" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/mailSetting" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/CentroDiscrepancyReport/mailSetting" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="47" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="46" hits="0" branch="false"/>
-                        <line number="38" hits="0" branch="false"/>
+                        <line number="47" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
+                        <line number="38" hits="1" branch="false"/>
                         <line number="13" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="42" hits="0" branch="false"/>
-                        <line number="46" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="38" hits="0" branch="false"/>
-                        <line number="47" hits="0" branch="false"/>
-                        <line number="38" hits="0" branch="false"/>
-                        <line number="51" hits="0" branch="false"/>
-                        <line number="25" hits="0" branch="false"/>
-                        <line number="20" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="51" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="38" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="43" hits="0" branch="false"/>
-                        <line number="51" hits="0" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="42" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="38" hits="1" branch="false"/>
+                        <line number="47" hits="1" branch="false"/>
+                        <line number="38" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
+                        <line number="25" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="38" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="51" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.EmailDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReport.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.EmailDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReport.scala" line-rate="0.95" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/sendEmailWithAttachment" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/sendEmailWithAttachment" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="82" hits="0" branch="false"/>
-                                <line number="91" hits="0" branch="false"/>
-                                <line number="83" hits="0" branch="false"/>
-                                <line number="89" hits="0" branch="false"/>
-                                <line number="86" hits="0" branch="false"/>
-                                <line number="85" hits="0" branch="false"/>
-                                <line number="82" hits="0" branch="false"/>
-                                <line number="81" hits="0" branch="false"/>
-                                <line number="84" hits="0" branch="false"/>
-                                <line number="82" hits="0" branch="false"/>
-                                <line number="81" hits="0" branch="false"/>
-                                <line number="86" hits="0" branch="false"/>
-                                <line number="80" hits="0" branch="false"/>
-                                <line number="83" hits="0" branch="false"/>
-                                <line number="115" hits="0" branch="false"/>
-                                <line number="92" hits="0" branch="false"/>
-                                <line number="86" hits="0" branch="false"/>
-                                <line number="90" hits="0" branch="false"/>
-                                <line number="89" hits="0" branch="false"/>
-                                <line number="89" hits="0" branch="false"/>
-                                <line number="84" hits="0" branch="false"/>
-                                <line number="90" hits="0" branch="false"/>
-                                <line number="86" hits="0" branch="false"/>
-                                <line number="94" hits="0" branch="false"/>
-                                <line number="93" hits="0" branch="false"/>
-                                <line number="89" hits="0" branch="false"/>
-                                <line number="85" hits="0" branch="false"/>
-                                <line number="85" hits="0" branch="false"/>
-                                <line number="86" hits="0" branch="false"/>
-                                <line number="84" hits="0" branch="false"/>
-                                <line number="83" hits="0" branch="false"/>
-                                <line number="81" hits="0" branch="false"/>
-                                <line number="92" hits="0" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="91" hits="1" branch="false"/>
+                                <line number="83" hits="1" branch="false"/>
+                                <line number="89" hits="1" branch="false"/>
+                                <line number="86" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="81" hits="1" branch="false"/>
+                                <line number="84" hits="1" branch="false"/>
+                                <line number="82" hits="1" branch="false"/>
+                                <line number="81" hits="1" branch="false"/>
+                                <line number="86" hits="1" branch="false"/>
+                                <line number="80" hits="1" branch="false"/>
+                                <line number="83" hits="1" branch="false"/>
+                                <line number="115" hits="1" branch="false"/>
+                                <line number="92" hits="1" branch="false"/>
+                                <line number="86" hits="1" branch="false"/>
+                                <line number="90" hits="1" branch="false"/>
+                                <line number="89" hits="1" branch="false"/>
+                                <line number="89" hits="1" branch="false"/>
+                                <line number="84" hits="1" branch="false"/>
+                                <line number="90" hits="1" branch="false"/>
+                                <line number="86" hits="1" branch="false"/>
+                                <line number="94" hits="1" branch="false"/>
+                                <line number="93" hits="1" branch="false"/>
+                                <line number="89" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="85" hits="1" branch="false"/>
+                                <line number="86" hits="1" branch="false"/>
+                                <line number="84" hits="1" branch="false"/>
+                                <line number="83" hits="1" branch="false"/>
+                                <line number="81" hits="1" branch="false"/>
+                                <line number="92" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
@@ -17977,467 +17977,467 @@ line-rate="0.64" lines-valid="7390" lines-covered="4694" branches-valid="65" bra
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/defaultPart" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/defaultPart" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="76" hits="0" branch="false"/>
-                                <line number="76" hits="0" branch="false"/>
-                                <line number="77" hits="0" branch="false"/>
-                                <line number="77" hits="0" branch="false"/>
-                                <line number="76" hits="0" branch="false"/>
-                                <line number="77" hits="0" branch="false"/>
+                                <line number="76" hits="1" branch="false"/>
+                                <line number="76" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
+                                <line number="76" hits="1" branch="false"/>
+                                <line number="77" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/run" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/run" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="61" hits="0" branch="false"/>
-                                <line number="64" hits="0" branch="false"/>
-                                <line number="64" hits="0" branch="false"/>
-                                <line number="59" hits="0" branch="false"/>
-                                <line number="63" hits="0" branch="false"/>
-                                <line number="64" hits="0" branch="false"/>
-                                <line number="59" hits="0" branch="false"/>
-                                <line number="64" hits="0" branch="false"/>
-                                <line number="61" hits="0" branch="false"/>
-                                <line number="64" hits="0" branch="false"/>
-                                <line number="60" hits="0" branch="false"/>
-                                <line number="63" hits="0" branch="false"/>
+                                <line number="61" hits="1" branch="false"/>
+                                <line number="64" hits="1" branch="false"/>
+                                <line number="64" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
+                                <line number="64" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="64" hits="1" branch="false"/>
+                                <line number="61" hits="1" branch="false"/>
+                                <line number="64" hits="1" branch="false"/>
+                                <line number="60" hits="1" branch="false"/>
+                                <line number="63" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="22" hits="0" branch="false"/>
-                                <line number="22" hits="0" branch="false"/>
-                                <line number="22" hits="0" branch="false"/>
-                                <line number="30" hits="0" branch="false"/>
-                                <line number="26" hits="0" branch="false"/>
-                                <line number="23" hits="0" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
+                                <line number="30" hits="1" branch="false"/>
+                                <line number="26" hits="1" branch="false"/>
+                                <line number="23" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
                         <line number="43" hits="0" branch="false"/>
-                        <line number="82" hits="0" branch="false"/>
-                        <line number="76" hits="0" branch="false"/>
-                        <line number="91" hits="0" branch="false"/>
-                        <line number="83" hits="0" branch="false"/>
-                        <line number="89" hits="0" branch="false"/>
-                        <line number="86" hits="0" branch="false"/>
-                        <line number="85" hits="0" branch="false"/>
-                        <line number="76" hits="0" branch="false"/>
-                        <line number="82" hits="0" branch="false"/>
-                        <line number="61" hits="0" branch="false"/>
-                        <line number="64" hits="0" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="76" hits="1" branch="false"/>
+                        <line number="91" hits="1" branch="false"/>
+                        <line number="83" hits="1" branch="false"/>
+                        <line number="89" hits="1" branch="false"/>
+                        <line number="86" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="76" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="61" hits="1" branch="false"/>
+                        <line number="64" hits="1" branch="false"/>
                         <line number="45" hits="0" branch="false"/>
                         <line number="41" hits="0" branch="false"/>
-                        <line number="81" hits="0" branch="false"/>
-                        <line number="22" hits="0" branch="false"/>
-                        <line number="64" hits="0" branch="false"/>
-                        <line number="77" hits="0" branch="false"/>
-                        <line number="84" hits="0" branch="false"/>
-                        <line number="22" hits="0" branch="false"/>
-                        <line number="82" hits="0" branch="false"/>
-                        <line number="59" hits="0" branch="false"/>
-                        <line number="81" hits="0" branch="false"/>
-                        <line number="63" hits="0" branch="false"/>
-                        <line number="86" hits="0" branch="false"/>
-                        <line number="77" hits="0" branch="false"/>
-                        <line number="64" hits="0" branch="false"/>
-                        <line number="22" hits="0" branch="false"/>
-                        <line number="76" hits="0" branch="false"/>
-                        <line number="80" hits="0" branch="false"/>
-                        <line number="59" hits="0" branch="false"/>
-                        <line number="83" hits="0" branch="false"/>
-                        <line number="115" hits="0" branch="false"/>
-                        <line number="92" hits="0" branch="false"/>
-                        <line number="86" hits="0" branch="false"/>
-                        <line number="30" hits="0" branch="false"/>
-                        <line number="90" hits="0" branch="false"/>
-                        <line number="64" hits="0" branch="false"/>
-                        <line number="89" hits="0" branch="false"/>
-                        <line number="89" hits="0" branch="false"/>
-                        <line number="84" hits="0" branch="false"/>
-                        <line number="90" hits="0" branch="false"/>
-                        <line number="26" hits="0" branch="false"/>
-                        <line number="86" hits="0" branch="false"/>
-                        <line number="94" hits="0" branch="false"/>
-                        <line number="93" hits="0" branch="false"/>
-                        <line number="61" hits="0" branch="false"/>
-                        <line number="89" hits="0" branch="false"/>
-                        <line number="64" hits="0" branch="false"/>
-                        <line number="85" hits="0" branch="false"/>
-                        <line number="60" hits="0" branch="false"/>
-                        <line number="85" hits="0" branch="false"/>
-                        <line number="77" hits="0" branch="false"/>
-                        <line number="86" hits="0" branch="false"/>
-                        <line number="84" hits="0" branch="false"/>
-                        <line number="23" hits="0" branch="false"/>
-                        <line number="83" hits="0" branch="false"/>
-                        <line number="81" hits="0" branch="false"/>
-                        <line number="63" hits="0" branch="false"/>
-                        <line number="92" hits="0" branch="false"/>
+                        <line number="81" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="64" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="84" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="82" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="81" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="86" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="64" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="76" hits="1" branch="false"/>
+                        <line number="80" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="83" hits="1" branch="false"/>
+                        <line number="115" hits="1" branch="false"/>
+                        <line number="92" hits="1" branch="false"/>
+                        <line number="86" hits="1" branch="false"/>
+                        <line number="30" hits="1" branch="false"/>
+                        <line number="90" hits="1" branch="false"/>
+                        <line number="64" hits="1" branch="false"/>
+                        <line number="89" hits="1" branch="false"/>
+                        <line number="89" hits="1" branch="false"/>
+                        <line number="84" hits="1" branch="false"/>
+                        <line number="90" hits="1" branch="false"/>
+                        <line number="26" hits="1" branch="false"/>
+                        <line number="86" hits="1" branch="false"/>
+                        <line number="94" hits="1" branch="false"/>
+                        <line number="93" hits="1" branch="false"/>
+                        <line number="61" hits="1" branch="false"/>
+                        <line number="89" hits="1" branch="false"/>
+                        <line number="64" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="60" hits="1" branch="false"/>
+                        <line number="85" hits="1" branch="false"/>
+                        <line number="77" hits="1" branch="false"/>
+                        <line number="86" hits="1" branch="false"/>
+                        <line number="84" hits="1" branch="false"/>
+                        <line number="23" hits="1" branch="false"/>
+                        <line number="83" hits="1" branch="false"/>
+                        <line number="81" hits="1" branch="false"/>
+                        <line number="63" hits="1" branch="false"/>
+                        <line number="92" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.MailGunSetting" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.MailGunSetting" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/MailGunSetting/apply" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/MailGunSetting/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="19" hits="0" branch="false"/>
-                                <line number="18" hits="0" branch="false"/>
-                                <line number="21" hits="0" branch="false"/>
-                                <line number="20" hits="0" branch="false"/>
+                                <line number="19" hits="1" branch="false"/>
+                                <line number="18" hits="1" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="19" hits="0" branch="false"/>
-                        <line number="18" hits="0" branch="false"/>
-                        <line number="21" hits="0" branch="false"/>
-                        <line number="20" hits="0" branch="false"/>
+                        <line number="19" hits="1" branch="false"/>
+                        <line number="18" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.YahooDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/YahooDiscrepancyReport.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.YahooDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/YahooDiscrepancyReport.scala" line-rate="0.97" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="53" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="45" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="43" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="44" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="53" hits="0" branch="false"/>
-                                <line number="53" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="50" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="53" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="45" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="43" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="44" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="53" hits="1" branch="false"/>
+                                <line number="53" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="50" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.67" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="20" hits="0" branch="false"/>
-                                <line number="22" hits="0" branch="false"/>
+                                <line number="20" hits="1" branch="false"/>
+                                <line number="22" hits="1" branch="false"/>
                                 <line number="13" hits="0" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/queryFromDb" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/queryFromDb" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="39" hits="0" branch="false"/>
-                                <line number="39" hits="0" branch="false"/>
-                                <line number="39" hits="0" branch="false"/>
-                                <line number="39" hits="0" branch="false"/>
-                                <line number="39" hits="0" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/mailSetting" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/YahooDiscrepancyReport/mailSetting" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="25" hits="0" branch="false"/>
+                                <line number="25" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="53" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="45" hits="0" branch="false"/>
-                        <line number="20" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="22" hits="0" branch="false"/>
-                        <line number="25" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="43" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="44" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="53" hits="0" branch="false"/>
-                        <line number="53" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="53" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="45" hits="1" branch="false"/>
+                        <line number="20" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="22" hits="1" branch="false"/>
+                        <line number="25" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="43" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="44" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="53" hits="1" branch="false"/>
+                        <line number="53" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
                         <line number="13" hits="0" branch="false"/>
-                        <line number="50" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
+                        <line number="50" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.EmailSetting" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.EmailSetting" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailSetting/apply" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailSetting/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="11" hits="0" branch="false"/>
-                                <line number="11" hits="0" branch="false"/>
-                                <line number="11" hits="0" branch="false"/>
-                                <line number="11" hits="0" branch="false"/>
+                                <line number="11" hits="1" branch="false"/>
+                                <line number="11" hits="1" branch="false"/>
+                                <line number="11" hits="1" branch="false"/>
+                                <line number="11" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="11" hits="0" branch="false"/>
-                        <line number="11" hits="0" branch="false"/>
-                        <line number="11" hits="0" branch="false"/>
-                        <line number="11" hits="0" branch="false"/>
+                        <line number="11" hits="1" branch="false"/>
+                        <line number="11" hits="1" branch="false"/>
+                        <line number="11" hits="1" branch="false"/>
+                        <line number="11" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.BeeswaxDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/BeeswaxDiscrepancyReport.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.BeeswaxDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/BeeswaxDiscrepancyReport.scala" line-rate="0.97" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="41" hits="0" branch="false"/>
-                                <line number="52" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="46" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="42" hits="0" branch="false"/>
-                                <line number="46" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="46" hits="0" branch="false"/>
-                                <line number="52" hits="0" branch="false"/>
-                                <line number="52" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="40" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
-                                <line number="49" hits="0" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="41" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="42" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="46" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="40" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
+                                <line number="49" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/queryFromDb" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/queryFromDb" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="36" hits="0" branch="false"/>
-                                <line number="36" hits="0" branch="false"/>
-                                <line number="36" hits="0" branch="false"/>
-                                <line number="36" hits="0" branch="false"/>
-                                <line number="36" hits="0" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
+                                <line number="36" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.67" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="21" hits="0" branch="false"/>
+                                <line number="21" hits="1" branch="false"/>
                                 <line number="13" hits="0" branch="false"/>
-                                <line number="19" hits="0" branch="false"/>
+                                <line number="19" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/mailSetting" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/BeeswaxDiscrepancyReport/mailSetting" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="24" hits="0" branch="false"/>
+                                <line number="24" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="36" hits="0" branch="false"/>
-                        <line number="41" hits="0" branch="false"/>
-                        <line number="52" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="36" hits="0" branch="false"/>
-                        <line number="21" hits="0" branch="false"/>
-                        <line number="46" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="42" hits="0" branch="false"/>
-                        <line number="46" hits="0" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="41" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="21" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="42" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
                         <line number="13" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="46" hits="0" branch="false"/>
-                        <line number="52" hits="0" branch="false"/>
-                        <line number="36" hits="0" branch="false"/>
-                        <line number="52" hits="0" branch="false"/>
-                        <line number="24" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="36" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="36" hits="0" branch="false"/>
-                        <line number="40" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="49" hits="0" branch="false"/>
-                        <line number="19" hits="0" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="46" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="24" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="36" hits="1" branch="false"/>
+                        <line number="40" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="49" hits="1" branch="false"/>
+                        <line number="19" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.EmailDiscrepancyReportSettings" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.EmailDiscrepancyReportSettings" filename="com/tubitv/adserver/jobs/discrepancyreport/EmailDiscrepancyReportSettings.scala" line-rate="1.00" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/centroConfig" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/centroConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="39" hits="0" branch="false"/>
-                                <line number="39" hits="0" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
+                                <line number="39" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/beeswaxConfig" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/beeswaxConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/madHiveConfig" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/madHiveConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="42" hits="0" branch="false"/>
-                                <line number="42" hits="0" branch="false"/>
+                                <line number="42" hits="1" branch="false"/>
+                                <line number="42" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/yahooConfig" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/yahooConfig" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="45" hits="0" branch="false"/>
-                                <line number="45" hits="0" branch="false"/>
+                                <line number="45" hits="1" branch="false"/>
+                                <line number="45" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/apply" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/EmailDiscrepancyReportSettings/apply" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="35" hits="0" branch="false"/>
-                                <line number="33" hits="0" branch="false"/>
-                                <line number="34" hits="0" branch="false"/>
-                                <line number="34" hits="0" branch="false"/>
-                                <line number="35" hits="0" branch="false"/>
-                                <line number="33" hits="0" branch="false"/>
-                                <line number="32" hits="0" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                                <line number="33" hits="1" branch="false"/>
+                                <line number="34" hits="1" branch="false"/>
+                                <line number="34" hits="1" branch="false"/>
+                                <line number="35" hits="1" branch="false"/>
+                                <line number="33" hits="1" branch="false"/>
+                                <line number="32" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="35" hits="0" branch="false"/>
-                        <line number="33" hits="0" branch="false"/>
-                        <line number="42" hits="0" branch="false"/>
-                        <line number="34" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="45" hits="0" branch="false"/>
-                        <line number="45" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="34" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="35" hits="0" branch="false"/>
-                        <line number="33" hits="0" branch="false"/>
-                        <line number="39" hits="0" branch="false"/>
-                        <line number="32" hits="0" branch="false"/>
-                        <line number="42" hits="0" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="33" hits="1" branch="false"/>
+                        <line number="42" hits="1" branch="false"/>
+                        <line number="34" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="45" hits="1" branch="false"/>
+                        <line number="45" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="34" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="35" hits="1" branch="false"/>
+                        <line number="33" hits="1" branch="false"/>
+                        <line number="39" hits="1" branch="false"/>
+                        <line number="32" hits="1" branch="false"/>
+                        <line number="42" hits="1" branch="false"/>
                     </lines>
 </class>
                 <class 
-                name="com.tubitv.adserver.jobs.discrepancyreport.MadhiveDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/MadhiveDiscrepancyReport.scala" line-rate="0.00" branch-rate="0.00" complexity="0">
+                name="com.tubitv.adserver.jobs.discrepancyreport.MadhiveDiscrepancyReport" filename="com/tubitv/adserver/jobs/discrepancyreport/MadhiveDiscrepancyReport.scala" line-rate="0.97" branch-rate="1.00" complexity="0">
                     <methods>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/makeAttachmentFile" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="59" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="59" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="55" hits="0" branch="false"/>
-                                <line number="52" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="59" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
-                                <line number="54" hits="0" branch="false"/>
-                                <line number="54" hits="0" branch="false"/>
-                                <line number="56" hits="0" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="55" hits="1" branch="false"/>
+                                <line number="52" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="59" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
+                                <line number="54" hits="1" branch="false"/>
+                                <line number="54" hits="1" branch="false"/>
+                                <line number="56" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/&lt;none&gt;" signature="()V" line-rate="0.50" branch-rate="1.00" complexity="0">
                             <lines>
                                 <line number="14" hits="0" branch="false"/>
-                                <line number="28" hits="0" branch="false"/>
+                                <line number="28" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/queryFromDb" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/queryFromDb" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
-                                <line number="48" hits="0" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
+                                <line number="48" hits="1" branch="false"/>
                             </lines>
 </method>
                         <method 
-                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/mailSetting" signature="()V" line-rate="0.00" branch-rate="0.00" complexity="0">
+                        name="com.tubitv.adserver.jobs.discrepancyreport/MadhiveDiscrepancyReport/mailSetting" signature="()V" line-rate="1.00" branch-rate="1.00" complexity="0">
                             <lines>
-                                <line number="33" hits="0" branch="false"/>
+                                <line number="33" hits="1" branch="false"/>
                             </lines>
 </method>
                     </methods>
                     <lines>
-                        <line number="59" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
                         <line number="14" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="59" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="33" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="28" hits="0" branch="false"/>
-                        <line number="55" hits="0" branch="false"/>
-                        <line number="52" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="59" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
-                        <line number="54" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="54" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="48" hits="0" branch="false"/>
-                        <line number="56" hits="0" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="33" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="28" hits="1" branch="false"/>
+                        <line number="55" hits="1" branch="false"/>
+                        <line number="52" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="59" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
+                        <line number="54" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="54" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="48" hits="1" branch="false"/>
+                        <line number="56" hits="1" branch="false"/>
                     </lines>
 </class>
             </classes>
