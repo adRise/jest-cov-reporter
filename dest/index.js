@@ -15723,6 +15723,7 @@ async function main() {
       });
       changedFiles = files.data ? files.data.map(file => file.filename) : [];
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
+      console.log(files, changedFiles, addedFiles);
     }
 
     const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
