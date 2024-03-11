@@ -70,7 +70,7 @@ export class DiffChecker {
   }
 
   checkOnlyChangedFiles(file) {
-    console.log(file, this.currentDirectory);
+    console.log('checkOnlyChangedFiles', file, this.currentDirectory);
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -80,6 +80,7 @@ export class DiffChecker {
   }
 
   checkOnlyAddedFiles(file) {
+    console.log('checkOnlyAddedFiles', file, this.currentDirectory);
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
       return this.addedFiles.indexOf(file.substring(1)) > -1;
@@ -287,6 +288,7 @@ export class DiffChecker {
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyAddedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
 
+    console.log(file, newFileWithoutCoverage);
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
