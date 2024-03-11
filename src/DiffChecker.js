@@ -71,6 +71,7 @@ export class DiffChecker {
   }
 
   checkOnlyChangedFiles(file) {
+    console.log(file, this.currentDirectory);
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       return this.changedFiles.indexOf(file.substring(1)) > -1;
