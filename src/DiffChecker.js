@@ -64,15 +64,21 @@ export class DiffChecker {
           old: oldCoverage.functions,
           newPct: this.getPercentage(newCoverage.functions),
           oldPct: this.getPercentage(oldCoverage.functions),
-        }
+        },
+      };
+      if (coverageType === 'cobertura') {
+        this.diffCoverageReport[filePath].filename = newCoverage.filename;
       }
     }
   }
 
   checkOnlyChangedFiles(file) {
-    console.log('checkOnlyChangedFiles', file, this.currentDirectory);
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
+      if (this.coverageType === 'cobertura') {
+        const filename = this.diffCoverageReport[file].filename;
+        return this.changedFiles.some(filePath => filePath.includes(filename));
+      }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
     }
 
@@ -80,9 +86,12 @@ export class DiffChecker {
   }
 
   checkOnlyAddedFiles(file) {
-    console.log('checkOnlyAddedFiles', file, this.currentDirectory);
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
+      if (this.coverageType === 'cobertura') {
+        const filename = this.diffCoverageReport[file].filename;
+        return this.addedFiles.some(filePath => filePath.includes(filename));
+      }
       return this.addedFiles.indexOf(file.substring(1)) > -1;
     }
 
@@ -288,7 +297,6 @@ export class DiffChecker {
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyAddedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
 
-    console.log(file, newFileWithoutCoverage);
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }

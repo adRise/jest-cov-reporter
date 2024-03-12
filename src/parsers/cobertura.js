@@ -92,6 +92,8 @@ const unpackage = (packages) => {
       coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
       coverageSummary[packageName][type].pct = percentage(coverageSummary[packageName][type].covered, coverageSummary[packageName][type].total);
     });
+
+    coverageSummary[className].filename = c.$['filename'];
   });
 
   return coverageSummary;
