@@ -40,6 +40,7 @@ export class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
+      console.log(filePath)
       this.diffCoverageReport[filePath] = {
         branches: {
           new: newCoverage.branches,
