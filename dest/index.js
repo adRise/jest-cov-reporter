@@ -15189,7 +15189,7 @@ class DiffChecker {
         },
       };
       if (coverageType === 'cobertura') {
-        this.diffCoverageReport[filePath].filename = newCoverage.filename;
+        this.diffCoverageReport[filePath].filename = newCoverage.filename || filePath;
       }
     }
   }
