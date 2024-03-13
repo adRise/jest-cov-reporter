@@ -71,7 +71,6 @@ export class DiffChecker {
         this.diffCoverageReport[filePath].filename = newCoverage.filename || filePath;
       }
     }
-    console.log(this.diffCoverageReport);
   }
 
   checkOnlyChangedFiles(file) {

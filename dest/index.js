@@ -15192,7 +15192,6 @@ class DiffChecker {
         this.diffCoverageReport[filePath].filename = newCoverage.filename || filePath;
       }
     }
-    console.log(this.diffCoverageReport);
   }
 
   checkOnlyChangedFiles(file) {
@@ -15587,7 +15586,7 @@ const unpackage = (packages) => {
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       // calculate statements coverage
       coverageSummary[className].statements.total ++;
-      if (l.$.hits === '1') {
+      if (l.$.hits !== '0') {
         coverageSummary[className].statements.covered ++;
       } else {
         coverageSummary[className].statements.skipped ++;
