@@ -59,7 +59,7 @@ const unpackage = (packages) => {
       // calculate branches coverage
       if (l.$.branch === 'true') {
         coverageSummary[className].branches.total ++;
-        if (l.$.hits === '1') {
+        if (l.$.hits !== '0') {
           coverageSummary[className].branches.covered ++;
         } else {
           coverageSummary[className].branches.skipped ++;
