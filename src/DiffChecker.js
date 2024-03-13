@@ -78,6 +78,7 @@ export class DiffChecker {
     if (this.changedFiles) {
       if (this.coverageType === 'cobertura') {
         const filename = this.diffCoverageReport[file].filename;
+        console.log('checkOnlyChangedFiles', filename, this.changedFiles.some(filePath => filePath.includes(filename)), this.changedFiles)
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -91,6 +92,7 @@ export class DiffChecker {
     if (this.addedFiles) {
       if (this.coverageType === 'cobertura') {
         const filename = this.diffCoverageReport[file].filename;
+        console.log('checkOnlyAddedFiles', filename, this.addedFiles.some(filePath => filePath.includes(filename)), this.addedFiles)
         return this.addedFiles.some(filePath => filePath.includes(filename));
       }
       return this.addedFiles.indexOf(file.substring(1)) > -1;
