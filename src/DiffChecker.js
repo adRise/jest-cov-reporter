@@ -142,13 +142,15 @@ export class DiffChecker {
   }
 
   getTotalCoverageReport(diffCoverageReport) {
-    let lineChangesPct = diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct;
-    lineChangesPct = Math.round((lineChangesPct + Number.EPSILON) * 100) / 100;
+    const summaryMetric = this.coverageType === 'cobertura' ? 'statements' : 'lines';
+    let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
+    changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
-      lineChangesPct,
-      linesCovered: this.coverageReportNew['total'].lines.covered,
-      linesTotal: this.coverageReportNew['total'].lines.total,
-      linesTotalPct: this.coverageReportNew['total'].lines.pct
+      changesPct,
+      covered: this.coverageReportNew['total'][summaryMetric].covered,
+      total: this.coverageReportNew['total'][summaryMetric].total,
+      totalPct: this.coverageReportNew['total'][summaryMetric].pct,
+      summaryMetric,
     }
   }
 

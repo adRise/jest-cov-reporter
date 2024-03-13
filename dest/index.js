@@ -15263,13 +15263,15 @@ class DiffChecker {
   }
 
   getTotalCoverageReport(diffCoverageReport) {
-    let lineChangesPct = diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct;
-    lineChangesPct = Math.round((lineChangesPct + Number.EPSILON) * 100) / 100;
+    const summaryMetric = this.coverageType === 'cobertura' ? 'statements' : 'lines';
+    let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
+    changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
-      lineChangesPct,
-      linesCovered: this.coverageReportNew['total'].lines.covered,
-      linesTotal: this.coverageReportNew['total'].lines.total,
-      linesTotalPct: this.coverageReportNew['total'].lines.pct
+      changesPct,
+      covered: this.coverageReportNew['total'][summaryMetric].covered,
+      total: this.coverageReportNew['total'][summaryMetric].total,
+      totalPct: this.coverageReportNew['total'][summaryMetric].pct,
+      summaryMetric,
     }
   }
 
@@ -15598,7 +15600,7 @@ const unpackage = (packages) => {
       // calculate branches coverage
       if (l.$.branch === 'true') {
         coverageSummary[className].branches.total ++;
-        if (l.$.hits === '1') {
+        if (l.$.hits !== '0') {
           coverageSummary[className].branches.covered ++;
         } else {
           coverageSummary[className].branches.skipped ++;
@@ -15822,13 +15824,14 @@ async function main() {
 
     if (totalCoverageLines) {
       const {
-        lineChangesPct,
-        linesCovered,
-        linesTotal,
-        linesTotalPct
+        changesPct,
+        covered,
+        total,
+        totalPct,
+        summaryMetric,
       } = totalCoverageLines
       messageToPost +=
-            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+            `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`

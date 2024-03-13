@@ -148,13 +148,14 @@ async function main() {
 
     if (totalCoverageLines) {
       const {
-        lineChangesPct,
-        linesCovered,
-        linesTotal,
-        linesTotalPct
+        changesPct,
+        covered,
+        total,
+        totalPct,
+        summaryMetric,
       } = totalCoverageLines
       messageToPost +=
-            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+            `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
