@@ -113,7 +113,7 @@ export class DiffChecker {
           const metrics = Object.keys(diffFileCoverageData);
           let statusMessage = ` ${key.replace(this.currentDirectory, '')} `;
           metrics.forEach(metric => {
-            if ('newPct' in diffFileCoverageData[metric]) {
+            if (typeof diffFileCoverageData[metric] === 'object') {
               statusMessage += `| ${this.diffFileCoverageData[metric].newPct} `;
             }
           });
@@ -256,7 +256,7 @@ export class DiffChecker {
       }
       let statusMessage = ` ${newCoverageStatusIcon} | **${fileNameUrl}** `;
       metrics.forEach(metric => {
-        if ('newPct' in diffFileCoverageData[metric]) {
+        if (typeof diffFileCoverageData[metric] === 'object') {
           statusMessage += `| **${diffFileCoverageData[metric].newPct}** `;
         }
       });
@@ -267,7 +267,7 @@ export class DiffChecker {
     } else if (fileRemovedCoverage) {
       let statusMessage =  ` ${removedCoverageIcon} | ~~${fileNameUrl}~~ `;
       metrics.forEach(metric => {
-        if ('oldPct' in diffFileCoverageData[metric]) {
+        if (typeof diffFileCoverageData[metric] === 'object') {
           statusMessage += `| ~~${diffFileCoverageData[metric].oldPct}~~ `;
         }
       });
@@ -280,7 +280,7 @@ export class DiffChecker {
     const statusIcon = this.getStatusIcon(diffFileCoverageData)
     let statusMessage = ` ${statusIcon} | ${fileNameUrl} `;
     metrics.forEach(metric => {
-      if ('newPct' in diffFileCoverageData[metric]) {
+      if (typeof diffFileCoverageData[metric] === 'object') {
         statusMessage += `| ${diffFileCoverageData[metric].newPct} **(${this.getPercentageDiff(diffFileCoverageData[metric])})** `;
       }
     });
