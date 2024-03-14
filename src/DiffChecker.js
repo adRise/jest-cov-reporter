@@ -23,6 +23,7 @@ export class DiffChecker {
     coverageType,
   }) {
     this.diffCoverageReport = {};
+    this.filePathMap = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
     this.changedFiles = changedFiles;
@@ -55,7 +56,7 @@ export class DiffChecker {
         }
       }
       if (coverageType === 'cobertura') {
-        this.diffCoverageReport[filePath].filename = newCoverage.filename || filePath;
+        this.filePathMap[filePath] = newCoverage.filename || filePath;
       }
     }
   }
@@ -64,7 +65,7 @@ export class DiffChecker {
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
       if (this.coverageType === 'cobertura') {
-        const filename = this.diffCoverageReport[file].filename;
+        const filename = this.filePathMap[file];
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -77,7 +78,7 @@ export class DiffChecker {
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
       if (this.coverageType === 'cobertura') {
-        const filename = this.diffCoverageReport[file].filename;
+        const filename = this.filePathMap[file];
         return this.addedFiles.some(filePath => filePath.includes(filename));
       }
       return this.addedFiles.indexOf(file.substring(1)) > -1;
