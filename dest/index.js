@@ -15186,7 +15186,6 @@ class DiffChecker {
     if (this.changedFiles) {
       if (this.coverageType === 'cobertura') {
         const filename = this.diffCoverageReport[file].filename;
-        console.log(file, filename, this.changedFiles.some(filePath => filePath.includes(filename)));
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -15236,6 +15235,7 @@ class DiffChecker {
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
+      console.log(key, this.compareCoverageValues(key));
       if (this.compareCoverageValues(key) !== 0) {
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
@@ -15422,7 +15422,6 @@ class DiffChecker {
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyAddedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
 
-    console.log(file, values, fileCoverageChanged, newFileWithoutCoverage)
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
