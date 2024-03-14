@@ -65,6 +65,7 @@ export class DiffChecker {
     if (this.changedFiles) {
       if (this.coverageType === 'cobertura') {
         const filename = this.diffCoverageReport[file].filename;
+        console.log(file, filename, this.changedFiles.some(filePath => filePath.includes(filename)));
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
       return this.changedFiles.indexOf(file.substring(1)) > -1;

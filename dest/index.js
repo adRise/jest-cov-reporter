@@ -15186,6 +15186,7 @@ class DiffChecker {
     if (this.changedFiles) {
       if (this.coverageType === 'cobertura') {
         const filename = this.diffCoverageReport[file].filename;
+        console.log(file, filename, this.changedFiles.some(filePath => filePath.includes(filename)));
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
@@ -15725,6 +15726,7 @@ async function main() {
       });
       changedFiles = files.data ? files.data.map(file => file.filename) : [];
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
+      console.log(changedFiles, addedFiles);
     }
 
     const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
