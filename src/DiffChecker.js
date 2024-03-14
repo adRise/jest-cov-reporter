@@ -257,6 +257,7 @@ export class DiffChecker {
     )
 
     const fileNameUrl = this.getFileNameUrl(name);
+    console.log('fileNewCoverage', name, fileNewCoverage);
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
