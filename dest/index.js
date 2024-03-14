@@ -15421,6 +15421,7 @@ class DiffChecker {
     const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyAddedFiles(file);
     const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
 
+    console.log(file, values, fileCoverageChanged, newFileWithoutCoverage)
     if (newFileWithoutCoverage || fileCoverageChanged) {
       return 1;
     }
