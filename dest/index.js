@@ -15161,35 +15161,20 @@ class DiffChecker {
     for (const filePath of reportKeys) {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
+      const metricsNewKeys = Object.keys(newCoverage);
+      const metricsOldKeys = Object.keys(oldCoverage);
+      const metricsKeys = new Set([...metricsNewKeys, ...metricsOldKeys]);
       console.log(filePath)
-      this.diffCoverageReport[filePath] = {
-        branches: {
-          new: newCoverage.branches,
-          old: oldCoverage.branches,
-          newPct: this.getPercentage(newCoverage.branches),
-          oldPct: this.getPercentage(oldCoverage.branches),
-        },
-        statements: {
-          new: newCoverage.statements,
-          old:oldCoverage.statements,
-          newPct: this.getPercentage(newCoverage.statements),
-          oldPct: this.getPercentage(oldCoverage.statements),
-        },
-        lines: {
-          new: newCoverage.lines,
-          old: oldCoverage.lines,
-          newPct: this.getPercentage(newCoverage.lines),
-          oldPct: this.getPercentage(oldCoverage.lines),
-        },
-        functions: {
-          new: newCoverage.functions,
-          old: oldCoverage.functions,
-          newPct: this.getPercentage(newCoverage.functions),
-          oldPct: this.getPercentage(oldCoverage.functions),
-        },
-      };
-      if (coverageType === 'cobertura') {
-        this.diffCoverageReport[filePath].filename = newCoverage.filename || filePath;
+      this.diffCoverageReport[filePath] = {};
+      for (const metric of metricsKeys) {
+        this.diffCoverageReport[filePath][metric] = typeof newCoverage[metric] === 'object' 
+          ? {
+            new: newCoverage[metric],
+            old: oldCoverage[metric],
+            newPct: this.getPercentage(newCoverage[metric]),
+            oldPct: this.getPercentage(oldCoverage[metric]),
+          } 
+          : newCoverage[metric];
       }
     }
   }
@@ -15245,13 +15230,15 @@ class DiffChecker {
         }
       } else {
         if (!diffOnly) {
-          remainingStatusLines.push(
-            `${key.replace(this.currentDirectory, '')} | ${
-              this.diffCoverageReport[key].statements.newPct
-            } | ${this.diffCoverageReport[key].branches.newPct} | ${
-              this.diffCoverageReport[key].functions.newPct
-            } | ${this.diffCoverageReport[key].lines.newPct}`
-          )
+          const diffFileCoverageData = this.diffCoverageReport[key];
+          const metrics = Object.keys(diffFileCoverageData);
+          let statusMessage = ` ${key.replace(this.currentDirectory, '')} `;
+          metrics.forEach(metric => {
+            if ('newPct' in diffFileCoverageData[metric]) {
+              statusMessage += `| ${this.diffFileCoverageData[metric].newPct} `;
+            }
+          });
+          remainingStatusLines.push(statusMessage);
         }
       }
     }
@@ -15373,6 +15360,8 @@ class DiffChecker {
       coverageData => coverageData.newPct === 0
     )
 
+    const metrics = Object.keys(diffFileCoverageData);
+
     const fileNameUrl = this.getFileNameUrl(name);
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
@@ -15386,29 +15375,39 @@ class DiffChecker {
           newCoverageStatusIcon = `${increasedCoverageIcon} ${newCoverageIcon}`;
         }
       }
+      let statusMessage = ` ${newCoverageStatusIcon} | **${fileNameUrl}** `;
+      metrics.forEach(metric => {
+        if ('newPct' in diffFileCoverageData[metric]) {
+          statusMessage += `| **${diffFileCoverageData[metric].newPct}** `;
+        }
+      });
       return {
         status: 'new',
-        statusMessage: ` ${newCoverageStatusIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`,
+        statusMessage,
       };
     } else if (fileRemovedCoverage) {
+      let statusMessage =  ` ${removedCoverageIcon} | ~~${fileNameUrl}~~ `;
+      metrics.forEach(metric => {
+        if ('oldPct' in diffFileCoverageData[metric]) {
+          statusMessage += `| ~~${diffFileCoverageData[metric].oldPct}~~ `;
+        }
+      });
       return {
         status: 'removed',
-        statusMessage: ` ${removedCoverageIcon} | ~~${fileNameUrl}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+        statusMessage,
       }
     }
     // Coverage existed before so calculate the diff status
     const statusIcon = this.getStatusIcon(diffFileCoverageData)
+    let statusMessage = ` ${statusIcon} | ${fileNameUrl} `;
+    metrics.forEach(metric => {
+      if ('newPct' in diffFileCoverageData[metric]) {
+        statusMessage += `| ${diffFileCoverageData[metric].newPct} **(${this.getPercentageDiff(diffFileCoverageData[metric])})** `;
+      }
+    });
     return {
       status: statusIcon === increasedCoverageIcon ? 'increase' : 'decrease',
-      statusMessage: ` ${statusIcon} | ${fileNameUrl} | ${
-        diffFileCoverageData.statements.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
-        diffFileCoverageData.branches.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
-        diffFileCoverageData.functions.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
-        diffFileCoverageData.lines.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+      statusMessage,
     }
   }
 
@@ -15541,7 +15540,7 @@ var xml2js = __nccwpck_require__(6189);
 // CONCATENATED MODULE: ./src/parsers/cobertura.js
 
 
-const coverageType = ['lines', 'functions', 'branches', 'statements'];
+const coverageType = ['functions', 'branches', 'statements'];
 const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
 
 const percentage = (covered, total) => {
@@ -15583,8 +15582,6 @@ const unpackage = (packages) => {
     const className = c.$.name;
     initialCoverageWithZero(coverageSummary, className);
 
-    let lineEnd = 0;
-    const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       // calculate statements coverage
       coverageSummary[className].statements.total ++;
@@ -15592,9 +15589,6 @@ const unpackage = (packages) => {
         coverageSummary[className].statements.covered ++;
       } else {
         coverageSummary[className].statements.skipped ++;
-        if (!skippedLine.includes(Number(l.$.number))) {
-          skippedLine.push(Number(l.$.number));
-        }
       }
 
       // calculate branches coverage
@@ -15606,14 +15600,7 @@ const unpackage = (packages) => {
           coverageSummary[className].branches.skipped ++;
         }
       }
-
-      if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
-
-    // calculate lines coverage
-    coverageSummary[className].lines.total = lineEnd;
-    coverageSummary[className].lines.skipped = coverageSummary[className].statements.covered === 0 ? coverageSummary[className].lines.total : skippedLine.length;
-    coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       // calculate functions coverage

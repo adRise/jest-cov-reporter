@@ -1,6 +1,6 @@
 import { parseString } from 'xml2js';
 
-const coverageType = ['lines', 'functions', 'branches', 'statements'];
+const coverageType = ['functions', 'branches', 'statements'];
 const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
 
 const percentage = (covered, total) => {
@@ -42,8 +42,6 @@ const unpackage = (packages) => {
     const className = c.$.name;
     initialCoverageWithZero(coverageSummary, className);
 
-    let lineEnd = 0;
-    const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       // calculate statements coverage
       coverageSummary[className].statements.total ++;
@@ -51,9 +49,6 @@ const unpackage = (packages) => {
         coverageSummary[className].statements.covered ++;
       } else {
         coverageSummary[className].statements.skipped ++;
-        if (!skippedLine.includes(Number(l.$.number))) {
-          skippedLine.push(Number(l.$.number));
-        }
       }
 
       // calculate branches coverage
@@ -65,14 +60,7 @@ const unpackage = (packages) => {
           coverageSummary[className].branches.skipped ++;
         }
       }
-
-      if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
-
-    // calculate lines coverage
-    coverageSummary[className].lines.total = lineEnd;
-    coverageSummary[className].lines.skipped = coverageSummary[className].statements.covered === 0 ? coverageSummary[className].lines.total : skippedLine.length;
-    coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       // calculate functions coverage
