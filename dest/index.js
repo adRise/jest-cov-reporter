@@ -15218,11 +15218,13 @@ class DiffChecker {
 
   getStatusHeader() {
     let statusMessage = '';
+    let splitLine = '';
     for(const header of statusHeaders) {
       if (this.coverageType === 'cobertura' && header === 'Lines') break;
-      statusMessage += `| ${header} `;
+      statusMessage += ` ${header} |`;
+      splitLine += ' ----- |';
     }
-    return statusMessage;
+    return `${statusMessage} \n ${splitLine}`;
   }
 
   /**
@@ -15789,7 +15791,7 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              `Status | Changes Missing Coverage ${statusHeader} \n -----|-----|---------|----------|---------|------ \n`
+              `Status | Changes Missing Coverage | ${statusHeader} \n`
         messageToPost += decreaseStatusLines.join('\n')
         messageToPost += '\n--- \n\n'
       }
@@ -15799,7 +15801,7 @@ async function main() {
         messageToPost += '<details>'
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
-              `Status | File ${statusHeader} \n -----|-----|---------|----------|---------|------ \n`
+              `Status | File | ${statusHeader} \n`
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';

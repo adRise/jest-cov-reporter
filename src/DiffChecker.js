@@ -97,11 +97,13 @@ export class DiffChecker {
 
   getStatusHeader() {
     let statusMessage = '';
+    let splitLine = '';
     for(const header of statusHeaders) {
       if (this.coverageType === 'cobertura' && header === 'Lines') break;
-      statusMessage += `| ${header} `;
+      statusMessage += ` ${header} |`;
+      splitLine += ' ----- |';
     }
-    return statusMessage;
+    return `${statusMessage} \n ${splitLine}`;
   }
 
   /**
