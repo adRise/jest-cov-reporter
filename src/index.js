@@ -97,7 +97,7 @@ async function main() {
 
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     const isNotFullCoverageOnNewFile = diffChecker.checkIfNewFileNotFullCoverage();
@@ -128,7 +128,7 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+              `Status | Changes Missing Coverage ${statusHeader} \n -----|-----|---------|----------|---------|------ \n`
         messageToPost += decreaseStatusLines.join('\n')
         messageToPost += '\n--- \n\n'
       }
@@ -138,7 +138,7 @@ async function main() {
         messageToPost += '<details>'
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
-              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+              `Status | File ${statusHeader} \n -----|-----|---------|----------|---------|------ \n`
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
