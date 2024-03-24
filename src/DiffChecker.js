@@ -3,8 +3,21 @@ const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
 const sparkleIcon = ':sparkles:'
-const statusHeaders = ['Stmts', 'Branch', 'Funcs', 'Lines'];
-const statusMetrics = ['statements', 'branches', 'functions', 'lines'];
+
+const statusByCoverageType = {  
+  jest: {
+    // Metrics and headers must correspond one-to-one
+    // 'statements' correspond to 'Stmts'
+    statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
+    statusMetrics: ['statements', 'branches', 'functions', 'lines'],
+    summaryMetric: 'lines',
+  },  
+  cobertura: {
+    statusHeaders: ['Stmts', 'Branch', 'Funcs'],
+    statusMetrics: ['statements', 'branches', 'functions'],
+    summaryMetric: 'statements',
+  },  
+};
 
 /**
  * DiffChecker is the simple algorithm to compare coverage
@@ -46,8 +59,8 @@ export class DiffChecker {
       const oldCoverage = coverageReportOld[filePath] || {};
       console.log(filePath)
       this.diffCoverageReport[filePath] = {};
+      const { statusMetrics } = statusByCoverageType[this.coverageType];
       for (const metric of statusMetrics) {
-        if (coverageType === 'cobertura' && metric === 'lines') break;
         this.diffCoverageReport[filePath][metric] = {
           new: newCoverage[metric],
           old: oldCoverage[metric],
@@ -89,8 +102,8 @@ export class DiffChecker {
 
   getStatusMessage(prefix, callback) {
     let statusMessage = prefix;
+    const { statusMetrics } = statusByCoverageType[this.coverageType];
     for(const metric of statusMetrics) {
-      if (this.coverageType === 'cobertura' && metric === 'lines') break;
       statusMessage += callback(metric);
     }
     return statusMessage;
@@ -99,8 +112,8 @@ export class DiffChecker {
   getStatusHeader() {
     let statusMessage = '';
     let splitLine = '';
+    const { statusHeaders } = statusByCoverageType[this.coverageType];
     for(const header of statusHeaders) {
-      if (this.coverageType === 'cobertura' && header === 'Lines') break;
       statusMessage += ` ${header} |`;
       splitLine += ' ----- |';
     }
@@ -147,7 +160,7 @@ export class DiffChecker {
   }
 
   getTotalCoverageReport(diffCoverageReport) {
-    const summaryMetric = this.coverageType === 'cobertura' ? 'statements' : 'lines';
+    const { summaryMetric } = statusByCoverageType[this.coverageType];
     let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
     changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
