@@ -46,6 +46,7 @@ export class DiffChecker {
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.coverageType = coverageType;
+    this.isCobertura = coverageType === 'cobertura';
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -68,7 +69,7 @@ export class DiffChecker {
           oldPct: this.getPercentage(oldCoverage[metric]),
         }
       }
-      if (coverageType === 'cobertura') {
+      if (this.isCobertura) {
         this.filePathMap[filePath] = newCoverage.filename || filePath;
       }
     }
@@ -77,7 +78,7 @@ export class DiffChecker {
   checkOnlyChangedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
-      if (this.coverageType === 'cobertura') {
+      if (this.isCobertura) {
         const filename = this.filePathMap[file];
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
@@ -90,7 +91,7 @@ export class DiffChecker {
   checkOnlyAddedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
-      if (this.coverageType === 'cobertura') {
+      if (this.isCobertura) {
         const filename = this.filePathMap[file];
         return this.addedFiles.some(filePath => filePath.includes(filename));
       }
@@ -243,15 +244,10 @@ export class DiffChecker {
   getFileNameUrl(name) {
     if (this.prefixFilenameUrl === '') return name;
 
-    switch (this.coverageType) {
-    case 'jest':
-      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
-    case 'cobertura':
+    if (this.isCobertura) {
       return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
-    default:
-      return name;
     }
-
+    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
   }
 
   /**
