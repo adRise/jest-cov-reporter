@@ -36,4 +36,5 @@ jobs:
           useSameComment: true
           coverageType: cobertura
           only-check-changed-files: false
+          check-new-file-full-coverage: false
           prefix-filename-url: 'https://tubi-web-assets-staging.s3.us-east-2.amazonaws.com/larnaca-coverage-artifacts'
