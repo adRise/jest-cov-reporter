@@ -15124,6 +15124,22 @@ const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
 const sparkleIcon = ':sparkles:'
+
+const statusByCoverageType = {  
+  jest: {
+    // Metrics and headers must correspond one-to-one
+    // 'statements' correspond to 'Stmts'
+    statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
+    statusMetrics: ['statements', 'branches', 'functions', 'lines'],
+    summaryMetric: 'lines',
+  },  
+  cobertura: {
+    statusHeaders: ['Stmts', 'Branch', 'Funcs'],
+    statusMetrics: ['statements', 'branches', 'functions'],
+    summaryMetric: 'statements',
+  },  
+};
+
 /**
  * DiffChecker is the simple algorithm to compare coverage
  */
@@ -15141,6 +15157,7 @@ class DiffChecker {
     coverageType,
   }) {
     this.diffCoverageReport = {};
+    this.filePathMap = {};
     this.delta = delta;
     this.coverageReportNew = coverageReportNew;
     this.changedFiles = changedFiles;
@@ -15150,6 +15167,7 @@ class DiffChecker {
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.coverageType = coverageType;
+    this.isCobertura = coverageType === 'cobertura';
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -15162,31 +15180,18 @@ class DiffChecker {
       const newCoverage = coverageReportNew[filePath] || {};
       const oldCoverage = coverageReportOld[filePath] || {};
       console.log(filePath)
-      this.diffCoverageReport[filePath] = {
-        branches: {
-          new: newCoverage.branches,
-          old: oldCoverage.branches,
-          newPct: this.getPercentage(newCoverage.branches),
-          oldPct: this.getPercentage(oldCoverage.branches),
-        },
-        statements: {
-          new: newCoverage.statements,
-          old:oldCoverage.statements,
-          newPct: this.getPercentage(newCoverage.statements),
-          oldPct: this.getPercentage(oldCoverage.statements),
-        },
-        lines: {
-          new: newCoverage.lines,
-          old: oldCoverage.lines,
-          newPct: this.getPercentage(newCoverage.lines),
-          oldPct: this.getPercentage(oldCoverage.lines),
-        },
-        functions: {
-          new: newCoverage.functions,
-          old: oldCoverage.functions,
-          newPct: this.getPercentage(newCoverage.functions),
-          oldPct: this.getPercentage(oldCoverage.functions),
+      this.diffCoverageReport[filePath] = {};
+      const { statusMetrics } = statusByCoverageType[this.coverageType];
+      for (const metric of statusMetrics) {
+        this.diffCoverageReport[filePath][metric] = {
+          new: newCoverage[metric],
+          old: oldCoverage[metric],
+          newPct: this.getPercentage(newCoverage[metric]),
+          oldPct: this.getPercentage(oldCoverage[metric]),
         }
+      }
+      if (this.isCobertura) {
+        this.filePathMap[filePath] = newCoverage.filename || filePath;
       }
     }
   }
@@ -15194,6 +15199,10 @@ class DiffChecker {
   checkOnlyChangedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
+      if (this.isCobertura) {
+        const filename = this.filePathMap[file];
+        return this.changedFiles.some(filePath => filePath.includes(filename));
+      }
       return this.changedFiles.indexOf(file.substring(1)) > -1;
     }
 
@@ -15203,10 +15212,34 @@ class DiffChecker {
   checkOnlyAddedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
+      if (this.isCobertura) {
+        const filename = this.filePathMap[file];
+        return this.addedFiles.some(filePath => filePath.includes(filename));
+      }
       return this.addedFiles.indexOf(file.substring(1)) > -1;
     }
 
     return true;
+  }
+
+  getStatusMessage(prefix, callback) {
+    let statusMessage = prefix;
+    const { statusMetrics } = statusByCoverageType[this.coverageType];
+    for(const metric of statusMetrics) {
+      statusMessage += callback(metric);
+    }
+    return statusMessage;
+  }
+
+  getStatusHeader() {
+    let statusMessage = '';
+    let splitLine = '';
+    const { statusHeaders } = statusByCoverageType[this.coverageType];
+    for(const header of statusHeaders) {
+      statusMessage += ` ${header} |`;
+      splitLine += ' ----- |';
+    }
+    return `${statusMessage} \n ${splitLine}`;
   }
 
   /**
@@ -15234,13 +15267,8 @@ class DiffChecker {
         }
       } else {
         if (!diffOnly) {
-          remainingStatusLines.push(
-            `${key.replace(this.currentDirectory, '')} | ${
-              this.diffCoverageReport[key].statements.newPct
-            } | ${this.diffCoverageReport[key].branches.newPct} | ${
-              this.diffCoverageReport[key].functions.newPct
-            } | ${this.diffCoverageReport[key].lines.newPct}`
-          )
+          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffFileCoverageData[key][metric].newPct} `);
+          remainingStatusLines.push(statusMessage);
         }
       }
     }
@@ -15248,17 +15276,20 @@ class DiffChecker {
       totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
       decreaseStatusLines,
       remainingStatusLines,
+      statusHeader: this.getStatusHeader(),
     }
   }
 
   getTotalCoverageReport(diffCoverageReport) {
-    let lineChangesPct = diffCoverageReport.lines.newPct - diffCoverageReport.lines.oldPct;
-    lineChangesPct = Math.round((lineChangesPct + Number.EPSILON) * 100) / 100;
+    const { summaryMetric } = statusByCoverageType[this.coverageType];
+    let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
+    changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
-      lineChangesPct,
-      linesCovered: this.coverageReportNew['total'].lines.covered,
-      linesTotal: this.coverageReportNew['total'].lines.total,
-      linesTotalPct: this.coverageReportNew['total'].lines.pct
+      changesPct,
+      covered: this.coverageReportNew['total'][summaryMetric].covered,
+      total: this.coverageReportNew['total'][summaryMetric].total,
+      totalPct: this.coverageReportNew['total'][summaryMetric].pct,
+      summaryMetric,
     }
   }
 
@@ -15333,15 +15364,10 @@ class DiffChecker {
   getFileNameUrl(name) {
     if (this.prefixFilenameUrl === '') return name;
 
-    switch (this.coverageType) {
-    case 'jest':
-      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
-    case 'cobertura':
+    if (this.isCobertura) {
       return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
-    default:
-      return name;
     }
-
+    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
   }
 
   /**
@@ -15373,29 +15399,25 @@ class DiffChecker {
           newCoverageStatusIcon = `${increasedCoverageIcon} ${newCoverageIcon}`;
         }
       }
+      const statusMessage = this.getStatusMessage(` ${newCoverageStatusIcon} | **${fileNameUrl}** `, (metric) => `| **${diffFileCoverageData[metric].newPct}** `);
+
       return {
         status: 'new',
-        statusMessage: ` ${newCoverageStatusIcon} | **${fileNameUrl}** | **${diffFileCoverageData.statements.newPct}** | **${diffFileCoverageData.branches.newPct}** | **${diffFileCoverageData.functions.newPct}** | **${diffFileCoverageData.lines.newPct}**`,
+        statusMessage,
       };
     } else if (fileRemovedCoverage) {
+      const statusMessage = this.getStatusMessage(` ${removedCoverageIcon} | ~~${fileNameUrl}~~ `, (metric) => `| ~~${diffFileCoverageData[metric].oldPct}~~ `);
       return {
         status: 'removed',
-        statusMessage: ` ${removedCoverageIcon} | ~~${fileNameUrl}~~ | ~~${diffFileCoverageData.statements.oldPct}~~ | ~~${diffFileCoverageData.branches.oldPct}~~ | ~~${diffFileCoverageData.functions.oldPct}~~ | ~~${diffFileCoverageData.lines.oldPct}~~`
+        statusMessage,
       }
     }
     // Coverage existed before so calculate the diff status
     const statusIcon = this.getStatusIcon(diffFileCoverageData)
+    const statusMessage = this.getStatusMessage(` ${statusIcon} | ${fileNameUrl} `, (metric) => `| ${diffFileCoverageData[metric].newPct} **(${this.getPercentageDiff(diffFileCoverageData[metric])})** `);
     return {
       status: statusIcon === increasedCoverageIcon ? 'increase' : 'decrease',
-      statusMessage: ` ${statusIcon} | ${fileNameUrl} | ${
-        diffFileCoverageData.statements.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.statements)})** | ${
-        diffFileCoverageData.branches.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.branches)})** | ${
-        diffFileCoverageData.functions.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.functions)})** | ${
-        diffFileCoverageData.lines.newPct
-      } **(${this.getPercentageDiff(diffFileCoverageData.lines)})**`
+      statusMessage,
     }
   }
 
@@ -15528,7 +15550,7 @@ var xml2js = __nccwpck_require__(6189);
 // CONCATENATED MODULE: ./src/parsers/cobertura.js
 
 
-const coverageType = ['lines', 'functions', 'branches', 'statements'];
+const coverageType = ['functions', 'branches', 'statements'];
 const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
 
 const percentage = (covered, total) => {
@@ -15570,37 +15592,25 @@ const unpackage = (packages) => {
     const className = c.$.name;
     initialCoverageWithZero(coverageSummary, className);
 
-    let lineEnd = 0;
-    const skippedLine = [];
     c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
       // calculate statements coverage
       coverageSummary[className].statements.total ++;
-      if (l.$.hits === '1') {
+      if (l.$.hits !== '0') {
         coverageSummary[className].statements.covered ++;
       } else {
         coverageSummary[className].statements.skipped ++;
-        if (!skippedLine.includes(Number(l.$.number))) {
-          skippedLine.push(Number(l.$.number));
-        }
       }
 
       // calculate branches coverage
       if (l.$.branch === 'true') {
         coverageSummary[className].branches.total ++;
-        if (l.$.hits === '1') {
+        if (l.$.hits !== '0') {
           coverageSummary[className].branches.covered ++;
         } else {
           coverageSummary[className].branches.skipped ++;
         }
       }
-
-      if (lineEnd < Number(l.$.number)) lineEnd = Number(l.$.number);
     });
-
-    // calculate lines coverage
-    coverageSummary[className].lines.total = lineEnd;
-    coverageSummary[className].lines.skipped = coverageSummary[className].statements.covered === 0 ? coverageSummary[className].lines.total : skippedLine.length;
-    coverageSummary[className].lines.covered = coverageSummary[className].lines.total - coverageSummary[className].lines.skipped;
 
     c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
       // calculate functions coverage
@@ -15620,6 +15630,8 @@ const unpackage = (packages) => {
       coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
       coverageSummary[packageName][type].pct = percentage(coverageSummary[packageName][type].covered, coverageSummary[packageName][type].total);
     });
+
+    coverageSummary[className].filename = c.$['filename'];
   });
 
   return coverageSummary;
@@ -15758,7 +15770,7 @@ async function main() {
 
     // Get coverage details.
     // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines } = diffChecker.getCoverageDetails(!fullCoverage)
+    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = diffChecker.getCoverageDetails(!fullCoverage)
 
     const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
     const isNotFullCoverageOnNewFile = diffChecker.checkIfNewFileNotFullCoverage();
@@ -15789,7 +15801,7 @@ async function main() {
       messageToPost += '--- \n\n'
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
-              'Status | Changes Missing Coverage | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+              `Status | Changes Missing Coverage | ${statusHeader} ---------|------ \n`
         messageToPost += decreaseStatusLines.join('\n')
         messageToPost += '\n--- \n\n'
       }
@@ -15799,7 +15811,7 @@ async function main() {
         messageToPost += '<details>'
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
-              'Status | File | Stmts | Branch | Funcs | Lines \n -----|-----|---------|----------|---------|------ \n'
+              `Status | File | ${statusHeader} ---------|------ \n`
         messageToPost += remainingStatusLines.join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
@@ -15809,13 +15821,14 @@ async function main() {
 
     if (totalCoverageLines) {
       const {
-        lineChangesPct,
-        linesCovered,
-        linesTotal,
-        linesTotalPct
+        changesPct,
+        covered,
+        total,
+        totalPct,
+        summaryMetric,
       } = totalCoverageLines
       messageToPost +=
-            `| Total | ${linesTotalPct}% | \n :-----|-----: \n Change from base: | ${lineChangesPct}% \n Covered Lines: | ${linesCovered} \n Total Lines: | ${linesTotal} \n`;
+            `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
     }
 
     messageToPost = `${commentIdentifier} \n ${messageToPost}`
