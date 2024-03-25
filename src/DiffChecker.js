@@ -129,7 +129,6 @@ export class DiffChecker {
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
-      console.log(key, this.compareCoverageValues(key));
       if (this.compareCoverageValues(key) !== 0) {
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
@@ -267,7 +266,6 @@ export class DiffChecker {
     )
 
     const fileNameUrl = this.getFileNameUrl(name);
-    console.log('fileNewCoverage', name, fileNewCoverage, diffFileCoverageData);
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {

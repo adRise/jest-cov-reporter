@@ -15124,8 +15124,21 @@ const decreasedCoverageIcon = ':red_circle:'
 const newCoverageIcon = ':new:'
 const removedCoverageIcon = ':yellow_circle:'
 const sparkleIcon = ':sparkles:'
-const statusHeaders = ['Stmts', 'Branch', 'Funcs', 'Lines'];
-const statusMetrics = ['statements', 'branches', 'functions', 'lines'];
+
+const statusByCoverageType = {  
+  jest: {
+    // Metrics and headers must correspond one-to-one
+    // 'statements' correspond to 'Stmts'
+    statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
+    statusMetrics: ['statements', 'branches', 'functions', 'lines'],
+    summaryMetric: 'lines',
+  },  
+  cobertura: {
+    statusHeaders: ['Stmts', 'Branch', 'Funcs'],
+    statusMetrics: ['statements', 'branches', 'functions'],
+    summaryMetric: 'statements',
+  },  
+};
 
 /**
  * DiffChecker is the simple algorithm to compare coverage
@@ -15154,6 +15167,7 @@ class DiffChecker {
     this.prNumber = prNumber;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.coverageType = coverageType;
+    this.isCobertura = coverageType === 'cobertura';
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -15167,8 +15181,8 @@ class DiffChecker {
       const oldCoverage = coverageReportOld[filePath] || {};
       console.log(filePath)
       this.diffCoverageReport[filePath] = {};
+      const { statusMetrics } = statusByCoverageType[this.coverageType];
       for (const metric of statusMetrics) {
-        if (coverageType === 'cobertura' && metric === 'lines') break;
         this.diffCoverageReport[filePath][metric] = {
           new: newCoverage[metric],
           old: oldCoverage[metric],
@@ -15176,7 +15190,7 @@ class DiffChecker {
           oldPct: this.getPercentage(oldCoverage[metric]),
         }
       }
-      if (coverageType === 'cobertura') {
+      if (this.isCobertura) {
         this.filePathMap[filePath] = newCoverage.filename || filePath;
       }
     }
@@ -15185,7 +15199,7 @@ class DiffChecker {
   checkOnlyChangedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.changedFiles) {
-      if (this.coverageType === 'cobertura') {
+      if (this.isCobertura) {
         const filename = this.filePathMap[file];
         return this.changedFiles.some(filePath => filePath.includes(filename));
       }
@@ -15198,7 +15212,7 @@ class DiffChecker {
   checkOnlyAddedFiles(file) {
     file = file.replace(this.currentDirectory, '');
     if (this.addedFiles) {
-      if (this.coverageType === 'cobertura') {
+      if (this.isCobertura) {
         const filename = this.filePathMap[file];
         return this.addedFiles.some(filePath => filePath.includes(filename));
       }
@@ -15210,8 +15224,8 @@ class DiffChecker {
 
   getStatusMessage(prefix, callback) {
     let statusMessage = prefix;
+    const { statusMetrics } = statusByCoverageType[this.coverageType];
     for(const metric of statusMetrics) {
-      if (this.coverageType === 'cobertura' && metric === 'lines') break;
       statusMessage += callback(metric);
     }
     return statusMessage;
@@ -15220,8 +15234,8 @@ class DiffChecker {
   getStatusHeader() {
     let statusMessage = '';
     let splitLine = '';
+    const { statusHeaders } = statusByCoverageType[this.coverageType];
     for(const header of statusHeaders) {
-      if (this.coverageType === 'cobertura' && header === 'Lines') break;
       statusMessage += ` ${header} |`;
       splitLine += ' ----- |';
     }
@@ -15236,7 +15250,6 @@ class DiffChecker {
     const decreaseStatusLines = [];
     const remainingStatusLines = [];
     for (const key of keys) {
-      console.log(key, this.compareCoverageValues(key));
       if (this.compareCoverageValues(key) !== 0) {
         const diffStatus = this.createDiffLine(
           key.replace(this.currentDirectory, ''),
@@ -15268,7 +15281,7 @@ class DiffChecker {
   }
 
   getTotalCoverageReport(diffCoverageReport) {
-    const summaryMetric = this.coverageType === 'cobertura' ? 'statements' : 'lines';
+    const { summaryMetric } = statusByCoverageType[this.coverageType];
     let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
     changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
@@ -15351,15 +15364,10 @@ class DiffChecker {
   getFileNameUrl(name) {
     if (this.prefixFilenameUrl === '') return name;
 
-    switch (this.coverageType) {
-    case 'jest':
-      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
-    case 'cobertura':
+    if (this.isCobertura) {
       return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
-    default:
-      return name;
     }
-
+    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
   }
 
   /**
@@ -15379,7 +15387,6 @@ class DiffChecker {
     )
 
     const fileNameUrl = this.getFileNameUrl(name);
-    console.log('fileNewCoverage', name, fileNewCoverage, diffFileCoverageData);
     if (fileNewCoverage) {
       let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
       if (this.checkNewFileFullCoverage) {
@@ -15728,7 +15735,6 @@ async function main() {
       });
       changedFiles = files.data ? files.data.map(file => file.filename) : [];
       addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
-      console.log(changedFiles, addedFiles);
     }
 
     const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
