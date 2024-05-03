@@ -7,7 +7,7 @@
     "lint": "eslint -c .eslintrc.js src",
     "test": "jest src --coverage --verbose --passWithNoTests",
     "jest-dev": "jest src --coverage --verbose --watch",
-    "build": "ncc build src/index.js -o dest"
+    "build": "NODE_OPTIONS=--openssl-legacy-provider ncc build src/index.js -o dest"
   },
   "repository": "git@github.com:arunshan/jest-cov-reporter.git",
   "license": "MIT",
