@@ -2,3 +2,4 @@ node_modules
 # coverage
 debug.local.js
 tests
+coverage/*

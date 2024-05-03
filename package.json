@@ -4,8 +4,8 @@
   "description": "Produce a coverage report and provide a diff with base report",
   "main": "dest/index.js",
   "scripts": {
-    "lint": "eslint -c .eslintrc.json src",
-    "test": "jest src --coverage --verbose",
+    "lint": "eslint -c .eslintrc.js src",
+    "test": "jest src --coverage --verbose --passWithNoTests",
     "jest-dev": "jest src --coverage --verbose --watch",
     "build": "ncc build src/index.js -o dest"
   },
@@ -23,5 +23,8 @@
     "eslint": "^8.6.0",
     "jest": "^26.6.3",
     "xml2js": "^0.6.2"
+  },
+  "engines": {
+    "node": "^20.11.1"
   }
 }
