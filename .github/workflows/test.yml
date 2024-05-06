@@ -1,7 +1,7 @@
 name: CI
 
 env:
-  NODE_VERSION: 14.17.3
+  NODE_VERSION: 20.11.1
   MASTER_SHA: ''
 
 on:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     name: We test it locally with act
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: jest coverage reporter
         uses: ./ # Uses an action in the root directory
