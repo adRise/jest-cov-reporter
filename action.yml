@@ -40,5 +40,5 @@ inputs:
     default: 'jest'
 
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dest/index.js'
