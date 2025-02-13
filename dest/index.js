@@ -15542,7 +15542,7 @@ async function findComment(
   return 0
 }
 
-const maxNumberOfLines = 1;
+const maxNumberOfLines = 500;
 const limitCommentLength = (commentsLines) => {
   if (commentsLines.length > maxNumberOfLines) {
     const columnNumber = commentsLines[0].split('|').length;
