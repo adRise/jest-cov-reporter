@@ -61,3 +61,13 @@ export async function findComment(
   }
   return 0
 }
+
+const maxNumberOfLines = 500;
+export const limitCommentLength = (commentsLines) => {
+  if (commentsLines.length > maxNumberOfLines) {
+    const columnNumber = commentsLines[0].split('|').length;
+    const ellipsisRow = '...|'.repeat(columnNumber);
+    return [...commentsLines.splice(0, maxNumberOfLines), ellipsisRow];
+  }
+  return commentsLines;
+};
