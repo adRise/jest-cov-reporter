@@ -15495,6 +15495,7 @@ async function createOrUpdateComment(
   messageToPost,
   prNumber
 ) {
+  console.log(messageToPost);
   if (commentId) {
     await githubClient.issues.updateComment({
       owner: repoOwner,
