@@ -16581,6 +16581,17 @@ async function findComment(
   }
   return 0
 }
+
+const maxNumberOfLines = 500;
+const limitCommentLength = (commentsLines) => {
+  if (commentsLines.length > maxNumberOfLines) {
+    const columnNumber = commentsLines[0].split('|').length;
+    const ellipsisRow = '...|'.repeat(columnNumber);
+    return [...commentsLines.splice(0, maxNumberOfLines), ellipsisRow];
+  }
+  return commentsLines;
+};
+
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(5747);
 var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
@@ -16842,7 +16853,7 @@ async function main() {
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               `Status | Changes Missing Coverage | ${statusHeader} ---------|------ \n`
-        messageToPost += decreaseStatusLines.join('\n')
+        messageToPost += limitCommentLength(decreaseStatusLines).join('\n')
         messageToPost += '\n--- \n\n'
       }
 
@@ -16852,7 +16863,7 @@ async function main() {
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
               `Status | File | ${statusHeader} ---------|------ \n`
-        messageToPost += remainingStatusLines.join('\n')
+        messageToPost += limitCommentLength(remainingStatusLines).join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'

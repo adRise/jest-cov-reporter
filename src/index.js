@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import { DiffChecker } from './DiffChecker';
 import * as github from '@actions/github';
 import { execSync } from 'child_process';
-import { createOrUpdateComment, findComment } from './utils';
+import { createOrUpdateComment, findComment, limitCommentLength } from './utils';
 import parseContent from './parsers';
 
 async function main() {
@@ -129,7 +129,7 @@ async function main() {
       if (decreaseStatusLines.length > 0) {
         messageToPost +=
               `Status | Changes Missing Coverage | ${statusHeader} ---------|------ \n`
-        messageToPost += decreaseStatusLines.join('\n')
+        messageToPost += limitCommentLength(decreaseStatusLines).join('\n')
         messageToPost += '\n--- \n\n'
       }
 
@@ -139,7 +139,7 @@ async function main() {
         messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
         messageToPost +=
               `Status | File | ${statusHeader} ---------|------ \n`
-        messageToPost += remainingStatusLines.join('\n')
+        messageToPost += limitCommentLength(remainingStatusLines).join('\n')
         messageToPost += '\n';
         messageToPost += '</details>';
         messageToPost += '\n\n--- \n\n'
