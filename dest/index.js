@@ -77,7 +77,6 @@ class CoverageDiffCalculator {
         for (const filePath of reportKeys) {
             const newCoverage = this.coverageReportNew[filePath] || {};
             const oldCoverage = this.coverageReportOld[filePath] || {};
-            console.log(filePath);
             this.diffCoverageReport[filePath] = {};
             const { statusMetrics } = STATUS_BY_COVERAGE_TYPE[this.coverageType];
             for (const metric of statusMetrics) {
