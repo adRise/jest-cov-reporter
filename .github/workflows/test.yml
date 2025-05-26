@@ -28,7 +28,7 @@ jobs:
           useSameComment: true
           coverageType: jest
           fullCoverageDiff: true
-          new-file-coverage-threshold: 90
+          new-file-coverage-threshold: 99
 
       - name: cobertura coverage reporter
         uses: ./ # Uses an action in the root directory
