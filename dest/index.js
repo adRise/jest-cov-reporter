@@ -2,6 +2,877 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 5438:
+/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
+
+"use strict";
+// ESM COMPAT FLAG
+__nccwpck_require__.r(__webpack_exports__);
+
+// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
+var core = __nccwpck_require__(2186);
+// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
+var github = __nccwpck_require__(2867);
+// CONCATENATED MODULE: external "child_process"
+const external_child_process_namespaceObject = require("child_process");;
+// CONCATENATED MODULE: ./lib/utils/constants.js
+const ICONS = {
+    INCREASED_COVERAGE: ':green_circle:',
+    DECREASED_COVERAGE: ':red_circle:',
+    NEW_COVERAGE: ':new:',
+    REMOVED_COVERAGE: ':yellow_circle:',
+    SPARKLE: ':sparkles:'
+};
+const STATUS_BY_COVERAGE_TYPE = {
+    jest: {
+        // Metrics and headers must correspond one-to-one
+        // 'statements' correspond to 'Stmts'
+        statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
+        statusMetrics: ['statements', 'branches', 'functions', 'lines'],
+        summaryMetric: 'lines',
+    },
+    cobertura: {
+        statusHeaders: ['Stmts', 'Branch', 'Funcs'],
+        statusMetrics: ['statements', 'branches', 'functions'],
+        summaryMetric: 'statements',
+    },
+};
+const COMMENT_IDENTIFIER = `<!-- codeCoverageDiffComment -->`;
+const MAX_COMMENT_LINES = 500;
+//# sourceMappingURL=constants.js.map
+// CONCATENATED MODULE: ./lib/core/diff/CoverageDiffCalculator.js
+
+/**
+ * CoverageDiffCalculator handles the calculation of differences between coverage reports
+ */
+class CoverageDiffCalculator {
+    /**
+     * Create a new CoverageDiffCalculator
+     * @param coverageReportNew - New coverage report
+     * @param coverageReportOld - Old (base) coverage report
+     * @param coverageType - Type of coverage report ('jest' or 'cobertura')
+     * @param currentDirectory - Current working directory
+     */
+    constructor({ coverageReportNew, coverageReportOld, coverageType, currentDirectory }) {
+        this.diffCoverageReport = {};
+        this.filePathMap = {};
+        this.coverageReportNew = coverageReportNew;
+        this.coverageReportOld = coverageReportOld;
+        this.coverageType = coverageType;
+        this.isCobertura = coverageType === 'cobertura';
+        this.currentDirectory = currentDirectory;
+        this.calculateDiff();
+    }
+    /**
+     * Calculate differences between coverage reports
+     */
+    calculateDiff() {
+        const reportNewKeys = Object.keys(this.coverageReportNew);
+        const reportOldKeys = Object.keys(this.coverageReportOld);
+        const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
+        /**
+         * For all filePaths in coverage, generate a percentage value
+         * for both base and current branch
+         */
+        for (const filePath of reportKeys) {
+            const newCoverage = this.coverageReportNew[filePath] || {};
+            const oldCoverage = this.coverageReportOld[filePath] || {};
+            console.log(filePath);
+            this.diffCoverageReport[filePath] = {};
+            const { statusMetrics } = STATUS_BY_COVERAGE_TYPE[this.coverageType];
+            for (const metric of statusMetrics) {
+                this.diffCoverageReport[filePath][metric] = {
+                    new: newCoverage[metric],
+                    old: oldCoverage[metric],
+                    newPct: this.getPercentage(newCoverage[metric]),
+                    oldPct: this.getPercentage(oldCoverage[metric]),
+                };
+            }
+            if (this.isCobertura) {
+                this.filePathMap[filePath] = newCoverage.filename || filePath;
+            }
+        }
+    }
+    /**
+     * Get coverage percentage from coverage data
+     * @param coverageData - Coverage data object
+     * @returns Percentage value or 0 if data is undefined
+     */
+    getPercentage(coverageData) {
+        return coverageData ? coverageData.pct : 0;
+    }
+    /**
+     * Get percentage difference between old and new coverage
+     * @param diffData - Diff coverage data
+     * @returns Rounded percentage difference
+     */
+    getPercentageDiff(diffData) {
+        const diff = Number(diffData.newPct) - Number(diffData.oldPct);
+        // round off the diff to 2 decimal places
+        return Math.round((diff + Number.EPSILON) * 100) / 100;
+    }
+    /**
+     * Check if coverage decrease is due to removed lines
+     * @param diffCoverageData - Diff coverage data
+     * @returns True if decrease is due to removed lines
+     */
+    isDueToRemovedLines(diffCoverageData) {
+        const newCoverage = diffCoverageData.new;
+        const oldCoverage = diffCoverageData.old;
+        if (!oldCoverage || !newCoverage)
+            return false;
+        return newCoverage.covered < oldCoverage.covered &&
+            (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total);
+    }
+    /**
+     * Get the diff coverage report
+     * @returns Diff coverage report
+     */
+    getDiffCoverageReport() {
+        return this.diffCoverageReport;
+    }
+}
+//# sourceMappingURL=CoverageDiffCalculator.js.map
+// CONCATENATED MODULE: ./lib/utils/github.js
+
+/**
+ * Create or update comment based on commentId
+ * @param commentId - ID of the existing comment to update (0 for new comment)
+ * @param githubClient - GitHub API client
+ * @param repoOwner - Repository owner
+ * @param repoName - Repository name
+ * @param messageToPost - Comment message content
+ * @param prNumber - Pull request number
+ */
+async function createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber) {
+    if (commentId) {
+        await githubClient.issues.updateComment({
+            owner: repoOwner,
+            repo: repoName,
+            comment_id: commentId,
+            body: messageToPost
+        });
+    }
+    else {
+        await githubClient.issues.createComment({
+            repo: repoName,
+            owner: repoOwner,
+            body: messageToPost,
+            issue_number: prNumber
+        });
+    }
+}
+/**
+ * Find comment from a list of comments in a PR
+ * @param githubClient - GitHub API client
+ * @param repoName - Repository name
+ * @param repoOwner - Repository owner
+ * @param prNumber - Pull request number
+ * @param identifier - Comment identifier string
+ * @returns Comment ID if found, 0 otherwise
+ */
+async function findComment(githubClient, repoName, repoOwner, prNumber, identifier) {
+    const comments = await githubClient.issues.listComments({
+        owner: repoOwner,
+        repo: repoName,
+        issue_number: prNumber
+    });
+    for (const comment of comments.data) {
+        if (comment.body && comment.body.startsWith(identifier)) {
+            return comment.id;
+        }
+    }
+    return 0;
+}
+/**
+ * Limit comment length to avoid exceeding GitHub's maximum size
+ * @param commentsLines - Array of comment lines
+ * @returns Truncated array of comment lines
+ */
+const limitCommentLength = (commentsLines) => {
+    if (commentsLines.length > MAX_COMMENT_LINES) {
+        const columnNumber = commentsLines[0].split('|').length;
+        const ellipsisRow = '...|'.repeat(columnNumber);
+        return [...commentsLines.slice(0, MAX_COMMENT_LINES), ellipsisRow];
+    }
+    return commentsLines;
+};
+//# sourceMappingURL=github.js.map
+// CONCATENATED MODULE: ./lib/core/format/ReportFormatter.js
+
+
+/**
+ * ReportFormatter formats coverage reports for display
+ */
+class ReportFormatter {
+    /**
+     * Create a new ReportFormatter
+     */
+    constructor({ diffCalculator, thresholdValidator, coverageReportNew, coverageType, delta, currentDirectory, prefixFilenameUrl, prNumber, checkNewFileFullCoverage, filePathMap = {} }) {
+        this.filePathMap = {};
+        this.diffCalculator = diffCalculator;
+        this.thresholdValidator = thresholdValidator;
+        this.diffCoverageReport = diffCalculator.getDiffCoverageReport();
+        this.coverageReportNew = coverageReportNew;
+        this.coverageType = coverageType;
+        this.delta = delta;
+        this.currentDirectory = currentDirectory;
+        this.prefixFilenameUrl = prefixFilenameUrl;
+        this.prNumber = prNumber;
+        this.isCobertura = coverageType === 'cobertura';
+        this.filePathMap = filePathMap;
+        this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+    }
+    /**
+     * Get the file name with URL for linking in GitHub
+     * @param name - File name
+     * @returns Formatted file name with URL
+     */
+    getFileNameUrl(name) {
+        if (this.prefixFilenameUrl === '')
+            return name;
+        if (this.isCobertura) {
+            return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
+        }
+        return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
+    }
+    /**
+     * Get status message with formatted metrics
+     * @param prefix - Prefix string
+     * @param callback - Callback for formatting each metric
+     * @returns Formatted status message
+     */
+    getStatusMessage(prefix, callback) {
+        let statusMessage = prefix;
+        const { statusMetrics } = STATUS_BY_COVERAGE_TYPE[this.coverageType];
+        for (const metric of statusMetrics) {
+            statusMessage += callback(metric);
+        }
+        return statusMessage;
+    }
+    /**
+     * Get status header for the coverage report table
+     * @returns Formatted status header
+     */
+    getStatusHeader() {
+        let statusMessage = '';
+        let splitLine = '';
+        const { statusHeaders } = STATUS_BY_COVERAGE_TYPE[this.coverageType];
+        for (const header of statusHeaders) {
+            statusMessage += ` ${header} |`;
+            splitLine += ' ----- |';
+        }
+        return `${statusMessage} \n ${splitLine}`;
+    }
+    /**
+     * Get status icon based on coverage changes
+     * @param diffFileCoverageData - Diff coverage data
+     * @returns Status icon
+     */
+    getStatusIcon(diffFileCoverageData) {
+        let coverageIcon = ICONS.INCREASED_COVERAGE;
+        const parts = Object.values(diffFileCoverageData);
+        for (let i = 0; i < parts.length; i++) {
+            const coverageData = parts[i];
+            const percDiff = this.diffCalculator.getPercentageDiff(coverageData);
+            if (percDiff < 0 && Math.abs(percDiff) > this.delta) {
+                coverageIcon = ICONS.DECREASED_COVERAGE;
+                break;
+            }
+        }
+        return coverageIcon;
+    }
+    /**
+     * Create the table row for a file with coverage changes
+     * @param name - File name
+     * @param diffFileCoverageData - Diff coverage data for the file
+     * @returns Diff status object
+     */
+    createDiffLine(name, diffFileCoverageData) {
+        // No old coverage found so that means we added a new file coverage
+        const fileNewCoverage = Object.values(diffFileCoverageData).every(coverageData => coverageData.oldPct === 0);
+        // No new coverage found so that means we deleted a file coverage
+        const fileRemovedCoverage = Object.values(diffFileCoverageData).every(coverageData => coverageData.newPct === 0);
+        const fileNameUrl = this.getFileNameUrl(name);
+        if (fileNewCoverage) {
+            let newCoverageStatusIcon = `${ICONS.SPARKLE} ${ICONS.NEW_COVERAGE}`;
+            if (this.checkNewFileFullCoverage) {
+                if (this.thresholdValidator.checkIfNewFileLacksFullCoverage(Object.values(diffFileCoverageData)) &&
+                    this.thresholdValidator.checkOnlyAddedFiles(name)) {
+                    newCoverageStatusIcon = `${ICONS.DECREASED_COVERAGE} ${ICONS.NEW_COVERAGE}`;
+                }
+                else {
+                    newCoverageStatusIcon = `${ICONS.INCREASED_COVERAGE} ${ICONS.NEW_COVERAGE}`;
+                }
+            }
+            const statusMessage = this.getStatusMessage(` ${newCoverageStatusIcon} | **${fileNameUrl}** `, (metric) => `| **${diffFileCoverageData[metric]?.newPct ?? 0}** `);
+            return {
+                status: 'new',
+                statusMessage,
+            };
+        }
+        else if (fileRemovedCoverage) {
+            const statusMessage = this.getStatusMessage(` ${ICONS.REMOVED_COVERAGE} | ~~${fileNameUrl}~~ `, (metric) => `| ~~${diffFileCoverageData[metric]?.oldPct ?? 0}~~ `);
+            return {
+                status: 'removed',
+                statusMessage,
+            };
+        }
+        // Coverage existed before so calculate the diff status
+        const statusIcon = this.getStatusIcon(diffFileCoverageData);
+        const statusMessage = this.getStatusMessage(` ${statusIcon} | ${fileNameUrl} `, (metric) => {
+            const diffData = diffFileCoverageData[metric];
+            if (!diffData)
+                return '| N/A ';
+            return `| ${diffData.newPct} **(${this.diffCalculator.getPercentageDiff(diffData)})** `;
+        });
+        return {
+            status: statusIcon === ICONS.INCREASED_COVERAGE ? 'increase' : 'decrease',
+            statusMessage,
+        };
+    }
+    /**
+     * Compare coverage values to determine if they've changed
+     * @param file - File path
+     * @returns 1 if coverage changed, 0 otherwise
+     */
+    compareCoverageValues(file) {
+        const values = Object.values(this.diffCoverageReport[file]);
+        const noOldCoverage = values.every((part) => part.oldPct === 0);
+        const noNewCoverage = values.every((part) => part.newPct === 0);
+        const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.thresholdValidator.checkOnlyAddedFiles(file);
+        const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.diffCalculator.isDueToRemovedLines(part));
+        if (newFileWithoutCoverage || fileCoverageChanged) {
+            return 1;
+        }
+        return 0;
+    }
+    /**
+     * Get total coverage report information
+     * @param diffCoverageReport - Diff coverage report for 'total'
+     * @returns Total coverage report data
+     */
+    getTotalCoverageReport(diffCoverageReport) {
+        const { summaryMetric } = STATUS_BY_COVERAGE_TYPE[this.coverageType];
+        const summaryMetricKey = summaryMetric;
+        let changesPct = diffCoverageReport[summaryMetricKey].newPct - diffCoverageReport[summaryMetricKey].oldPct;
+        changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
+        return {
+            changesPct,
+            covered: this.coverageReportNew['total'][summaryMetricKey].covered,
+            total: this.coverageReportNew['total'][summaryMetricKey].total,
+            totalPct: this.coverageReportNew['total'][summaryMetricKey].pct,
+            summaryMetric: summaryMetricKey,
+        };
+    }
+    /**
+     * Create coverage details table
+     * @param diffOnly - Only include files with differences
+     * @returns Coverage details object
+     */
+    getCoverageDetails(diffOnly) {
+        const keys = Object.keys(this.diffCoverageReport);
+        const decreaseStatusLines = [];
+        const remainingStatusLines = [];
+        for (const key of keys) {
+            if (this.compareCoverageValues(key) !== 0) {
+                const diffStatus = this.createDiffLine(key.replace(this.currentDirectory, ''), this.diffCoverageReport[key]);
+                if ((diffStatus.status === 'decrease' && this.thresholdValidator.checkOnlyChangedFiles(key)) ||
+                    (this.checkNewFileFullCoverage &&
+                        diffStatus.status === 'new' &&
+                        diffStatus.statusMessage.includes(ICONS.DECREASED_COVERAGE))) {
+                    decreaseStatusLines.push(diffStatus.statusMessage);
+                }
+                else {
+                    remainingStatusLines.push(diffStatus.statusMessage);
+                }
+            }
+            else {
+                if (!diffOnly) {
+                    const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => {
+                        const data = this.diffCoverageReport[key][metric];
+                        return `| ${data?.newPct ?? 0} `;
+                    });
+                    remainingStatusLines.push(statusMessage);
+                }
+            }
+        }
+        return {
+            totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
+            decreaseStatusLines: limitCommentLength(decreaseStatusLines),
+            remainingStatusLines: limitCommentLength(remainingStatusLines),
+            statusHeader: this.getStatusHeader(),
+        };
+    }
+}
+//# sourceMappingURL=ReportFormatter.js.map
+// CONCATENATED MODULE: ./lib/core/threshold/ThresholdValidator.js
+/**
+ * ThresholdValidator validates coverage against thresholds
+ */
+class ThresholdValidator {
+    /**
+     * Create a new ThresholdValidator
+     */
+    constructor({ diffCalculator, delta, changedFiles, addedFiles, checkNewFileFullCoverage, currentDirectory }) {
+        this.diffCalculator = diffCalculator;
+        this.diffCoverageReport = diffCalculator.getDiffCoverageReport();
+        this.delta = delta;
+        this.changedFiles = changedFiles;
+        this.addedFiles = addedFiles;
+        this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+        this.currentDirectory = currentDirectory;
+    }
+    /**
+     * Check if a file is in the changed files list
+     * @param file - File path
+     * @returns True if file is in the changed files list
+     */
+    checkOnlyChangedFiles(file) {
+        file = file.replace(this.currentDirectory, '');
+        if (this.changedFiles) {
+            return this.changedFiles.indexOf(file.substring(1)) > -1;
+        }
+        return true;
+    }
+    /**
+     * Check if a file is in the added files list
+     * @param file - File path
+     * @returns True if file is in the added files list
+     */
+    checkOnlyAddedFiles(file) {
+        file = file.replace(this.currentDirectory, '');
+        if (this.addedFiles) {
+            return this.addedFiles.indexOf(file.substring(1)) > -1;
+        }
+        return true;
+    }
+    /**
+     * Function to check if the file's coverage is below delta
+     * @returns True if coverage falls below delta
+     */
+    checkIfTestCoverageFallsBelowDelta() {
+        const keys = Object.keys(this.diffCoverageReport);
+        for (const fileName of keys) {
+            const diffCoverageData = this.diffCoverageReport[fileName];
+            const metricKeys = Object.keys(diffCoverageData);
+            // No new coverage found so that means we deleted a file coverage
+            const fileRemovedCoverage = Object.values(diffCoverageData).every(coverageData => coverageData.newPct === 0);
+            if (fileRemovedCoverage) {
+                // since the file is deleted don't include in delta calculation
+                continue;
+            }
+            for (const metricKey of metricKeys) {
+                const coverageForMetric = diffCoverageData[metricKey];
+                if (coverageForMetric && coverageForMetric.oldPct !== coverageForMetric.newPct) {
+                    if (-this.diffCalculator.getPercentageDiff(coverageForMetric) > this.delta
+                        && !this.diffCalculator.isDueToRemovedLines(coverageForMetric)) {
+                        // Check only changed files
+                        if (this.checkOnlyChangedFiles(fileName)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * Check whether any part does not have full coverage
+     * @param coverageParts - Array of coverage data parts
+     * @returns True if any part lacks full coverage
+     */
+    checkIfNewFileLacksFullCoverage(coverageParts) {
+        return coverageParts.some((coverageData) => coverageData.newPct < 100);
+    }
+    /**
+     * Function to check if any newly added file does not have full coverage
+     * @returns True if any new file lacks full coverage
+     */
+    checkIfNewFileNotFullCoverage() {
+        if (!this.checkNewFileFullCoverage)
+            return false;
+        const keys = Object.keys(this.diffCoverageReport);
+        return keys.some((key) => {
+            const diffCoverageData = this.diffCoverageReport[key];
+            const coverageParts = Object.values(diffCoverageData);
+            // No old coverage found so that means we added a new file
+            const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
+            return newFileCoverage && this.checkIfNewFileLacksFullCoverage(coverageParts) && this.checkOnlyAddedFiles(key);
+        });
+    }
+}
+//# sourceMappingURL=ThresholdValidator.js.map
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(5747);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+
+// EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
+var xml2js = __nccwpck_require__(6189);
+// CONCATENATED MODULE: ./lib/parsers/cobertura.js
+
+/**
+ * Parser for Cobertura coverage reports
+ */
+class CoberturaParser {
+    /**
+     * Parse Cobertura XML coverage report
+     * @param content - XML content from Cobertura coverage report
+     * @returns Parsed coverage report
+     */
+    parse(content) {
+        let parsedReport = {};
+        // Parse synchronously to make the function synchronous
+        (0,xml2js.parseString)(content, { explicitArray: false }, (err, result) => {
+            if (err) {
+                throw new Error(`Failed to parse Cobertura XML: ${err.message}`);
+            }
+            parsedReport = this.processCobertura(result);
+        });
+        return parsedReport;
+    }
+    /**
+     * Process Cobertura XML result
+     * @param result - Parsed XML result
+     * @returns Coverage report
+     */
+    processCobertura(result) {
+        const report = {};
+        const coverages = result.coverage.packages.package;
+        let statements = 0;
+        let statementsTotal = 0;
+        let branches = 0;
+        let branchesTotal = 0;
+        let functions = 0;
+        let functionsTotal = 0;
+        if (Array.isArray(coverages)) {
+            coverages.forEach((pkg) => {
+                const classes = pkg.classes.class;
+                this.processClasses(classes, report);
+                // Sum up package totals
+                statementsTotal += parseInt(pkg.$.line_rate);
+                statements += parseInt(pkg.$.line_rate_covered);
+                branchesTotal += parseInt(pkg.$.branch_rate);
+                branches += parseInt(pkg.$.branch_rate_covered);
+                functionsTotal += parseInt(pkg.$.function_rate);
+                functions += parseInt(pkg.$.function_rate_covered);
+            });
+        }
+        else {
+            const classes = coverages.classes.class;
+            this.processClasses(classes, report);
+            // Get totals from the single package
+            statementsTotal = parseInt(coverages.$.line_rate);
+            statements = parseInt(coverages.$.line_rate_covered);
+            branchesTotal = parseInt(coverages.$.branch_rate);
+            branches = parseInt(coverages.$.branch_rate_covered);
+            functionsTotal = parseInt(coverages.$.function_rate);
+            functions = parseInt(coverages.$.function_rate_covered);
+        }
+        // Add total summary
+        report.total = {
+            statements: {
+                total: statementsTotal,
+                covered: statements,
+                skipped: 0,
+                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+            },
+            branches: {
+                total: branchesTotal,
+                covered: branches,
+                skipped: 0,
+                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+            },
+            functions: {
+                total: functionsTotal,
+                covered: functions,
+                skipped: 0,
+                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+            }
+        };
+        return report;
+    }
+    /**
+     * Process classes from Cobertura XML
+     * @param classes - Class data from XML
+     * @param report - Coverage report to update
+     */
+    processClasses(classes, report) {
+        if (Array.isArray(classes)) {
+            classes.forEach((cls) => {
+                this.processClass(cls, report);
+            });
+        }
+        else {
+            this.processClass(classes, report);
+        }
+    }
+    /**
+     * Process a single class from Cobertura XML
+     * @param cls - Class data from XML
+     * @param report - Coverage report to update
+     */
+    processClass(cls, report) {
+        const filename = cls.$.filename;
+        const statements = parseInt(cls.$.line_rate_covered);
+        const statementsTotal = parseInt(cls.$.line_rate);
+        const branches = parseInt(cls.$.branch_rate_covered);
+        const branchesTotal = parseInt(cls.$.branch_rate);
+        const functions = parseInt(cls.$.function_rate_covered);
+        const functionsTotal = parseInt(cls.$.function_rate);
+        report[filename] = {
+            statements: {
+                total: statementsTotal,
+                covered: statements,
+                skipped: 0,
+                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+            },
+            branches: {
+                total: branchesTotal,
+                covered: branches,
+                skipped: 0,
+                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+            },
+            functions: {
+                total: functionsTotal,
+                covered: functions,
+                skipped: 0,
+                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+            },
+            filename
+        };
+    }
+}
+//# sourceMappingURL=cobertura.js.map
+// CONCATENATED MODULE: ./lib/parsers/jest.js
+/**
+ * Parser for Jest coverage reports
+ */
+class JestParser {
+    /**
+     * Parse Jest coverage report
+     * @param content - JSON content from Jest coverage report
+     * @returns Parsed coverage report
+     */
+    parse(content) {
+        return JSON.parse(content);
+    }
+}
+//# sourceMappingURL=jest.js.map
+// CONCATENATED MODULE: ./lib/parsers/index.js
+
+
+
+/**
+ * Factory for creating coverage report parsers
+ */
+class CoverageParserFactory {
+    /**
+     * Create a parser for the specified coverage type
+     * @param type - Coverage type ('jest' or 'cobertura')
+     * @returns Coverage report parser
+     */
+    createParser(type) {
+        switch (type) {
+            case 'jest':
+                return new JestParser();
+            case 'cobertura':
+                return new CoberturaParser();
+            default:
+                throw new Error(`Unsupported coverage type: ${type}`);
+        }
+    }
+}
+/**
+ * Parse coverage report from a file
+ * @param filePath - Path to coverage report file
+ * @param type - Type of coverage report ('jest' or 'cobertura')
+ * @returns Parsed coverage report
+ */
+function parseContent(filePath, type) {
+    const content = external_fs_default().readFileSync(filePath).toString();
+    const factory = new CoverageParserFactory();
+    const parser = factory.createParser(type);
+    return parser.parse(content);
+}
+//# sourceMappingURL=index.js.map
+// CONCATENATED MODULE: ./lib/index.js
+
+
+
+
+
+
+
+
+
+/**
+ * Main function that runs the coverage reporter
+ */
+async function main() {
+    try {
+        // repo name
+        const repoName = github.context.repo.repo;
+        // get the repo owner
+        const repoOwner = github.context.repo.owner;
+        // github token
+        const githubToken = core.getInput('accessToken');
+        // Full coverage (true/false)
+        const fullCoverage = JSON.parse(core.getInput('fullCoverageDiff'));
+        // delta coverage. Defaults to 0.2
+        const delta = Number(core.getInput('delta'));
+        const githubClient = github.getOctokit(githubToken);
+        // PR number
+        const prNumber = github.context.issue.number;
+        // Use the same comment for posting diff updates on a PR
+        const useSameComment = JSON.parse(core.getInput('useSameComment'));
+        // get the custom message
+        const customMessage = core.getInput('custom-message');
+        // Only check changed files in PR
+        const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
+        // Add prefix to file name URLs
+        const prefixFilenameUrl = core.getInput('prefix-filename-url');
+        // The base coverage json summary report. This should be master/main summary report.
+        const baseCoverageReportPath = core.getInput('base-coverage-report-path');
+        // branch coverage json summary report
+        const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
+        // check newly added file whether have full coverage tests
+        const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+        const coverageType = core.getInput('coverageType');
+        // If either of base or branch summary report does not exist, then exit with failure.
+        if (!baseCoverageReportPath || !branchCoverageReportPath) {
+            core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
+            return;
+        }
+        let changedFiles = null;
+        let addedFiles = null;
+        if (onlyCheckChangedFiles === 'true') {
+            const files = await githubClient.pulls.listFiles({
+                owner: repoOwner,
+                repo: repoName,
+                pull_number: prNumber,
+            });
+            changedFiles = files.data ? files.data.map(file => file.filename) : [];
+            addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
+        }
+        const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
+        const coverageReportOld = parseContent(baseCoverageReportPath, coverageType);
+        // Get the current directory to replace the file name paths
+        const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
+            .toString()
+            .trim();
+        const pullRequest = await githubClient.pulls.get({
+            owner: repoOwner,
+            repo: repoName,
+            pull_number: prNumber,
+        });
+        const checkNewFileFullCoverage = checkNewFileFullCoverageInput &&
+            !pullRequest.data.labels.some(label => label.name && label.name.includes('skip-new-file-full-coverage'));
+        // Create diff calculator
+        const diffCalculator = new CoverageDiffCalculator({
+            coverageReportNew,
+            coverageReportOld,
+            coverageType,
+            currentDirectory
+        });
+        // Create threshold validator
+        const thresholdValidator = new ThresholdValidator({
+            diffCalculator,
+            delta,
+            changedFiles,
+            addedFiles,
+            checkNewFileFullCoverage,
+            currentDirectory
+        });
+        // Create report formatter
+        const reportFormatter = new ReportFormatter({
+            diffCalculator,
+            thresholdValidator,
+            coverageReportNew,
+            coverageType,
+            delta,
+            currentDirectory,
+            prefixFilenameUrl,
+            prNumber,
+            checkNewFileFullCoverage
+        });
+        // Get coverage details.
+        // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
+        const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = reportFormatter.getCoverageDetails(!fullCoverage);
+        const isCoverageBelowDelta = thresholdValidator.checkIfTestCoverageFallsBelowDelta();
+        const isNotFullCoverageOnNewFile = thresholdValidator.checkIfNewFileNotFullCoverage();
+        // Add a comment to PR with full coverage report
+        let messageToPost = `## Coverage Report \n\n`;
+        messageToPost += `* **Status**: ${isNotFullCoverageOnNewFile || isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`;
+        // Add the custom message if it exists
+        if (customMessage !== '') {
+            messageToPost += `* ${customMessage} \n`;
+        }
+        // If coverageDetails length is 0 that means there is no change between base and head
+        if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
+            messageToPost +=
+                '* No changes to code coverage between the master branch and the current head branch';
+            messageToPost += '\n--- \n\n';
+        }
+        else {
+            if (isNotFullCoverageOnNewFile) {
+                messageToPost += `* Current PR does not have full coverage for new files \n`;
+            }
+            // If coverage details is below delta then post a message
+            if (isCoverageBelowDelta) {
+                messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`;
+            }
+            messageToPost += '--- \n\n';
+            if (decreaseStatusLines.length > 0) {
+                messageToPost +=
+                    `Status | Changes Missing Coverage | ${statusHeader} ---------|------ \n`;
+                messageToPost += decreaseStatusLines.join('\n');
+                messageToPost += '\n--- \n\n';
+            }
+            // Show coverage table for all files that were affected because of this PR
+            if (remainingStatusLines.length > 0) {
+                messageToPost += '<details>';
+                messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n';
+                messageToPost +=
+                    `Status | File | ${statusHeader} ---------|------ \n`;
+                messageToPost += remainingStatusLines.join('\n');
+                messageToPost += '\n';
+                messageToPost += '</details>';
+                messageToPost += '\n\n--- \n\n';
+            }
+        }
+        if (totalCoverageLines) {
+            const { changesPct, covered, total, totalPct, summaryMetric, } = totalCoverageLines;
+            messageToPost +=
+                `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
+        }
+        messageToPost = `${COMMENT_IDENTIFIER} \n ${messageToPost}`;
+        let commentId = 0;
+        // If useSameComment is true, then find the comment and then update that comment.
+        // If not, then create a new comment
+        if (useSameComment) {
+            commentId = await findComment(githubClient, repoName, repoOwner, prNumber, COMMENT_IDENTIFIER);
+        }
+        await createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
+        // check if the test coverage is falling below delta/tolerance.
+        if (isNotFullCoverageOnNewFile || isCoverageBelowDelta) {
+            throw Error(messageToPost);
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.setFailed(error.message);
+        }
+        else {
+            core.setFailed('An unknown error occurred');
+        }
+    }
+}
+main();
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
 /***/ 7351:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -657,7 +1528,7 @@ exports.Context = Context;
 
 /***/ }),
 
-/***/ 5438:
+/***/ 2867:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -1742,7 +2613,7 @@ exports.Octokit = Octokit;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 
-var isPlainObject = __nccwpck_require__(558);
+var isPlainObject = __nccwpck_require__(3287);
 var universalUserAgent = __nccwpck_require__(5030);
 
 function lowercaseKeys(object) {
@@ -2128,52 +2999,6 @@ const endpoint = withDefaults(null, DEFAULTS);
 
 exports.endpoint = endpoint;
 //# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 558:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -3860,7 +4685,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var endpoint = __nccwpck_require__(9440);
 var universalUserAgent = __nccwpck_require__(5030);
-var isPlainObject = __nccwpck_require__(9062);
+var isPlainObject = __nccwpck_require__(3287);
 var nodeFetch = _interopDefault(__nccwpck_require__(467));
 var requestError = __nccwpck_require__(537);
 
@@ -4029,52 +4854,6 @@ const request = withDefaults(endpoint.endpoint, {
 
 exports.request = request;
 //# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 9062:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-/*!
- * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
- *
- * Copyright (c) 2014-2017, Jon Schlinkert.
- * Released under the MIT License.
- */
-
-function isObject(o) {
-  return Object.prototype.toString.call(o) === '[object Object]';
-}
-
-function isPlainObject(o) {
-  var ctor,prot;
-
-  if (isObject(o) === false) return false;
-
-  // If has modified constructor
-  ctor = o.constructor;
-  if (ctor === undefined) return true;
-
-  // If has modified prototype
-  prot = ctor.prototype;
-  if (isObject(prot) === false) return false;
-
-  // If constructor does not have an Object-specific method
-  if (prot.hasOwnProperty('isPrototypeOf') === false) {
-    return false;
-  }
-
-  // Most likely a plain Object
-  return true;
-}
-
-exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -4280,6 +5059,52 @@ class Deprecation extends Error {
 }
 
 exports.Deprecation = Deprecation;
+
+
+/***/ }),
+
+/***/ 3287:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+/*!
+ * is-plain-object <https://github.com/jonschlinkert/is-plain-object>
+ *
+ * Copyright (c) 2014-2017, Jon Schlinkert.
+ * Released under the MIT License.
+ */
+
+function isObject(o) {
+  return Object.prototype.toString.call(o) === '[object Object]';
+}
+
+function isPlainObject(o) {
+  var ctor,prot;
+
+  if (isObject(o) === false) return false;
+
+  // If has modified constructor
+  ctor = o.constructor;
+  if (ctor === undefined) return true;
+
+  // If has modified prototype
+  prot = ctor.prototype;
+  if (isObject(prot) === false) return false;
+
+  // If constructor does not have an Object-specific method
+  if (prot.hasOwnProperty('isPrototypeOf') === false) {
+    return false;
+  }
+
+  // Most likely a plain Object
+  return true;
+}
+
+exports.isPlainObject = isPlainObject;
 
 
 /***/ }),
@@ -15109,788 +15934,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 7393:
-/***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
-
-"use strict";
-// ESM COMPAT FLAG
-__nccwpck_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
-var core = __nccwpck_require__(2186);
-// CONCATENATED MODULE: ./src/DiffChecker.js
-const increasedCoverageIcon = ':green_circle:'
-const decreasedCoverageIcon = ':red_circle:'
-const newCoverageIcon = ':new:'
-const removedCoverageIcon = ':yellow_circle:'
-const sparkleIcon = ':sparkles:'
-
-const statusByCoverageType = {  
-  jest: {
-    // Metrics and headers must correspond one-to-one
-    // 'statements' correspond to 'Stmts'
-    statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
-    statusMetrics: ['statements', 'branches', 'functions', 'lines'],
-    summaryMetric: 'lines',
-  },  
-  cobertura: {
-    statusHeaders: ['Stmts', 'Branch', 'Funcs'],
-    statusMetrics: ['statements', 'branches', 'functions'],
-    summaryMetric: 'statements',
-  },  
-};
-
-/**
- * DiffChecker is the simple algorithm to compare coverage
- */
-class DiffChecker {
-  constructor({
-    changedFiles,
-    addedFiles,
-    coverageReportNew,
-    coverageReportOld,
-    currentDirectory,
-    checkNewFileFullCoverage,
-    delta,
-    prefixFilenameUrl,
-    prNumber,
-    coverageType,
-  }) {
-    this.diffCoverageReport = {};
-    this.filePathMap = {};
-    this.delta = delta;
-    this.coverageReportNew = coverageReportNew;
-    this.changedFiles = changedFiles;
-    this.addedFiles = addedFiles;
-    this.currentDirectory = currentDirectory;
-    this.prefixFilenameUrl = prefixFilenameUrl;
-    this.prNumber = prNumber;
-    this.checkNewFileFullCoverage = checkNewFileFullCoverage;
-    this.coverageType = coverageType;
-    this.isCobertura = coverageType === 'cobertura';
-    const reportNewKeys = Object.keys(coverageReportNew);
-    const reportOldKeys = Object.keys(coverageReportOld);
-    const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
-
-    /**
-     * For all filePaths in coverage, generate a percentage value
-     * for both base and current branch
-     */
-    for (const filePath of reportKeys) {
-      const newCoverage = coverageReportNew[filePath] || {};
-      const oldCoverage = coverageReportOld[filePath] || {};
-      console.log(filePath)
-      this.diffCoverageReport[filePath] = {};
-      const { statusMetrics } = statusByCoverageType[this.coverageType];
-      for (const metric of statusMetrics) {
-        this.diffCoverageReport[filePath][metric] = {
-          new: newCoverage[metric],
-          old: oldCoverage[metric],
-          newPct: this.getPercentage(newCoverage[metric]),
-          oldPct: this.getPercentage(oldCoverage[metric]),
-        }
-      }
-      if (this.isCobertura) {
-        this.filePathMap[filePath] = newCoverage.filename || filePath;
-      }
-    }
-  }
-
-  checkOnlyChangedFiles(file) {
-    file = file.replace(this.currentDirectory, '');
-    if (this.changedFiles) {
-      if (this.isCobertura) {
-        const filename = this.filePathMap[file];
-        return this.changedFiles.some(filePath => filePath.includes(filename));
-      }
-      return this.changedFiles.indexOf(file.substring(1)) > -1;
-    }
-
-    return true;
-  }
-
-  checkOnlyAddedFiles(file) {
-    file = file.replace(this.currentDirectory, '');
-    if (this.addedFiles) {
-      if (this.isCobertura) {
-        const filename = this.filePathMap[file];
-        return this.addedFiles.some(filePath => filePath.includes(filename));
-      }
-      return this.addedFiles.indexOf(file.substring(1)) > -1;
-    }
-
-    return true;
-  }
-
-  getStatusMessage(prefix, callback) {
-    let statusMessage = prefix;
-    const { statusMetrics } = statusByCoverageType[this.coverageType];
-    for(const metric of statusMetrics) {
-      statusMessage += callback(metric);
-    }
-    return statusMessage;
-  }
-
-  getStatusHeader() {
-    let statusMessage = '';
-    let splitLine = '';
-    const { statusHeaders } = statusByCoverageType[this.coverageType];
-    for(const header of statusHeaders) {
-      statusMessage += ` ${header} |`;
-      splitLine += ' ----- |';
-    }
-    return `${statusMessage} \n ${splitLine}`;
-  }
-
-  /**
-   * Create coverageDetails table
-   */
-  getCoverageDetails(diffOnly) {
-    const keys = Object.keys(this.diffCoverageReport)
-    const decreaseStatusLines = [];
-    const remainingStatusLines = [];
-    for (const key of keys) {
-      if (this.compareCoverageValues(key) !== 0) {
-        const diffStatus = this.createDiffLine(
-          key.replace(this.currentDirectory, ''),
-          this.diffCoverageReport[key]
-        )
-        if (
-          (diffStatus.status === 'decrease' && this.checkOnlyChangedFiles(key)) ||
-          (this.checkNewFileFullCoverage &&
-            diffStatus.status === 'new' &&
-            diffStatus.statusMessage.includes(decreasedCoverageIcon))
-        ) {
-          decreaseStatusLines.push(diffStatus.statusMessage);
-        } else {
-          remainingStatusLines.push(diffStatus.statusMessage);
-        }
-      } else {
-        if (!diffOnly) {
-          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffCoverageReport[key][metric].newPct} `);
-          remainingStatusLines.push(statusMessage);
-        }
-      }
-    }
-    return {
-      totalCoverageLines: this.diffCoverageReport['total'] ? this.getTotalCoverageReport(this.diffCoverageReport['total']) : null,
-      decreaseStatusLines,
-      remainingStatusLines,
-      statusHeader: this.getStatusHeader(),
-    }
-  }
-
-  getTotalCoverageReport(diffCoverageReport) {
-    const { summaryMetric } = statusByCoverageType[this.coverageType];
-    
-    if (!diffCoverageReport || !diffCoverageReport[summaryMetric]) {
-      console.log('diffCoverageReport===', summaryMetric)
-      return null;
-    }
-    
-    if (!this.coverageReportNew['total'] || !this.coverageReportNew['total'][summaryMetric]) {
-      console.log('coverageReportNew===', summaryMetric)
-      return null;
-    }
-    
-    let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
-    changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
-    return {
-      changesPct,
-      covered: this.coverageReportNew['total'][summaryMetric].covered,
-      total: this.coverageReportNew['total'][summaryMetric].total,
-      totalPct: this.coverageReportNew['total'][summaryMetric].pct,
-      summaryMetric,
-    }
-  }
-
-  /**
-   * Function to check if the file's coverage is below delta
-   * @param {*} delta
-   * @returns
-   */
-  checkIfTestCoverageFallsBelowDelta(delta) {
-    const keys = Object.keys(this.diffCoverageReport)
-    for (const fileName of keys) {
-      const diffCoverageData = this.diffCoverageReport[fileName]
-      const keys = Object.keys(diffCoverageData)
-      // No new coverage found so that means we deleted a file coverage
-      const fileRemovedCoverage = Object.values(diffCoverageData).every(
-        coverageData => coverageData.newPct === 0
-      )
-      if (fileRemovedCoverage) {
-        // since the file is deleted don't include in delta calculation
-        continue
-      }
-      for (const key of keys) {
-        if (diffCoverageData[key].oldPct !== diffCoverageData[key].newPct) {
-          if (-this.getPercentageDiff(diffCoverageData[key]) > delta
-            && !this.isDueToRemovedLines(diffCoverageData[key])) {
-            // Check only changed files
-            if (this.checkOnlyChangedFiles(fileName)) {
-              return true
-            }
-          }
-        }
-      }
-    }
-
-    return false
-  }
-
-  /**
-   * Function to check if any newly added file does not have full coverage
-   */
-  checkIfNewFileNotFullCoverage() {
-    if (!this.checkNewFileFullCoverage) return false
-    const keys = Object.keys(this.diffCoverageReport);
-    return keys.some((key) => {
-      const diffCoverageData = this.diffCoverageReport[key];
-      const coverageParts = Object.values(diffCoverageData);
-      // No old coverage found so that means we added a new file
-      const newFileCoverage = coverageParts.every((coverageData) => coverageData.oldPct === 0);
-      return newFileCoverage && this.checkIfNewFileLacksFullCoverage(coverageParts) && this.checkOnlyAddedFiles(key);
-    });
-  }
-
-  
-  /**
-   * Function to check whether any part does not have full coverage
-   * @param  {} coverageParts
-   * @returns  {boolean}
-   */
-  checkIfNewFileLacksFullCoverage(coverageParts) {
-    return coverageParts.some((coverageData) => coverageData.newPct < 100);
-  }
-
-  isDueToRemovedLines(diffCoverageData) {
-    const newCoverage = diffCoverageData.new;
-    const oldCoverage = diffCoverageData.old;
-    if (!oldCoverage || !newCoverage) return false;
-
-    return newCoverage.covered < oldCoverage.covered &&
-      (oldCoverage.covered - newCoverage.covered <= oldCoverage.total - newCoverage.total)
-  }
-
-  getFileNameUrl(name) {
-    if (this.prefixFilenameUrl === '') return name;
-
-    if (this.isCobertura) {
-      return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/current/${name === 'total' ? 'index' : name.replace(/\./g, '/') + '.scala'}.html)`;
-    }
-    return `[${name}](${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${name === 'total' ? 'index' : name.substring(1)}.html)`;
-  }
-
-  /**
-   * Create the table row for the file with higher/lower coverage compared to base branch
-   */
-  createDiffLine(
-    name,
-    diffFileCoverageData
-  ) {
-    // No old coverage found so that means we added a new file coverage
-    const fileNewCoverage = Object.values(diffFileCoverageData).every(
-      coverageData => coverageData.oldPct === 0
-    )
-    // No new coverage found so that means we deleted a file coverage
-    const fileRemovedCoverage = Object.values(diffFileCoverageData).every(
-      coverageData => coverageData.newPct === 0
-    )
-
-    const fileNameUrl = this.getFileNameUrl(name);
-    if (fileNewCoverage) {
-      let newCoverageStatusIcon = `${sparkleIcon} ${newCoverageIcon}`
-      if (this.checkNewFileFullCoverage) {
-        if (
-          this.checkIfNewFileLacksFullCoverage(Object.values(diffFileCoverageData)) &&
-          this.checkOnlyAddedFiles(name)
-        ) {
-          newCoverageStatusIcon = `${decreasedCoverageIcon} ${newCoverageIcon}`;
-        } else {
-          newCoverageStatusIcon = `${increasedCoverageIcon} ${newCoverageIcon}`;
-        }
-      }
-      const statusMessage = this.getStatusMessage(` ${newCoverageStatusIcon} | **${fileNameUrl}** `, (metric) => `| **${diffFileCoverageData[metric].newPct}** `);
-
-      return {
-        status: 'new',
-        statusMessage,
-      };
-    } else if (fileRemovedCoverage) {
-      const statusMessage = this.getStatusMessage(` ${removedCoverageIcon} | ~~${fileNameUrl}~~ `, (metric) => `| ~~${diffFileCoverageData[metric].oldPct}~~ `);
-      return {
-        status: 'removed',
-        statusMessage,
-      }
-    }
-    // Coverage existed before so calculate the diff status
-    const statusIcon = this.getStatusIcon(diffFileCoverageData)
-    const statusMessage = this.getStatusMessage(` ${statusIcon} | ${fileNameUrl} `, (metric) => `| ${diffFileCoverageData[metric].newPct} **(${this.getPercentageDiff(diffFileCoverageData[metric])})** `);
-    return {
-      status: statusIcon === increasedCoverageIcon ? 'increase' : 'decrease',
-      statusMessage,
-    }
-  }
-
-  compareCoverageValues(
-    file
-  ) {
-    const values = Object.values(this.diffCoverageReport[file]);
-    const noOldCoverage = values.every((part) => part.oldPct === 0);
-    const noNewCoverage = values.every((part) => part.newPct === 0);
-    const newFileWithoutCoverage = noOldCoverage && noNewCoverage && this.checkOnlyAddedFiles(file);
-    const fileCoverageChanged = values.some((part) => part.oldPct !== part.newPct && !this.isDueToRemovedLines(part));
-
-    if (newFileWithoutCoverage || fileCoverageChanged) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  getPercentage(coverageData) {
-    return coverageData ? coverageData.pct : 0
-  }
-
-  /**
-   * Show red/green status icon for each file
-   * @param {*} diffFileCoverageData
-   * @returns
-   */
-  getStatusIcon(
-    diffFileCoverageData
-  ) {
-    let coverageIcon = increasedCoverageIcon;
-    const parts = Object.values(diffFileCoverageData);
-    for (let i = 0; i < parts.length; i++) {
-      const coverageData = parts[i];
-      const percDiff = this.getPercentageDiff(coverageData);
-      if (percDiff < 0 && Math.abs(percDiff) > this.delta) {
-        coverageIcon = decreasedCoverageIcon;
-        break;
-      }
-    }
-    return coverageIcon;
-  }
-
-  /**
-   * Get % diff for base vs current branch
-   * @param {*} diffData
-   * @returns
-   */
-  getPercentageDiff(diffData) {
-    const diff = Number(diffData.newPct) - Number(diffData.oldPct)
-    // round off the diff to 2 decimal places
-    return Math.round((diff + Number.EPSILON) * 100) / 100
-  }
-}
-// EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(5438);
-// CONCATENATED MODULE: external "child_process"
-const external_child_process_namespaceObject = require("child_process");;
-// CONCATENATED MODULE: ./src/utils.js
-/**
- * Create or update comment based on commentId
- * @param {*} commentId 
- * @param {*} githubClient 
- * @param {*} repoOwner 
- * @param {*} repoName 
- * @param {*} messageToPost 
- * @param {*} prNumber 
- */
-async function createOrUpdateComment(
-  commentId,
-  githubClient,
-  repoOwner,
-  repoName,
-  messageToPost,
-  prNumber
-) {
-  if (commentId) {
-    await githubClient.issues.updateComment({
-      owner: repoOwner,
-      repo: repoName,
-      comment_id: commentId,
-      body: messageToPost
-    })
-  } else {
-    await githubClient.issues.createComment({
-      repo: repoName,
-      owner: repoOwner,
-      body: messageToPost,
-      issue_number: prNumber
-    })
-  }
-}
-
-/**
- * findComment from a list of comments in a PR
- * @param {*} githubClient 
- * @param {*} repoName 
- * @param {*} repoOwner 
- * @param {*} prNumber 
- * @param {*} identifier 
- * @returns 
- */
-async function findComment(
-  githubClient,
-  repoName,
-  repoOwner,
-  prNumber,
-  identifier
-) {
-  const comments = await githubClient.issues.listComments({
-    owner: repoOwner,
-    repo: repoName,
-    issue_number: prNumber
-  })
-    
-  for (const comment of comments.data) {
-    if (comment.body.startsWith(identifier)) {
-      return comment.id
-    }
-  }
-  return 0
-}
-
-const maxNumberOfLines = 500;
-const limitCommentLength = (commentsLines) => {
-  if (commentsLines.length > maxNumberOfLines) {
-    const columnNumber = commentsLines[0].split('|').length;
-    const ellipsisRow = '...|'.repeat(columnNumber);
-    return [...commentsLines.splice(0, maxNumberOfLines), ellipsisRow];
-  }
-  return commentsLines;
-};
-
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(5747);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-
-// EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
-var xml2js = __nccwpck_require__(6189);
-// CONCATENATED MODULE: ./src/parsers/cobertura.js
-
-
-const coverageType = ['functions', 'branches', 'statements'];
-const coverageDetails = ['total', 'covered', 'skipped', 'pct'];
-
-const percentage = (covered, total) => {
-  return total ? Number((covered / total * 100).toFixed(2)) : 100;
-};
-
-const initialCoverageWithZero = (coverageSummary, name) => {
-  coverageSummary[name] = {};
-  coverageType.forEach(type => {
-    coverageSummary[name][type] = {};
-    coverageDetails.forEach(detail => {
-      coverageSummary[name][type][detail] = 0;
-    });
-  });
-};
-
-const classesFromPackages = (packages) => {
-  let classes = [];
-
-  packages.forEach((packages) => {
-    packages.package.forEach((pack) => {
-      pack.classes.forEach((c) => {
-        classes = classes.concat(c.class);
-      });
-    });
-  });
-
-  return classes;
-};
-
-const unpackage = (packages) => {
-  const classes = classesFromPackages(packages);
-  const coverageSummary = {};
-  const packageName = 'total';
-  initialCoverageWithZero(coverageSummary, packageName);
-
-  // calculate coverage of each class in this package
-  classes.forEach((c) => {
-    const className = c.$.name;
-    initialCoverageWithZero(coverageSummary, className);
-
-    c.lines && c.lines[0].line && c.lines[0].line.forEach((l) => {
-      // calculate statements coverage
-      coverageSummary[className].statements.total ++;
-      if (l.$.hits !== '0') {
-        coverageSummary[className].statements.covered ++;
-      } else {
-        coverageSummary[className].statements.skipped ++;
-      }
-
-      // calculate branches coverage
-      if (l.$.branch === 'true') {
-        coverageSummary[className].branches.total ++;
-        if (l.$.hits !== '0') {
-          coverageSummary[className].branches.covered ++;
-        } else {
-          coverageSummary[className].branches.skipped ++;
-        }
-      }
-    });
-
-    c.methods && c.methods[0].method && c.methods[0].method.forEach((m) => {
-      // calculate functions coverage
-      coverageSummary[className].functions.total ++;
-      if (Number(m.$['line-rate']) + Number(m.$['branch-rate']) > 0) {
-        coverageSummary[className].functions.covered ++;
-      } else {
-        coverageSummary[className].functions.skipped ++;
-      }
-    })
-
-    // accumulate package total coverage
-    coverageType.forEach(type => {
-      coverageDetails.forEach((detail) => {
-        coverageSummary[packageName][type][detail] += coverageSummary[className][type][detail];
-      });
-      coverageSummary[className][type].pct = percentage(coverageSummary[className][type].covered, coverageSummary[className][type].total);
-      coverageSummary[packageName][type].pct = percentage(coverageSummary[packageName][type].covered, coverageSummary[packageName][type].total);
-    });
-
-    coverageSummary[className].filename = c.$['filename'];
-  });
-
-  return coverageSummary;
-};
-
-/* harmony default export */ const cobertura = ((xmlString) => {
-  let result = {};
-  (0,xml2js.parseString)(xmlString, (err, parseResult) => {
-    if (err) {
-      console.error('Error encountered during Cobertura parsing: ', err);
-    } else {
-      result = unpackage(parseResult.coverage.packages);
-    }
-  });
-  return result;
-});
-
-// CONCATENATED MODULE: ./src/parsers/index.js
-
-
-
-/* harmony default export */ const parsers = ((filePath, type) => {
-  let parsedResult = external_fs_default().readFileSync(filePath).toString();
-
-  switch (type) {
-  case "jest":
-    parsedResult = JSON.parse(parsedResult);
-    break;
-  case "cobertura":
-    parsedResult = cobertura(parsedResult)
-    break;
-  default:
-    break;
-  }
-
-  return parsedResult;
-});
-
-// CONCATENATED MODULE: ./src/index.js
-
-
-
-
-
-
-
-async function main() {
-  try {
-    // repo name
-    const repoName = github.context.repo.repo
-    // get the repo owner
-    const repoOwner = github.context.repo.owner
-    // github token
-    const githubToken = core.getInput('accessToken')
-    // Full coverage (true/false)
-    const fullCoverage = JSON.parse(core.getInput('fullCoverageDiff'))
-    // delta coverage. Defaults to 0.2
-    const delta = Number(core.getInput('delta'))
-    const githubClient = github.getOctokit(githubToken)
-    // PR number
-    const prNumber = github.context.issue.number
-    // Use the same comment for posting diff updates on a PR
-    const useSameComment = JSON.parse(core.getInput('useSameComment'))
-
-    // get the custom message
-    const customMessage = core.getInput('custom-message');
-
-    // Only check changed files in PR
-    const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
-
-    // Add prefix to file name URLs
-    const prefixFilenameUrl = core.getInput('prefix-filename-url')
-
-    // comment ID to uniquely identify a comment.
-    const commentIdentifier = `<!-- codeCoverageDiffComment -->`
-
-    // The base coverage json summary report. This should be master/main summary report.
-    const baseCoverageReportPath = core.getInput('base-coverage-report-path');
-
-    // branch coverage json summary report
-    const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
-
-    // check newly added file whether have full coverage tests
-    const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
-
-    const coverageType = core.getInput('coverageType');
-
-    // If either of base or branch summary report does not exist, then exit with failure.
-    if (!baseCoverageReportPath || !branchCoverageReportPath) {
-      core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
-      return;
-    }
-
-    let changedFiles = null;
-    let addedFiles = null
-    if (onlyCheckChangedFiles === 'true') {
-      const files = await githubClient.pulls.listFiles({
-        owner: repoOwner,
-        repo: repoName,
-        pull_number: prNumber,
-      });
-      changedFiles = files.data ? files.data.map(file => file.filename) : [];
-      addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
-    }
-
-    const coverageReportNew = parsers(branchCoverageReportPath, coverageType);
-    const coverageReportOld = parsers(baseCoverageReportPath, coverageType);
-
-    // Get the current directory to replace the file name paths
-    const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
-      .toString()
-      .trim()
-
-    const pullRequest = await githubClient.pulls.get({
-      owner: repoOwner,
-      repo: repoName,
-      pull_number: prNumber,
-    });
-
-    const checkNewFileFullCoverage = checkNewFileFullCoverageInput && !pullRequest.data.labels.some(label => label.name.includes('skip-new-file-full-coverage'));
-
-    // Perform analysis
-    const diffChecker = new DiffChecker({
-      changedFiles,
-      addedFiles,
-      coverageReportNew,
-      coverageReportOld,
-      currentDirectory,
-      checkNewFileFullCoverage,
-      delta,
-      prefixFilenameUrl,
-      prNumber,
-      repoName,
-      coverageType,
-    });
-
-    // Get coverage details.
-    // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-    const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = diffChecker.getCoverageDetails(!fullCoverage)
-
-    const isCoverageBelowDelta = diffChecker.checkIfTestCoverageFallsBelowDelta(delta);
-    const isNotFullCoverageOnNewFile = diffChecker.checkIfNewFileNotFullCoverage();
-
-    // Add a comment to PR with full coverage report
-    let messageToPost = `## Coverage Report \n\n`
-
-    messageToPost += `* **Status**: ${isNotFullCoverageOnNewFile || isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`
-
-    // Add the custom message if it exists
-    if (customMessage !== '') {
-      messageToPost += `* ${customMessage} \n`;
-    }
-
-    // If coverageDetails length is 0 that means there is no change between base and head
-    if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
-      messageToPost +=
-              '* No changes to code coverage between the master branch and the current head branch'
-      messageToPost += '\n--- \n\n'
-    } else {
-      if (isNotFullCoverageOnNewFile) {
-        messageToPost += `* Current PR does not have full coverage for new files \n`
-      }
-      // If coverage details is below delta then post a message
-      if (isCoverageBelowDelta) {
-        messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`
-      }
-      messageToPost += '--- \n\n'
-      if (decreaseStatusLines.length > 0) {
-        messageToPost +=
-              `Status | Changes Missing Coverage | ${statusHeader} ---------|------ \n`
-        messageToPost += limitCommentLength(decreaseStatusLines).join('\n')
-        messageToPost += '\n--- \n\n'
-      }
-
-      // Show coverage table for all files that were affected because of this PR
-      if (remainingStatusLines.length > 0) {
-        messageToPost += '<details>'
-        messageToPost += '<summary markdown="span">Click to view remaining coverage report</summary>\n\n'
-        messageToPost +=
-              `Status | File | ${statusHeader} ---------|------ \n`
-        messageToPost += limitCommentLength(remainingStatusLines).join('\n')
-        messageToPost += '\n';
-        messageToPost += '</details>';
-        messageToPost += '\n\n--- \n\n'
-      }
-    }
-
-    if (totalCoverageLines) {
-      const {
-        changesPct,
-        covered,
-        total,
-        totalPct,
-        summaryMetric,
-      } = totalCoverageLines
-      messageToPost +=
-            `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
-    }
-
-    messageToPost = `${commentIdentifier} \n ${messageToPost}`
-    let commentId = null
-
-    // If useSameComment is true, then find the comment and then update that comment.
-    // If not, then create a new comment
-    if (useSameComment) {
-      commentId = await findComment(
-        githubClient,
-        repoName,
-        repoOwner,
-        prNumber,
-        commentIdentifier
-      )
-    }
-
-    await createOrUpdateComment(
-      commentId,
-      githubClient,
-      repoOwner,
-      repoName,
-      messageToPost,
-      prNumber
-    )
-
-    // check if the test coverage is falling below delta/tolerance.
-    if (isNotFullCoverageOnNewFile || isCoverageBelowDelta) {
-      throw Error(messageToPost);
-    }
-  } catch (error) {
-    core.setFailed(error)
-  }
-}
-
-main();
-
-
-/***/ }),
-
 /***/ 2877:
 /***/ ((module) => {
 
@@ -16113,6 +16156,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(7393);
+/******/ 	return __nccwpck_require__(5438);
 /******/ })()
 ;
