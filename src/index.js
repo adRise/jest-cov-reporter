@@ -43,6 +43,9 @@ async function main() {
 
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+    
+    // threshold for new file coverage (default to 100%)
+    const newFileCoverageThreshold = Number(core.getInput('new-file-coverage-threshold') || 100);
 
     const coverageType = core.getInput('coverageType');
 
@@ -93,6 +96,7 @@ async function main() {
       prNumber,
       repoName,
       coverageType,
+      newFileCoverageThreshold,
     });
 
     // Get coverage details.

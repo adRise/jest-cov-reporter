@@ -15155,6 +15155,7 @@ class DiffChecker {
     prefixFilenameUrl,
     prNumber,
     coverageType,
+    newFileCoverageThreshold = 100,
   }) {
     this.diffCoverageReport = {};
     this.filePathMap = {};
@@ -15168,6 +15169,7 @@ class DiffChecker {
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.coverageType = coverageType;
     this.isCobertura = coverageType === 'cobertura';
+    this.newFileCoverageThreshold = newFileCoverageThreshold;
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -15273,7 +15275,7 @@ class DiffChecker {
       }
     }
     return {
-      totalCoverageLines: this.diffCoverageReport['total'] ? this.getTotalCoverageReport(this.diffCoverageReport['total']) : null,
+      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
       decreaseStatusLines,
       remainingStatusLines,
       statusHeader: this.getStatusHeader(),
@@ -15282,17 +15284,6 @@ class DiffChecker {
 
   getTotalCoverageReport(diffCoverageReport) {
     const { summaryMetric } = statusByCoverageType[this.coverageType];
-    
-    if (!diffCoverageReport || !diffCoverageReport[summaryMetric]) {
-      console.log('diffCoverageReport===', summaryMetric)
-      return null;
-    }
-    
-    if (!this.coverageReportNew['total'] || !this.coverageReportNew['total'][summaryMetric]) {
-      console.log('coverageReportNew===', summaryMetric)
-      return null;
-    }
-    
     let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
     changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {
@@ -15360,7 +15351,7 @@ class DiffChecker {
    * @returns  {boolean}
    */
   checkIfNewFileLacksFullCoverage(coverageParts) {
-    return coverageParts.some((coverageData) => coverageData.newPct < 100);
+    return coverageParts.some((coverageData) => coverageData.newPct < this.newFileCoverageThreshold);
   }
 
   isDueToRemovedLines(diffCoverageData) {
@@ -15738,6 +15729,9 @@ async function main() {
 
     // check newly added file whether have full coverage tests
     const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+    
+    // threshold for new file coverage (default to 100%)
+    const newFileCoverageThreshold = Number(core.getInput('new-file-coverage-threshold') || 100);
 
     const coverageType = core.getInput('coverageType');
 
@@ -15788,6 +15782,7 @@ async function main() {
       prNumber,
       repoName,
       coverageType,
+      newFileCoverageThreshold,
     });
 
     // Get coverage details.
