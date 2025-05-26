@@ -15267,13 +15267,13 @@ class DiffChecker {
         }
       } else {
         if (!diffOnly) {
-          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffFileCoverageData[key][metric].newPct} `);
+          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffCoverageReport[key][metric].newPct} `);
           remainingStatusLines.push(statusMessage);
         }
       }
     }
     return {
-      totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
+      totalCoverageLines: this.diffCoverageReport['total'] ? this.getTotalCoverageReport(this.diffCoverageReport['total']) : null,
       decreaseStatusLines,
       remainingStatusLines,
       statusHeader: this.getStatusHeader(),
@@ -15282,6 +15282,17 @@ class DiffChecker {
 
   getTotalCoverageReport(diffCoverageReport) {
     const { summaryMetric } = statusByCoverageType[this.coverageType];
+    
+    if (!diffCoverageReport || !diffCoverageReport[summaryMetric]) {
+      console.log('diffCoverageReport===', summaryMetric)
+      return null;
+    }
+    
+    if (!this.coverageReportNew['total'] || !this.coverageReportNew['total'][summaryMetric]) {
+      console.log('coverageReportNew===', summaryMetric)
+      return null;
+    }
+    
     let changesPct = diffCoverageReport[summaryMetric].newPct - diffCoverageReport[summaryMetric].oldPct;
     changesPct = Math.round((changesPct + Number.EPSILON) * 100) / 100;
     return {

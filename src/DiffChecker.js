@@ -146,7 +146,7 @@ export class DiffChecker {
         }
       } else {
         if (!diffOnly) {
-          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffFileCoverageData[key][metric].newPct} `);
+          const statusMessage = this.getStatusMessage(` ${key.replace(this.currentDirectory, '')} `, (metric) => `| ${this.diffCoverageReport[key][metric].newPct} `);
           remainingStatusLines.push(statusMessage);
         }
       }
