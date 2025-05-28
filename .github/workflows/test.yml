@@ -28,6 +28,8 @@ jobs:
           useSameComment: true
           coverageType: jest
           fullCoverageDiff: true
+          new-file-coverage-threshold: 70
+          only-check-changed-files: false
 
       - name: cobertura coverage reporter
         uses: ./ # Uses an action in the root directory

@@ -34,6 +34,9 @@ inputs:
   check-new-file-full-coverage:
     description: 'Check newly added files whether have full coverage tests'
     default: true
+  new-file-coverage-threshold:
+    description: 'Threshold for new file coverage'
+    default: 100
   coverageType:
     required: false
     description: 'Tools that generate code coverage'

@@ -34,6 +34,7 @@ export class DiffChecker {
     prefixFilenameUrl,
     prNumber,
     coverageType,
+    newFileCoverageThreshold = 100,
   }) {
     this.diffCoverageReport = {};
     this.filePathMap = {};
@@ -47,6 +48,7 @@ export class DiffChecker {
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.coverageType = coverageType;
     this.isCobertura = coverageType === 'cobertura';
+    this.newFileCoverageThreshold = newFileCoverageThreshold;
     const reportNewKeys = Object.keys(coverageReportNew);
     const reportOldKeys = Object.keys(coverageReportOld);
     const reportKeys = new Set([...reportNewKeys, ...reportOldKeys]);
@@ -228,7 +230,7 @@ export class DiffChecker {
    * @returns  {boolean}
    */
   checkIfNewFileLacksFullCoverage(coverageParts) {
-    return coverageParts.some((coverageData) => coverageData.newPct < 100);
+    return coverageParts.some((coverageData) => coverageData.newPct < this.newFileCoverageThreshold);
   }
 
   isDueToRemovedLines(diffCoverageData) {

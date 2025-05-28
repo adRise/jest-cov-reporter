@@ -34,4 +34,6 @@ Failure Screenshot
 5. `delta`: Difference between the old and final test coverage. Defaults to 0.2
 6. `useSameComment`: While commenting on the PR update the exisiting comment. Defaults to true.
 7. `coverageType`: Tools that generate code coverage, only support 'jest' and 'cobertura' for now.
+8. `check-new-file-full-coverage`: Check if newly added files have full coverage. Defaults to false.
+9. `new-file-coverage-threshold`: The threshold for new file coverage percentage. Defaults to 100.
 
