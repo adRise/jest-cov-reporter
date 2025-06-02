@@ -12,6 +12,7 @@ export class ThresholdValidator {
   private addedFiles: string[] | null;
   private checkNewFileFullCoverage: boolean;
   private currentDirectory: string;
+  private newFileCoverageThreshold: number;
 
   /**
    * Create a new ThresholdValidator
@@ -22,7 +23,8 @@ export class ThresholdValidator {
     changedFiles,
     addedFiles,
     checkNewFileFullCoverage,
-    currentDirectory
+    currentDirectory,
+    newFileCoverageThreshold = 100
   }: {
     diffCalculator: CoverageDiffCalculator;
     delta: number;
@@ -30,6 +32,7 @@ export class ThresholdValidator {
     addedFiles: string[] | null;
     checkNewFileFullCoverage: boolean;
     currentDirectory: string;
+    newFileCoverageThreshold?: number;
   }) {
     this.diffCalculator = diffCalculator;
     this.diffCoverageReport = diffCalculator.getDiffCoverageReport();
@@ -38,6 +41,7 @@ export class ThresholdValidator {
     this.addedFiles = addedFiles;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
     this.currentDirectory = currentDirectory;
+    this.newFileCoverageThreshold = newFileCoverageThreshold;
   }
 
   /**
@@ -106,7 +110,7 @@ export class ThresholdValidator {
    * @returns True if any part lacks full coverage
    */
   public checkIfNewFileLacksFullCoverage(coverageParts: DiffCoverageData[]): boolean {
-    return coverageParts.some((coverageData) => coverageData.newPct < 100);
+    return coverageParts.some((coverageData) => coverageData.newPct < this.newFileCoverageThreshold);
   }
 
   /**
