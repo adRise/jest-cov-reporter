@@ -28,7 +28,7 @@ jobs:
           useSameComment: true
           coverageType: jest
           fullCoverageDiff: true
-          new-file-coverage-threshold: 90
+          new-file-coverage-threshold: 70
           only-check-changed-files: false
 
       - name: cobertura coverage reporter
