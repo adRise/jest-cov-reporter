@@ -145,7 +145,7 @@ async function main(): Promise<void> {
       messageToPost += '\n--- \n\n';
     } else {
       if (isNotFullCoverageOnNewFile) {
-        messageToPost += `* Current PR does not have full coverage for new files \n`;
+        messageToPost += `* Current PR does not meet the required ${newFileCoverageThreshold}% coverage threshold for new files \n`;
       }
       // If coverage details is below delta then post a message
       if (isCoverageBelowDelta) {
