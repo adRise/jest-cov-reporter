@@ -39,7 +39,7 @@ const STATUS_BY_COVERAGE_TYPE = {
 };
 const COMMENT_IDENTIFIER = `<!-- codeCoverageDiffComment -->`;
 const MAX_COMMENT_LINES = 500;
-//# sourceMappingURL=constants.js.map
+
 // CONCATENATED MODULE: ./lib/core/diff/CoverageDiffCalculator.js
 
 /**
@@ -131,7 +131,7 @@ class CoverageDiffCalculator {
         return this.diffCoverageReport;
     }
 }
-//# sourceMappingURL=CoverageDiffCalculator.js.map
+
 // CONCATENATED MODULE: ./lib/utils/github.js
 
 /**
@@ -196,7 +196,7 @@ const limitCommentLength = (commentsLines) => {
     }
     return commentsLines;
 };
-//# sourceMappingURL=github.js.map
+
 // CONCATENATED MODULE: ./lib/core/format/ReportFormatter.js
 
 
@@ -404,7 +404,7 @@ class ReportFormatter {
         };
     }
 }
-//# sourceMappingURL=ReportFormatter.js.map
+
 // CONCATENATED MODULE: ./lib/core/threshold/ThresholdValidator.js
 /**
  * ThresholdValidator validates coverage against thresholds
@@ -501,7 +501,7 @@ class ThresholdValidator {
         });
     }
 }
-//# sourceMappingURL=ThresholdValidator.js.map
+
 // EXTERNAL MODULE: external "fs"
 var external_fs_ = __nccwpck_require__(5747);
 var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
@@ -642,7 +642,7 @@ class CoberturaParser {
         };
     }
 }
-//# sourceMappingURL=cobertura.js.map
+
 // CONCATENATED MODULE: ./lib/parsers/jest.js
 /**
  * Parser for Jest coverage reports
@@ -657,7 +657,7 @@ class JestParser {
         return JSON.parse(content);
     }
 }
-//# sourceMappingURL=jest.js.map
+
 // CONCATENATED MODULE: ./lib/parsers/index.js
 
 
@@ -694,7 +694,7 @@ function parseContent(filePath, type) {
     const parser = factory.createParser(type);
     return parser.parse(content);
 }
-//# sourceMappingURL=index.js.map
+
 // CONCATENATED MODULE: ./lib/index.js
 
 
@@ -868,7 +868,7 @@ async function main() {
     }
 }
 main();
-//# sourceMappingURL=index.js.map
+
 
 /***/ }),
 
