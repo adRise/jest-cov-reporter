@@ -11,16 +11,18 @@ export declare class ThresholdValidator {
     private addedFiles;
     private checkNewFileFullCoverage;
     private currentDirectory;
+    private newFileCoverageThreshold;
     /**
      * Create a new ThresholdValidator
      */
-    constructor({ diffCalculator, delta, changedFiles, addedFiles, checkNewFileFullCoverage, currentDirectory }: {
+    constructor({ diffCalculator, delta, changedFiles, addedFiles, checkNewFileFullCoverage, currentDirectory, newFileCoverageThreshold }: {
         diffCalculator: CoverageDiffCalculator;
         delta: number;
         changedFiles: string[] | null;
         addedFiles: string[] | null;
         checkNewFileFullCoverage: boolean;
         currentDirectory: string;
+        newFileCoverageThreshold?: number;
     });
     /**
      * Check if a file is in the changed files list

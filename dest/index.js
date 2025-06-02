@@ -413,7 +413,7 @@ class ThresholdValidator {
     /**
      * Create a new ThresholdValidator
      */
-    constructor({ diffCalculator, delta, changedFiles, addedFiles, checkNewFileFullCoverage, currentDirectory }) {
+    constructor({ diffCalculator, delta, changedFiles, addedFiles, checkNewFileFullCoverage, currentDirectory, newFileCoverageThreshold = 100 }) {
         this.diffCalculator = diffCalculator;
         this.diffCoverageReport = diffCalculator.getDiffCoverageReport();
         this.delta = delta;
@@ -421,6 +421,7 @@ class ThresholdValidator {
         this.addedFiles = addedFiles;
         this.checkNewFileFullCoverage = checkNewFileFullCoverage;
         this.currentDirectory = currentDirectory;
+        this.newFileCoverageThreshold = newFileCoverageThreshold;
     }
     /**
      * Check if a file is in the changed files list
@@ -482,7 +483,7 @@ class ThresholdValidator {
      * @returns True if any part lacks full coverage
      */
     checkIfNewFileLacksFullCoverage(coverageParts) {
-        return coverageParts.some((coverageData) => coverageData.newPct < 100);
+        return coverageParts.some((coverageData) => coverageData.newPct < this.newFileCoverageThreshold);
     }
     /**
      * Function to check if any newly added file does not have full coverage
@@ -737,6 +738,9 @@ async function main() {
         const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
         // check newly added file whether have full coverage tests
         const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
+        // threshold for new file coverage (default to 100%)
+        const parsedThreshold = Number(core.getInput('new-file-coverage-threshold'));
+        const newFileCoverageThreshold = Number.isFinite(parsedThreshold) ? parsedThreshold : 100;
         const coverageType = core.getInput('coverageType');
         // If either of base or branch summary report does not exist, then exit with failure.
         if (!baseCoverageReportPath || !branchCoverageReportPath) {
@@ -781,7 +785,8 @@ async function main() {
             changedFiles,
             addedFiles,
             checkNewFileFullCoverage,
-            currentDirectory
+            currentDirectory,
+            newFileCoverageThreshold
         });
         // Create report formatter
         const reportFormatter = new ReportFormatter({
@@ -815,7 +820,7 @@ async function main() {
         }
         else {
             if (isNotFullCoverageOnNewFile) {
-                messageToPost += `* Current PR does not have full coverage for new files \n`;
+                messageToPost += `* Current PR does not meet the required ${newFileCoverageThreshold}% coverage threshold for new files \n`;
             }
             // If coverage details is below delta then post a message
             if (isCoverageBelowDelta) {
