@@ -1,5 +1,7 @@
 import { JestParser } from '../parsers/jest';
 import { CoberturaParser } from '../parsers/cobertura';
+import fs from 'fs';
+import parseContent from '../parsers';
 
 // Mock the XML parser
 jest.mock('xml2js', () => ({
@@ -142,8 +144,6 @@ describe('Parsers', () => {
   describe('Parser factory', () => {
     it.skip('should use the Jest parser for Jest coverage type', () => {
       jest.resetModules();
-      const fs = require('fs');
-      const parseContent = require('../parsers').default;
       
       const result = parseContent('coverage.json', 'jest');
       
@@ -153,8 +153,6 @@ describe('Parsers', () => {
 
     it.skip('should use the Cobertura parser for Cobertura coverage type', () => {
       jest.resetModules();
-      const fs = require('fs');
-      const parseContent = require('../parsers').default;
       
       const result = parseContent('coverage.xml', 'cobertura');
       
