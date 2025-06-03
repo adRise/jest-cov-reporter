@@ -18,9 +18,11 @@ Failure Screenshot
 - Support for Jest and Cobertura coverage reports
 - Detailed GitHub PR comments with coverage changes
 - Configurable thresholds and options
+- **New:** Automatic S3 upload/download of coverage reports
 
 ## Usage
 
+### Basic Usage
 ```yaml
 - name: Coverage Report
   uses: adRise/jest-cov-reporter@main
@@ -33,12 +35,28 @@ Failure Screenshot
     useSameComment: true
 ```
 
+### With S3 Integration
+```yaml
+- name: Coverage Report with S3
+  uses: adRise/jest-cov-reporter@main
+  with:
+    delta: 0.3
+    accessToken: ${{ secrets.GITHUB_TOKEN }}
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: 'us-east-2'
+    s3-bucket: 'your-coverage-bucket'
+    base-branch: 'main'
+    pr-number: ${{ github.event.pull_request.number }}
+    s3-base-url: 'https://your-s3-url.amazonaws.com'
+```
+
 ## Options
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `base-coverage-report-path` | Path to base coverage report | Required |
-| `branch-coverage-report-path` | Path to the current coverage report | Required |
+| `base-coverage-report-path` | Path to base coverage report | Not required if AWS credentials provided |
+| `branch-coverage-report-path` | Path to the current coverage report | Not required if AWS credentials provided |
 | `accessToken` | Access token required to comment on a PR | `${{ github.token }}` |
 | `fullCoverageDiff` | Get the full coverage with diff or only the diff | `false` |
 | `delta` | Difference threshold between the old and final test coverage | `0.2` |
@@ -47,7 +65,79 @@ Failure Screenshot
 | `only-check-changed-files` | Only test for changed files in the PR | `true` |
 | `prefix-filename-url` | Add a base URL to the filenames and make it a hyperlink | `''` |
 | `check-new-file-full-coverage` | Check newly added files whether have full coverage tests | `true` |
-| `coverageType` | Tools that generate code coverage, supports 'jest' and 'cobertura' | `'jest'` |
+| `new-file-coverage-threshold` | Threshold for new file coverage | `100` |
+| `coverageType` | Tools that generate code coverage | `jest` |
+| `aws-access-key-id` | AWS access key ID for S3 operations | Optional |
+| `aws-secret-access-key` | AWS secret access key for S3 operations | Optional |
+| `aws-region` | AWS region for S3 operations | `us-east-2` |
+| `s3-bucket` | S3 bucket name for storing coverage reports | Optional |
+| `base-branch` | Base branch name (e.g., main or master) | `main` |
+| `pr-number` | Pull request number | Optional, auto-detected in PR context |
+| `s3-base-url` | Base URL for S3 coverage reports | Optional |
+
+## S3 Integration
+
+This action supports two approaches for managing coverage reports:
+
+### 1. Traditional (Direct Path) Approach
+
+You can specify the paths to your coverage reports directly:
+
+```yaml
+- name: Coverage Report
+  uses: adRise/jest-cov-reporter@main
+  with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
+    base-coverage-report-path: ./coverage/master-coverage-summary.json
+    delta: 0.3
+```
+
+### 2. S3 Integration Approach
+
+Alternatively, you can use S3 to store and retrieve coverage reports:
+
+```yaml
+- name: Coverage Report with S3
+  uses: adRise/jest-cov-reporter@main
+  with:
+    delta: 0.3
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: 'us-east-2'
+    s3-bucket: 'your-coverage-bucket'
+    base-branch: 'main'
+```
+
+When AWS credentials are provided, the action will:
+
+1. Automatically download the base coverage report from S3 if `base-coverage-report-path` is not provided
+2. Upload the current coverage report to S3 after tests run
+3. Create links to the HTML coverage reports in the PR comment
+
+The S3 path structure used is:
+- Base branch: `s3://{bucket}/{base-branch}/coverage-summary.json`
+- PR branch: `s3://{bucket}/{pr-number}/coverage-summary.json`
+- HTML reports: `s3://{bucket}/{branch-or-pr}/lcov-report/`
+
+This allows for persistent storage of coverage reports across CI runs and easy comparison between branches.
+
+### Hybrid Approach
+
+You can also use a hybrid approach, where you specify one path locally and use S3 for the other:
+
+```yaml
+- name: Coverage Report Hybrid
+  uses: adRise/jest-cov-reporter@main
+  with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json  # Use local path for current branch
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}           # Use S3 for base branch
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    aws-region: 'us-east-2'
+    s3-bucket: 'your-coverage-bucket'
+    base-branch: 'main'
+```
+
+This flexibility allows you to choose the approach that best fits your workflow.
 
 ## Full Coverage for New Files
 
