@@ -4,12 +4,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Uploads coverage report to S3
- * @param {string} sourcePath - Path to the coverage report
- * @param {Object} config - S3 configuration
- * @returns {boolean} - Whether the upload was successful
+ * S3 configuration interface
  */
-export const uploadCoverageToS3 = (sourcePath, config) => {
+export interface S3Config {
+  accessKeyId: string;
+  secretAccessKey: string;
+  region?: string;
+  bucket: string;
+  baseBranch?: string;
+  destDir?: string;
+}
+
+/**
+ * Uploads coverage report to S3
+ * @param sourcePath - Path to the coverage report
+ * @param config - S3 configuration
+ * @returns Whether the upload was successful
+ */
+export const uploadCoverageToS3 = (sourcePath: string, config: S3Config): boolean => {
   const {
     accessKeyId,
     secretAccessKey,
@@ -50,18 +62,22 @@ export const uploadCoverageToS3 = (sourcePath, config) => {
 
     return true;
   } catch (error) {
-    core.warning(`Error uploading coverage to S3: ${error.message}`);
+    if (error instanceof Error) {
+      core.warning(`Error uploading coverage to S3: ${error.message}`);
+    } else {
+      core.warning(`Error uploading coverage to S3: Unknown error`);
+    }
     return false;
   }
 };
 
 /**
  * Downloads base coverage report from S3
- * @param {Object} config - S3 configuration
- * @param {string} destPath - Path to save the downloaded file
- * @returns {boolean} - Whether the download was successful
+ * @param config - S3 configuration
+ * @param destPath - Path to save the downloaded file
+ * @returns Whether the download was successful
  */
-export const downloadBaseReportFromS3 = (config, destPath) => {
+export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): boolean => {
   const {
     accessKeyId,
     secretAccessKey,
@@ -96,7 +112,11 @@ export const downloadBaseReportFromS3 = (config, destPath) => {
     
     return fs.existsSync(destPath);
   } catch (error) {
-    core.warning(`Error downloading base coverage from S3: ${error.message}`);
+    if (error instanceof Error) {
+      core.warning(`Error downloading base coverage from S3: ${error.message}`);
+    } else {
+      core.warning(`Error downloading base coverage from S3: Unknown error`);
+    }
     return false;
   }
 }; 

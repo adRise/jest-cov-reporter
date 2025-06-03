@@ -1,70 +1,46 @@
 import { GitHub } from '@actions/github/lib/utils';
 import { MAX_COMMENT_LINES } from './constants';
+import * as core from '@actions/core';
 
 type GitHubClient = InstanceType<typeof GitHub>;
 
-/**
- * Create or update comment based on commentId
- * @param commentId - ID of the existing comment to update (0 for new comment)
- * @param githubClient - GitHub API client
- * @param repoOwner - Repository owner
- * @param repoName - Repository name
- * @param messageToPost - Comment message content
- * @param prNumber - Pull request number
- */
-export async function createOrUpdateComment(
-  commentId: number,
-  githubClient: GitHubClient,
-  repoOwner: string,
-  repoName: string,
-  messageToPost: string,
-  prNumber: number
-): Promise<void> {
-  if (commentId) {
-    await githubClient.issues.updateComment({
-      owner: repoOwner,
-      repo: repoName,
-      comment_id: commentId,
-      body: messageToPost
-    });
-  } else {
-    await githubClient.issues.createComment({
-      repo: repoName,
-      owner: repoOwner,
-      body: messageToPost,
-      issue_number: prNumber
-    });
-  }
+export interface GitHubComment {
+  id: number;
+  body: string;
 }
 
 /**
- * Find comment from a list of comments in a PR
- * @param githubClient - GitHub API client
- * @param repoName - Repository name
- * @param repoOwner - Repository owner
- * @param prNumber - Pull request number
- * @param identifier - Comment identifier string
- * @returns Comment ID if found, 0 otherwise
+ * Find a comment in a PR that contains the given identifier
+ * @param githubClient - GitHub client instance
+ * @param prNumber - PR number
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param identifier - Identifier to look for in comments
+ * @returns The comment object or null if not found
  */
 export async function findComment(
   githubClient: GitHubClient,
-  repoName: string,
-  repoOwner: string,
   prNumber: number,
+  owner: string, 
+  repo: string,
   identifier: string
-): Promise<number> {
-  const comments = await githubClient.issues.listComments({
-    owner: repoOwner,
-    repo: repoName,
-    issue_number: prNumber
-  });
-    
-  for (const comment of comments.data) {
-    if (comment.body && comment.body.startsWith(identifier)) {
-      return comment.id;
+): Promise<GitHubComment | null> {
+  try {
+    const { data: comments } = await githubClient.rest.issues.listComments({
+      owner,
+      repo,
+      issue_number: prNumber,
+    });
+
+    return comments.find((comment: GitHubComment) => comment.body.includes(identifier)) || null;
+  } catch (error) {
+    if (error instanceof Error) {
+      core.warning(`Error finding comment: ${error.message}`);
+    } else {
+      core.warning('Error finding comment: Unknown error');
     }
+    return null;
   }
-  return 0;
 }
 
 /**
@@ -79,4 +55,52 @@ export const limitCommentLength = (commentsLines: string[]): string[] => {
     return [...commentsLines.slice(0, MAX_COMMENT_LINES), ellipsisRow];
   }
   return commentsLines;
-}; 
+};
+
+/**
+ * Create or update a comment in a PR
+ * @param githubClient - GitHub client instance
+ * @param prNumber - PR number
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param body - Comment body
+ * @param commentId - Comment ID to update (if provided, update existing comment)
+ * @returns The created or updated comment
+ */
+export async function createOrUpdateComment(
+  githubClient: GitHubClient,
+  prNumber: number,
+  owner: string,
+  repo: string,
+  body: string,
+  commentId?: number
+): Promise<GitHubComment> {
+  try {
+    if (commentId) {
+      core.info(`Updating comment ID ${commentId}`);
+      const { data: comment } = await githubClient.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: commentId,
+        body,
+      });
+      return comment;
+    } else {
+      core.info('Creating new comment');
+      const { data: comment } = await githubClient.rest.issues.createComment({
+        owner,
+        repo,
+        issue_number: prNumber,
+        body,
+      });
+      return comment;
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      core.warning(`Error creating/updating comment: ${error.message}`);
+    } else {
+      core.warning('Error creating/updating comment: Unknown error');
+    }
+    throw error;
+  }
+} 
