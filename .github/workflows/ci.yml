@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BASE_BRANCH: main
+      COVERAGE_S3_BUCKET: ${{ vars.COVERAGE_S3_BUCKET || 'your-coverage-bucket' }}
+      S3_BASE_URL: ${{ vars.S3_BASE_URL || 'https://your-s3-url.amazonaws.com' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -21,6 +25,13 @@ jobs:
     
     - name: Install dependencies
       run: npm ci
+      
+    - name: Install AWS CLI
+      if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
+      run: |
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
       
     - name: Lint
       run: npm run lint
@@ -38,4 +49,17 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-artifact
-        path: dest/ 
+        path: dest/
+        
+    - name: Generate coverage report and upload to S3
+      uses: adRise/jest-cov-reporter@main
+      if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
+      with:
+        delta: 0.3
+        aws-access-key-id: ${{ secrets.WEB_BUILD_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.WEB_BUILD_SECRET_ACCESS_KEY }}
+        aws-region: 'us-east-2'
+        s3-bucket: ${{ env.COVERAGE_S3_BUCKET }}
+        base-branch: ${{ env.BASE_BRANCH }}
+        pr-number: ${{ github.event.pull_request.number }}
+        s3-base-url: ${{ env.S3_BASE_URL }} 
