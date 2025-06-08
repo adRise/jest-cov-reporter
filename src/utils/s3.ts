@@ -11,6 +11,7 @@ export interface S3Config {
   secretAccessKey: string;
   region?: string;
   bucket: string;
+  repoDirectory?: string;
   baseBranch?: string;
   destDir?: string;
 }
@@ -27,6 +28,7 @@ export const uploadCoverageToS3 = (sourcePath: string, config: S3Config): boolea
     secretAccessKey,
     region,
     bucket,
+    repoDirectory,
     destDir
   } = config;
 
@@ -47,16 +49,25 @@ export const uploadCoverageToS3 = (sourcePath: string, config: S3Config): boolea
     process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
     process.env.AWS_REGION = region || 'us-east-2';
 
+    // Construct the S3 path with repo directory if provided
+    const s3Path = repoDirectory 
+      ? `s3://${bucket}/${repoDirectory}/${destDir}/coverage-summary.json`
+      : `s3://${bucket}/${destDir}/coverage-summary.json`;
+
     // Upload coverage summary
-    const uploadCmd = `aws s3 cp ${sourcePath} s3://${bucket}/${destDir}/coverage-summary.json --acl public-read`;
-    core.info(`Uploading coverage summary to S3: ${bucket}/${destDir}/coverage-summary.json`);
+    const uploadCmd = `aws s3 cp ${sourcePath} ${s3Path} --acl public-read`;
+    core.info(`Uploading coverage summary to S3: ${s3Path}`);
     execSync(uploadCmd, { stdio: 'inherit' });
 
     // Upload lcov report if it exists
     const lcovReportDir = path.resolve(path.dirname(sourcePath), 'lcov-report');
     if (fs.existsSync(lcovReportDir)) {
-      const uploadLcovCmd = `aws s3 cp ${lcovReportDir} s3://${bucket}/${destDir}/lcov-report --recursive --acl public-read`;
-      core.info(`Uploading lcov report to S3: ${bucket}/${destDir}/lcov-report`);
+      const lcovS3Path = repoDirectory
+        ? `s3://${bucket}/${repoDirectory}/${destDir}/lcov-report`
+        : `s3://${bucket}/${destDir}/lcov-report`;
+
+      const uploadLcovCmd = `aws s3 cp ${lcovReportDir} ${lcovS3Path} --recursive --acl public-read`;
+      core.info(`Uploading lcov report to S3: ${lcovS3Path}`);
       execSync(uploadLcovCmd, { stdio: 'inherit' });
     }
 
@@ -83,6 +94,7 @@ export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): bo
     secretAccessKey,
     region,
     bucket,
+    repoDirectory,
     baseBranch
   } = config;
 
@@ -103,8 +115,12 @@ export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): bo
       fs.mkdirSync(destDir, { recursive: true });
     }
 
+    // Construct the S3 path with repo directory if provided
+    const s3Path = repoDirectory
+      ? `s3://${bucket}/${repoDirectory}/${baseBranch}/coverage-summary.json`
+      : `s3://${bucket}/${baseBranch}/coverage-summary.json`;
+
     // Download base coverage report
-    const s3Path = `s3://${bucket}/${baseBranch}/coverage-summary.json`;
     const downloadCmd = `aws s3 cp ${s3Path} ${destPath}`;
     
     core.info(`Downloading base coverage report from S3: ${s3Path}`);

@@ -48,6 +48,7 @@ class ConfigService {
         const awsSecretAccessKey = core.getInput('aws-secret-access-key');
         const awsRegion = core.getInput('aws-region');
         const s3Bucket = core.getInput('s3-bucket');
+        const s3RepoDirectory = core.getInput('s3-repo-directory');
         const baseBranch = core.getInput('base-branch');
         const s3BaseUrl = core.getInput('s3-base-url');
         const useS3 = Boolean(awsAccessKeyId && awsSecretAccessKey && s3Bucket);
@@ -72,6 +73,7 @@ class ConfigService {
             awsSecretAccessKey,
             awsRegion,
             s3Bucket,
+            s3RepoDirectory,
             baseBranch,
             s3BaseUrl,
             useS3
@@ -322,7 +324,7 @@ function parseContent(pathOrContent, type) {
  * @returns Whether the upload was successful
  */
 const uploadCoverageToS3 = (sourcePath, config) => {
-    const { accessKeyId, secretAccessKey, region, bucket, destDir } = config;
+    const { accessKeyId, secretAccessKey, region, bucket, repoDirectory, destDir } = config;
     if (!accessKeyId || !secretAccessKey || !bucket || !destDir) {
         core.info('S3 credentials not provided, skipping upload');
         return false;
@@ -337,15 +339,22 @@ const uploadCoverageToS3 = (sourcePath, config) => {
         process.env.AWS_ACCESS_KEY_ID = accessKeyId;
         process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
         process.env.AWS_REGION = region || 'us-east-2';
+        // Construct the S3 path with repo directory if provided
+        const s3Path = repoDirectory
+            ? `s3://${bucket}/${repoDirectory}/${destDir}/coverage-summary.json`
+            : `s3://${bucket}/${destDir}/coverage-summary.json`;
         // Upload coverage summary
-        const uploadCmd = `aws s3 cp ${sourcePath} s3://${bucket}/${destDir}/coverage-summary.json --acl public-read`;
-        core.info(`Uploading coverage summary to S3: ${bucket}/${destDir}/coverage-summary.json`);
+        const uploadCmd = `aws s3 cp ${sourcePath} ${s3Path} --acl public-read`;
+        core.info(`Uploading coverage summary to S3: ${s3Path}`);
         (0,external_child_process_namespaceObject.execSync)(uploadCmd, { stdio: 'inherit' });
         // Upload lcov report if it exists
         const lcovReportDir = external_path_.resolve(external_path_.dirname(sourcePath), 'lcov-report');
         if (external_fs_.existsSync(lcovReportDir)) {
-            const uploadLcovCmd = `aws s3 cp ${lcovReportDir} s3://${bucket}/${destDir}/lcov-report --recursive --acl public-read`;
-            core.info(`Uploading lcov report to S3: ${bucket}/${destDir}/lcov-report`);
+            const lcovS3Path = repoDirectory
+                ? `s3://${bucket}/${repoDirectory}/${destDir}/lcov-report`
+                : `s3://${bucket}/${destDir}/lcov-report`;
+            const uploadLcovCmd = `aws s3 cp ${lcovReportDir} ${lcovS3Path} --recursive --acl public-read`;
+            core.info(`Uploading lcov report to S3: ${lcovS3Path}`);
             (0,external_child_process_namespaceObject.execSync)(uploadLcovCmd, { stdio: 'inherit' });
         }
         return true;
@@ -367,7 +376,7 @@ const uploadCoverageToS3 = (sourcePath, config) => {
  * @returns Whether the download was successful
  */
 const downloadBaseReportFromS3 = (config, destPath) => {
-    const { accessKeyId, secretAccessKey, region, bucket, baseBranch } = config;
+    const { accessKeyId, secretAccessKey, region, bucket, repoDirectory, baseBranch } = config;
     if (!accessKeyId || !secretAccessKey || !bucket || !baseBranch) {
         core.info('S3 credentials not provided, skipping download');
         return false;
@@ -382,8 +391,11 @@ const downloadBaseReportFromS3 = (config, destPath) => {
         if (!external_fs_.existsSync(destDir)) {
             external_fs_.mkdirSync(destDir, { recursive: true });
         }
+        // Construct the S3 path with repo directory if provided
+        const s3Path = repoDirectory
+            ? `s3://${bucket}/${repoDirectory}/${baseBranch}/coverage-summary.json`
+            : `s3://${bucket}/${baseBranch}/coverage-summary.json`;
         // Download base coverage report
-        const s3Path = `s3://${bucket}/${baseBranch}/coverage-summary.json`;
         const downloadCmd = `aws s3 cp ${s3Path} ${destPath}`;
         core.info(`Downloading base coverage report from S3: ${s3Path}`);
         (0,external_child_process_namespaceObject.execSync)(downloadCmd, { stdio: 'inherit' });
@@ -444,6 +456,7 @@ class CoverageService {
                 secretAccessKey: this.config.awsSecretAccessKey,
                 region: this.config.awsRegion,
                 bucket: this.config.s3Bucket,
+                repoDirectory: this.config.s3RepoDirectory,
                 baseBranch: this.config.baseBranch
             };
             // If branch coverage report path not provided, use default
@@ -474,8 +487,10 @@ class CoverageService {
                 }
                 // Update the custom message with S3 links if provided
                 if (this.config.s3BaseUrl && !this.config.customMessage.includes(this.config.s3BaseUrl)) {
-                    const baseReportUrl = `${this.config.s3BaseUrl}/${this.config.baseBranch}/lcov-report/index.html`;
-                    const currentReportUrl = `${this.config.s3BaseUrl}/${destDir}/lcov-report/index.html`;
+                    // Build paths with repo directory if provided
+                    const repoPath = this.config.s3RepoDirectory ? `${this.config.s3RepoDirectory}/` : '';
+                    const baseReportUrl = `${this.config.s3BaseUrl}/${repoPath}${this.config.baseBranch}/lcov-report/index.html`;
+                    const currentReportUrl = `${this.config.s3BaseUrl}/${repoPath}${destDir}/lcov-report/index.html`;
                     core.setOutput('base-report-url', baseReportUrl);
                     core.setOutput('current-report-url', currentReportUrl);
                     if (!this.config.customMessage) {

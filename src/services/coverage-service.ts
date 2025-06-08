@@ -50,6 +50,7 @@ export class CoverageService {
         secretAccessKey: this.config.awsSecretAccessKey,
         region: this.config.awsRegion,
         bucket: this.config.s3Bucket,
+        repoDirectory: this.config.s3RepoDirectory,
         baseBranch: this.config.baseBranch
       };
       
@@ -86,8 +87,10 @@ export class CoverageService {
         
         // Update the custom message with S3 links if provided
         if (this.config.s3BaseUrl && !this.config.customMessage.includes(this.config.s3BaseUrl)) {
-          const baseReportUrl = `${this.config.s3BaseUrl}/${this.config.baseBranch}/lcov-report/index.html`;
-          const currentReportUrl = `${this.config.s3BaseUrl}/${destDir}/lcov-report/index.html`;
+          // Build paths with repo directory if provided
+          const repoPath = this.config.s3RepoDirectory ? `${this.config.s3RepoDirectory}/` : '';
+          const baseReportUrl = `${this.config.s3BaseUrl}/${repoPath}${this.config.baseBranch}/lcov-report/index.html`;
+          const currentReportUrl = `${this.config.s3BaseUrl}/${repoPath}${destDir}/lcov-report/index.html`;
           
           core.setOutput('base-report-url', baseReportUrl);
           core.setOutput('current-report-url', currentReportUrl);

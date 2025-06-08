@@ -46,6 +46,7 @@ Failure Screenshot
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     aws-region: 'us-east-2'
     s3-bucket: 'your-coverage-bucket'
+    s3-repo-directory: 'my-project'  # Optional: organize multiple repos in one bucket
     base-branch: 'main'
     pr-number: ${{ github.event.pull_request.number }}
     s3-base-url: 'https://your-s3-url.amazonaws.com'
@@ -71,6 +72,7 @@ Failure Screenshot
 | `aws-secret-access-key` | AWS secret access key for S3 operations | Optional |
 | `aws-region` | AWS region for S3 operations | `us-east-2` |
 | `s3-bucket` | S3 bucket name for storing coverage reports | Optional |
+| `s3-repo-directory` | Directory inside the S3 bucket dedicated to this repository | `''` |
 | `base-branch` | Base branch name (e.g., main or master) | `main` |
 | `pr-number` | Pull request number | Optional, auto-detected in PR context |
 | `s3-base-url` | Base URL for S3 coverage reports | Optional |
@@ -105,6 +107,7 @@ Alternatively, you can use S3 to store and retrieve coverage reports:
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     aws-region: 'us-east-2'
     s3-bucket: 'your-coverage-bucket'
+    s3-repo-directory: 'my-project'  # Optional: organize multiple repos in one bucket
     base-branch: 'main'
 ```
 
@@ -115,11 +118,60 @@ When AWS credentials are provided, the action will:
 3. Create links to the HTML coverage reports in the PR comment
 
 The S3 path structure used is:
-- Base branch: `s3://{bucket}/{base-branch}/coverage-summary.json`
-- PR branch: `s3://{bucket}/{pr-number}/coverage-summary.json`
-- HTML reports: `s3://{bucket}/{branch-or-pr}/lcov-report/`
+- Base branch: `s3://{bucket}/[{repo-directory}/]{base-branch}/coverage-summary.json`
+- PR branch: `s3://{bucket}/[{repo-directory}/]{pr-number}/coverage-summary.json`
+- HTML reports: `s3://{bucket}/[{repo-directory}/]{branch-or-pr}/lcov-report/`
+
+If you specify `s3-repo-directory`, all coverage reports will be organized under that directory in the S3 bucket. This is particularly useful when you have multiple repositories sharing the same S3 bucket.
 
 This allows for persistent storage of coverage reports across CI runs and easy comparison between branches.
+
+### Organizing Multiple Repositories
+
+If you have multiple repositories that need to store coverage reports in the same S3 bucket, use the `s3-repo-directory` parameter to keep them organized:
+
+```yaml
+# Repository A
+- name: Coverage Report for Repo A
+  uses: adRise/jest-cov-reporter@main
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    s3-bucket: 'coverage-reports-bucket'
+    s3-repo-directory: 'repo-a'
+    base-branch: 'main'
+```
+
+```yaml
+# Repository B
+- name: Coverage Report for Repo B
+  uses: adRise/jest-cov-reporter@main
+  with:
+    aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    s3-bucket: 'coverage-reports-bucket'
+    s3-repo-directory: 'repo-b'
+    base-branch: 'main'
+```
+
+This creates the following structure in your S3 bucket:
+```
+coverage-reports-bucket/
+├── repo-a/
+│   ├── main/
+│   │   ├── coverage-summary.json
+│   │   └── lcov-report/
+│   └── 123/  # PR number
+│       ├── coverage-summary.json
+│       └── lcov-report/
+└── repo-b/
+    ├── main/
+    │   ├── coverage-summary.json
+    │   └── lcov-report/
+    └── 456/  # PR number
+        ├── coverage-summary.json
+        └── lcov-report/
+```
 
 ### Hybrid Approach
 
@@ -134,6 +186,7 @@ You can also use a hybrid approach, where you specify one path locally and use S
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     aws-region: 'us-east-2'
     s3-bucket: 'your-coverage-bucket'
+    s3-repo-directory: 'my-project'  # Optional
     base-branch: 'main'
 ```
 
@@ -185,4 +238,3 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 MIT
-

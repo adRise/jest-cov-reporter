@@ -32,6 +32,7 @@ export interface CoverageConfig {
   awsSecretAccessKey: string;
   awsRegion: string;
   s3Bucket: string;
+  s3RepoDirectory: string;
   baseBranch: string;
   s3BaseUrl: string;
   useS3: boolean;
@@ -72,6 +73,7 @@ export class ConfigService {
     const awsSecretAccessKey = core.getInput('aws-secret-access-key');
     const awsRegion = core.getInput('aws-region');
     const s3Bucket = core.getInput('s3-bucket');
+    const s3RepoDirectory = core.getInput('s3-repo-directory');
     const baseBranch = core.getInput('base-branch');
     const s3BaseUrl = core.getInput('s3-base-url');
     const useS3 = Boolean(awsAccessKeyId && awsSecretAccessKey && s3Bucket);
@@ -97,6 +99,7 @@ export class ConfigService {
       awsSecretAccessKey,
       awsRegion,
       s3Bucket,
+      s3RepoDirectory,
       baseBranch,
       s3BaseUrl,
       useS3

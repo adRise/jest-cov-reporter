@@ -54,6 +54,10 @@ inputs:
   s3-bucket:
     required: false
     description: 'S3 bucket name for storing coverage reports'
+  s3-repo-directory:
+    required: false
+    description: 'Directory inside the S3 bucket dedicated to this repository'
+    default: ''
   base-branch:
     required: false
     description: 'Base branch name (e.g., main or master)'
