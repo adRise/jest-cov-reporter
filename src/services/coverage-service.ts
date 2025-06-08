@@ -74,10 +74,38 @@ export class CoverageService {
       if (!basePath) {
         basePath = path.resolve(this.coverageDir, 'master-coverage-summary.json');
         core.info(`No base coverage report path provided, downloading from S3 to: ${basePath}`);
-        const downloadSuccess = downloadBaseReportFromS3(s3Config, basePath);
+        const downloadResult = downloadBaseReportFromS3(s3Config, basePath);
         
-        if (!downloadSuccess) {
-          core.setFailed('Failed to download base coverage report from S3. Please ensure the base branch coverage exists in S3 or provide a local base coverage report path.');
+        // Handle first-time use case (no base coverage exists)
+        if (downloadResult === 'NO_BASE_COVERAGE') {
+          core.info('No base coverage found. This appears to be first-time use.');
+          
+          // Check if branch coverage exists
+          if (!fs.existsSync(branchPath)) {
+            core.setFailed('No branch coverage report found. Cannot bootstrap without a coverage report.');
+            return null;
+          }
+          
+          // Use the branch coverage as the base coverage
+          core.info('Using current branch coverage as the base coverage for first-time comparison');
+          fs.copyFileSync(branchPath, basePath);
+          
+          // Upload the branch coverage as the base coverage for future runs
+          core.info('Uploading current coverage as the base coverage for future comparisons');
+          const baseUploadConfig = {
+            ...s3Config,
+            destDir: this.config.baseBranch
+          };
+          
+          const uploadSuccess = uploadCoverageToS3(branchPath, baseUploadConfig);
+          if (!uploadSuccess) {
+            core.warning('Failed to upload base coverage to S3, but continuing with comparison');
+          } else {
+            core.info('Successfully bootstrapped base coverage from current branch');
+          }
+        } else if (!downloadResult) {
+          // Handle general download failure
+          core.setFailed('Failed to download base coverage report from S3. Please ensure you have proper S3 permissions.');
           return null;
         }
       }

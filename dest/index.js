@@ -380,7 +380,7 @@ const uploadCoverageToS3 = (sourcePath, config) => {
  * Downloads base coverage report from S3
  * @param config - S3 configuration
  * @param destPath - Path to save the downloaded file
- * @returns Whether the download was successful
+ * @returns Boolean indicating success, or special string 'NO_BASE_COVERAGE' if base coverage doesn't exist
  */
 const downloadBaseReportFromS3 = (config, destPath) => {
     const { accessKeyId, secretAccessKey, region, bucket, repoDirectory, baseBranch } = config;
@@ -407,6 +407,17 @@ const downloadBaseReportFromS3 = (config, destPath) => {
         const s3Path = repoDirectory
             ? `s3://${bucket}/${repoDirectory}/${baseBranch}/coverage-summary.json`
             : `s3://${bucket}/${baseBranch}/coverage-summary.json`;
+        // Check if the file exists in S3 before downloading
+        try {
+            // Use aws s3 ls to check if the file exists
+            const checkCmd = `aws s3 ls ${s3Path}`;
+            (0,external_child_process_namespaceObject.execSync)(checkCmd, { stdio: 'pipe' });
+        }
+        catch (error) {
+            // File doesn't exist in S3
+            core.info(`Base coverage report not found in S3: ${s3Path}`);
+            return 'NO_BASE_COVERAGE';
+        }
         // Download base coverage report
         const downloadCmd = `aws s3 cp ${s3Path} ${destPath}`;
         core.info(`Downloading base coverage report from S3: ${s3Path}`);
@@ -488,9 +499,35 @@ class CoverageService {
             if (!basePath) {
                 basePath = external_path_.resolve(this.coverageDir, 'master-coverage-summary.json');
                 core.info(`No base coverage report path provided, downloading from S3 to: ${basePath}`);
-                const downloadSuccess = downloadBaseReportFromS3(s3Config, basePath);
-                if (!downloadSuccess) {
-                    core.setFailed('Failed to download base coverage report from S3. Please ensure the base branch coverage exists in S3 or provide a local base coverage report path.');
+                const downloadResult = downloadBaseReportFromS3(s3Config, basePath);
+                // Handle first-time use case (no base coverage exists)
+                if (downloadResult === 'NO_BASE_COVERAGE') {
+                    core.info('No base coverage found. This appears to be first-time use.');
+                    // Check if branch coverage exists
+                    if (!external_fs_.existsSync(branchPath)) {
+                        core.setFailed('No branch coverage report found. Cannot bootstrap without a coverage report.');
+                        return null;
+                    }
+                    // Use the branch coverage as the base coverage
+                    core.info('Using current branch coverage as the base coverage for first-time comparison');
+                    external_fs_.copyFileSync(branchPath, basePath);
+                    // Upload the branch coverage as the base coverage for future runs
+                    core.info('Uploading current coverage as the base coverage for future comparisons');
+                    const baseUploadConfig = {
+                        ...s3Config,
+                        destDir: this.config.baseBranch
+                    };
+                    const uploadSuccess = uploadCoverageToS3(branchPath, baseUploadConfig);
+                    if (!uploadSuccess) {
+                        core.warning('Failed to upload base coverage to S3, but continuing with comparison');
+                    }
+                    else {
+                        core.info('Successfully bootstrapped base coverage from current branch');
+                    }
+                }
+                else if (!downloadResult) {
+                    // Handle general download failure
+                    core.setFailed('Failed to download base coverage report from S3. Please ensure you have proper S3 permissions.');
                     return null;
                 }
             }

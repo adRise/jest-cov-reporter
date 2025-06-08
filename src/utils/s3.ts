@@ -86,9 +86,9 @@ export const uploadCoverageToS3 = (sourcePath: string, config: S3Config): boolea
  * Downloads base coverage report from S3
  * @param config - S3 configuration
  * @param destPath - Path to save the downloaded file
- * @returns Whether the download was successful
+ * @returns Boolean indicating success, or special string 'NO_BASE_COVERAGE' if base coverage doesn't exist
  */
-export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): boolean => {
+export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): boolean | 'NO_BASE_COVERAGE' => {
   const {
     accessKeyId,
     secretAccessKey,
@@ -125,6 +125,17 @@ export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): bo
     const s3Path = repoDirectory
       ? `s3://${bucket}/${repoDirectory}/${baseBranch}/coverage-summary.json`
       : `s3://${bucket}/${baseBranch}/coverage-summary.json`;
+
+    // Check if the file exists in S3 before downloading
+    try {
+      // Use aws s3 ls to check if the file exists
+      const checkCmd = `aws s3 ls ${s3Path}`;
+      execSync(checkCmd, { stdio: 'pipe' });
+    } catch (error) {
+      // File doesn't exist in S3
+      core.info(`Base coverage report not found in S3: ${s3Path}`);
+      return 'NO_BASE_COVERAGE';
+    }
 
     // Download base coverage report
     const downloadCmd = `aws s3 cp ${s3Path} ${destPath}`;
