@@ -4,4 +4,3 @@ debug.local.js
 tests
 coverage/*
 lib/
-dest/
