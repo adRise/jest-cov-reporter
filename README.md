@@ -40,6 +40,7 @@ Failure Screenshot
 - name: Coverage Report with S3
   uses: adRise/jest-cov-reporter@main
   with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
     delta: 0.3
     accessToken: ${{ secrets.GITHUB_TOKEN }}
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -102,6 +103,7 @@ Alternatively, you can use S3 to store and retrieve coverage reports:
 - name: Coverage Report with S3
   uses: adRise/jest-cov-reporter@main
   with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
     delta: 0.3
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -126,6 +128,17 @@ If you specify `s3-repo-directory`, all coverage reports will be organized under
 
 This allows for persistent storage of coverage reports across CI runs and easy comparison between branches.
 
+### First-Time Use Bootstrapping
+
+When using S3 integration in a repository for the first time, no base coverage data will exist. The action handles this case automatically:
+
+1. It detects that no base coverage report exists in S3
+2. Uses the current branch's coverage report as the baseline
+3. Uploads this coverage to the base branch location in S3
+4. Proceeds with the comparison (which will show no differences on first run)
+
+This makes it easy to start using the action in new repositories without any manual setup. The first run establishes the baseline, and subsequent runs will show the coverage differences.
+
 ### Organizing Multiple Repositories
 
 If you have multiple repositories that need to store coverage reports in the same S3 bucket, use the `s3-repo-directory` parameter to keep them organized:
@@ -135,6 +148,7 @@ If you have multiple repositories that need to store coverage reports in the sam
 - name: Coverage Report for Repo A
   uses: adRise/jest-cov-reporter@main
   with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     s3-bucket: 'coverage-reports-bucket'
@@ -147,6 +161,7 @@ If you have multiple repositories that need to store coverage reports in the sam
 - name: Coverage Report for Repo B
   uses: adRise/jest-cov-reporter@main
   with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
     aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
     aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     s3-bucket: 'coverage-reports-bucket'
@@ -197,6 +212,34 @@ This flexibility allows you to choose the approach that best fits your workflow.
 The `check-new-file-full-coverage` option enforces that all newly added files have 100% test coverage. This encourages developers to write comprehensive tests for new code.
 
 You can add a label to your PR called `skip-new-file-full-coverage` to bypass this check for specific PRs.
+
+## Generating Coverage Reports
+
+### Jest Configuration
+
+To generate coverage reports in the correct format for this action, ensure your Jest command includes the following options:
+
+```bash
+jest --coverage --coverageReporters="json-summary"
+```
+
+In your CI workflow, you might include something like:
+
+```yaml
+- name: Run tests with coverage
+  run: npm test -- --coverage --coverageReporters="json-summary"
+
+- name: Verify coverage report exists
+  run: |
+    if [ -f "coverage/coverage-summary.json" ]; then
+      echo "Coverage report exists"
+    else
+      echo "ERROR: Coverage report not found!"
+      exit 1
+    fi
+```
+
+This will ensure that the `coverage-summary.json` file needed by this action is properly generated.
 
 ## Development
 

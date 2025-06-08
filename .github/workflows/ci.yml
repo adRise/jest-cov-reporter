@@ -57,8 +57,18 @@ jobs:
     - name: Type check
       run: npm run typecheck
       
-    - name: Test
-      run: npm test
+    - name: Run tests with coverage
+      run: npm test -- --coverage --coverageReporters="json-summary"
+      
+    - name: Verify coverage report exists
+      run: |
+        if [ -f "coverage/coverage-summary.json" ]; then
+          echo "Coverage report exists"
+          ls -la coverage/
+        else
+          echo "ERROR: Coverage report not found! Check Jest configuration."
+          exit 1
+        fi
       
     - name: Build
       run: npm run build
@@ -73,11 +83,13 @@ jobs:
       uses: adRise/jest-cov-reporter@main
       if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
       with:
+        branch-coverage-report-path: ./coverage/coverage-summary.json
         delta: 0.3
         aws-access-key-id: ${{ secrets.WEB_BUILD_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.WEB_BUILD_SECRET_ACCESS_KEY }}
         aws-region: 'us-east-2'
         s3-bucket: ${{ env.COVERAGE_S3_BUCKET }}
+        s3-repo-directory: 'sample-jest-project-v1'
         base-branch: ${{ env.BASE_BRANCH }}
         pr-number: ${{ github.event.pull_request.number }}
         s3-base-url: ${{ env.S3_BASE_URL }} 
