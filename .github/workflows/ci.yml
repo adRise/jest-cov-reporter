@@ -9,10 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      BASE_BRANCH: main
-      COVERAGE_S3_BUCKET: ${{ vars.COVERAGE_S3_BUCKET || 'your-coverage-bucket' }}
-      S3_BASE_URL: ${{ vars.S3_BASE_URL || 'https://your-s3-url.amazonaws.com' }}
 
     steps:
     - uses: actions/checkout@v4
@@ -26,49 +22,14 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Check AWS CLI
-      id: check-aws
-      if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
-      run: |
-        if command -v aws &> /dev/null; then
-          echo "AWS CLI already installed"
-          echo "installed=true" >> $GITHUB_OUTPUT
-        else
-          echo "AWS CLI not found"
-          echo "installed=false" >> $GITHUB_OUTPUT
-        fi
-      
-    - name: Install AWS CLI
-      if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && steps.check-aws.outputs.installed != 'true' }}
-      run: |
-        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-        unzip awscliv2.zip
-        sudo ./aws/install
-        
-    - name: Update AWS CLI
-      if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && steps.check-aws.outputs.installed == 'true' }}
-      run: |
-        echo "Using existing AWS CLI installation"
-        aws --version
-      
     - name: Lint
       run: npm run lint
       
     - name: Type check
       run: npm run typecheck
       
-    - name: Run tests with coverage
-      run: npm test -- --coverage --coverageReporters="json-summary"
-      
-    - name: Verify coverage report exists
-      run: |
-        if [ -f "coverage/coverage-summary.json" ]; then
-          echo "Coverage report exists"
-          ls -la coverage/
-        else
-          echo "ERROR: Coverage report not found! Check Jest configuration."
-          exit 1
-        fi
+    - name: Test
+      run: npm test
       
     - name: Build
       run: npm run build
@@ -79,17 +40,33 @@ jobs:
         name: build-artifact
         path: dest/
         
-    - name: Generate coverage report and upload to S3
-      uses: adRise/jest-cov-reporter@main
-      if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
       with:
-        branch-coverage-report-path: ./coverage/coverage-summary.json
-        delta: 0.3
-        aws-access-key-id: ${{ secrets.WEB_BUILD_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WEB_BUILD_SECRET_ACCESS_KEY }}
-        aws-region: 'us-east-2'
-        s3-bucket: ${{ env.COVERAGE_S3_BUCKET }}
-        s3-repo-directory: 'sample-jest-project-v1'
-        base-branch: ${{ env.BASE_BRANCH }}
-        pr-number: ${{ github.event.pull_request.number }}
-        s3-base-url: ${{ env.S3_BASE_URL }} 
+        fetch-depth: 0
+    
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Download build artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-artifact
+        path: dest/
+        
+    - name: Semantic Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: npx semantic-release 
