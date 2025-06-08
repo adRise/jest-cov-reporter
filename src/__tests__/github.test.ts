@@ -3,10 +3,12 @@ import { MAX_COMMENT_LINES } from '../utils/constants';
 
 // Mock GitHub client
 const mockGithubClient = {
-  issues: {
-    createComment: jest.fn(),
-    updateComment: jest.fn(),
-    listComments: jest.fn()
+  rest: {
+    issues: {
+      createComment: jest.fn(),
+      updateComment: jest.fn(),
+      listComments: jest.fn()
+    }
   }
 };
 
@@ -17,47 +19,54 @@ describe('GitHub Utils', () => {
 
   describe('createOrUpdateComment', () => {
     it('should create a new comment when no commentId is provided', async () => {
+      mockGithubClient.rest.issues.createComment.mockResolvedValueOnce({
+        data: { id: 123, body: 'message' }
+      });
+
       await createOrUpdateComment(
-        0,
         mockGithubClient as any,
+        123,
         'owner',
         'repo',
-        'message',
-        123
+        'message'
       );
 
-      expect(mockGithubClient.issues.createComment).toHaveBeenCalledWith({
+      expect(mockGithubClient.rest.issues.createComment).toHaveBeenCalledWith({
         repo: 'repo',
         owner: 'owner',
         body: 'message',
         issue_number: 123
       });
-      expect(mockGithubClient.issues.updateComment).not.toHaveBeenCalled();
+      expect(mockGithubClient.rest.issues.updateComment).not.toHaveBeenCalled();
     });
 
     it('should update an existing comment when commentId is provided', async () => {
+      mockGithubClient.rest.issues.updateComment.mockResolvedValueOnce({
+        data: { id: 456, body: 'message' }
+      });
+
       await createOrUpdateComment(
-        456,
         mockGithubClient as any,
+        123,
         'owner',
         'repo',
         'message',
-        123
+        456
       );
 
-      expect(mockGithubClient.issues.updateComment).toHaveBeenCalledWith({
+      expect(mockGithubClient.rest.issues.updateComment).toHaveBeenCalledWith({
         owner: 'owner',
         repo: 'repo',
         comment_id: 456,
         body: 'message'
       });
-      expect(mockGithubClient.issues.createComment).not.toHaveBeenCalled();
+      expect(mockGithubClient.rest.issues.createComment).not.toHaveBeenCalled();
     });
   });
 
   describe('findComment', () => {
     it('should find a comment with the matching identifier', async () => {
-      mockGithubClient.issues.listComments.mockResolvedValueOnce({
+      mockGithubClient.rest.issues.listComments.mockResolvedValueOnce({
         data: [
           { id: 1, body: 'other comment' },
           { id: 2, body: 'identifier\nsome content' },
@@ -67,22 +76,22 @@ describe('GitHub Utils', () => {
 
       const result = await findComment(
         mockGithubClient as any,
-        'repo',
-        'owner',
         123,
+        'owner',
+        'repo',
         'identifier'
       );
 
-      expect(result).toBe(2);
-      expect(mockGithubClient.issues.listComments).toHaveBeenCalledWith({
+      expect(result).toEqual({ id: 2, body: 'identifier\nsome content' });
+      expect(mockGithubClient.rest.issues.listComments).toHaveBeenCalledWith({
         owner: 'owner',
         repo: 'repo',
         issue_number: 123
       });
     });
 
-    it('should return 0 when no matching comment is found', async () => {
-      mockGithubClient.issues.listComments.mockResolvedValueOnce({
+    it('should return null when no matching comment is found', async () => {
+      mockGithubClient.rest.issues.listComments.mockResolvedValueOnce({
         data: [
           { id: 1, body: 'other comment' },
           { id: 3, body: 'another comment' }
@@ -91,17 +100,17 @@ describe('GitHub Utils', () => {
 
       const result = await findComment(
         mockGithubClient as any,
-        'repo',
-        'owner',
         123,
+        'owner',
+        'repo',
         'identifier'
       );
 
-      expect(result).toBe(0);
+      expect(result).toBeNull();
     });
 
     it('should handle comments with undefined body', async () => {
-      mockGithubClient.issues.listComments.mockResolvedValueOnce({
+      mockGithubClient.rest.issues.listComments.mockResolvedValueOnce({
         data: [
           { id: 1, body: undefined },
           { id: 2, body: 'identifier\nsome content' }
@@ -110,13 +119,17 @@ describe('GitHub Utils', () => {
 
       const result = await findComment(
         mockGithubClient as any,
-        'repo',
-        'owner',
         123,
+        'owner',
+        'repo',
         'identifier'
       );
 
-      expect(result).toBe(2);
+      expect(result).toEqual({ id: 2, body: 'identifier\nsome content' });
+      
+      // Make sure it safely skips undefined bodies
+      const checkCall = mockGithubClient.rest.issues.listComments.mock.calls[0];
+      expect(checkCall).toBeDefined();
     });
   });
 

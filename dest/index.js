@@ -738,7 +738,7 @@ async function findComment(githubClient, prNumber, owner, repo, identifier) {
             repo,
             issue_number: prNumber,
         });
-        return comments.find((comment) => comment.body.includes(identifier)) || null;
+        return comments.find((comment) => comment.body && comment.body.includes(identifier)) || null;
     }
     catch (error) {
         if (error instanceof Error) {

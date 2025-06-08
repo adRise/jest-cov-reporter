@@ -32,7 +32,9 @@ export async function findComment(
       issue_number: prNumber,
     });
 
-    return comments.find((comment: GitHubComment) => comment.body.includes(identifier)) || null;
+    return comments.find((comment: GitHubComment) => 
+      comment.body && comment.body.includes(identifier)
+    ) || null;
   } catch (error) {
     if (error instanceof Error) {
       core.warning(`Error finding comment: ${error.message}`);
