@@ -17,6 +17,21 @@ export interface S3Config {
 }
 
 /**
+ * Check if AWS CLI is available
+ * @returns Boolean indicating if AWS CLI is available
+ */
+export const checkAwsCliAvailable = (): boolean => {
+  try {
+    execSync('aws --version', { stdio: 'pipe' });
+    return true;
+  } catch (error) {
+    core.warning('AWS CLI is not available. Please make sure AWS CLI is installed in your CI environment.');
+    core.warning('You can add it to your workflow with: actions/setup-python followed by pip install awscli');
+    return false;
+  }
+};
+
+/**
  * Uploads coverage report to S3
  * @param sourcePath - Path to the coverage report
  * @param config - S3 configuration
@@ -34,6 +49,12 @@ export const uploadCoverageToS3 = (sourcePath: string, config: S3Config): boolea
 
   if (!accessKeyId || !secretAccessKey || !bucket || !destDir) {
     core.info('S3 credentials not provided, skipping upload');
+    return false;
+  }
+
+  // Check if AWS CLI is available
+  if (!checkAwsCliAvailable()) {
+    core.warning('Skipping S3 upload due to missing AWS CLI');
     return false;
   }
 
@@ -100,6 +121,12 @@ export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): bo
 
   if (!accessKeyId || !secretAccessKey || !bucket || !baseBranch) {
     core.info('S3 credentials not provided, skipping download');
+    return false;
+  }
+
+  // Check if AWS CLI is available
+  if (!checkAwsCliAvailable()) {
+    core.warning('Skipping S3 download due to missing AWS CLI');
     return false;
   }
 

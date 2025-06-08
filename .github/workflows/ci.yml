@@ -26,12 +26,30 @@ jobs:
     - name: Install dependencies
       run: npm ci
       
-    - name: Install AWS CLI
+    - name: Check AWS CLI
+      id: check-aws
       if: ${{ github.event_name == 'pull_request' || github.ref == 'refs/heads/main' }}
+      run: |
+        if command -v aws &> /dev/null; then
+          echo "AWS CLI already installed"
+          echo "installed=true" >> $GITHUB_OUTPUT
+        else
+          echo "AWS CLI not found"
+          echo "installed=false" >> $GITHUB_OUTPUT
+        fi
+      
+    - name: Install AWS CLI
+      if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && steps.check-aws.outputs.installed != 'true' }}
       run: |
         curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
         unzip awscliv2.zip
         sudo ./aws/install
+        
+    - name: Update AWS CLI
+      if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && steps.check-aws.outputs.installed == 'true' }}
+      run: |
+        echo "Using existing AWS CLI installation"
+        aws --version
       
     - name: Lint
       run: npm run lint
