@@ -78,6 +78,14 @@ export class ConfigService {
     const s3BaseUrl = core.getInput('s3-base-url');
     const useS3 = Boolean(awsAccessKeyId && awsSecretAccessKey && s3Bucket);
     
+    // Debug logging for S3 configuration
+    core.info('===== CONFIG SERVICE: S3 SETTINGS =====');
+    core.info(`Bucket: ${s3Bucket}`);
+    core.info(`Repo Directory: ${s3RepoDirectory}`);
+    core.info(`Base Branch: ${baseBranch}`);
+    core.info(`Using S3: ${useS3}`);
+    core.info('=======================================');
+    
     return {
       repoName,
       repoOwner,

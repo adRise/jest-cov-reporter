@@ -104,6 +104,12 @@ export const downloadBaseReportFromS3 = (config: S3Config, destPath: string): bo
   }
 
   try {
+    // Log configuration details for debugging
+    core.info('S3 Download Config:');
+    core.info(`- Bucket: ${bucket}`);
+    core.info(`- Repo Directory: ${repoDirectory ? repoDirectory : 'Not specified'}`);
+    core.info(`- Base Branch: ${baseBranch}`);
+    
     // Setup AWS CLI environment
     process.env.AWS_ACCESS_KEY_ID = accessKeyId;
     process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;

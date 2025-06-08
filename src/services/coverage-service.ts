@@ -44,6 +44,13 @@ export class CoverageService {
     if (this.config.useS3) {
       core.info('AWS credentials provided, using S3 for coverage reports');
       
+      // Debug log for S3 configuration
+      core.info('S3 Configuration:');
+      core.info(`- Bucket: ${this.config.s3Bucket}`);
+      core.info(`- Repo Directory: ${this.config.s3RepoDirectory ? this.config.s3RepoDirectory : 'Not specified'}`);
+      core.info(`- Base Branch: ${this.config.baseBranch}`);
+      core.info(`- S3 Base URL: ${this.config.s3BaseUrl ? this.config.s3BaseUrl : 'Not specified'}`);
+      
       // Create S3 config
       const s3Config = {
         accessKeyId: this.config.awsAccessKeyId,
@@ -53,6 +60,9 @@ export class CoverageService {
         repoDirectory: this.config.s3RepoDirectory,
         baseBranch: this.config.baseBranch
       };
+      
+      // Log the S3Config object creation
+      core.info(`S3Config created with repoDirectory: ${s3Config.repoDirectory ? s3Config.repoDirectory : 'Not specified'}`);
       
       // If branch coverage report path not provided, use default
       if (!branchPath) {

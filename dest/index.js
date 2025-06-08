@@ -52,6 +52,13 @@ class ConfigService {
         const baseBranch = core.getInput('base-branch');
         const s3BaseUrl = core.getInput('s3-base-url');
         const useS3 = Boolean(awsAccessKeyId && awsSecretAccessKey && s3Bucket);
+        // Debug logging for S3 configuration
+        core.info('===== CONFIG SERVICE: S3 SETTINGS =====');
+        core.info(`Bucket: ${s3Bucket}`);
+        core.info(`Repo Directory: ${s3RepoDirectory}`);
+        core.info(`Base Branch: ${baseBranch}`);
+        core.info(`Using S3: ${useS3}`);
+        core.info('=======================================');
         return {
             repoName,
             repoOwner,
@@ -382,6 +389,11 @@ const downloadBaseReportFromS3 = (config, destPath) => {
         return false;
     }
     try {
+        // Log configuration details for debugging
+        core.info('S3 Download Config:');
+        core.info(`- Bucket: ${bucket}`);
+        core.info(`- Repo Directory: ${repoDirectory ? repoDirectory : 'Not specified'}`);
+        core.info(`- Base Branch: ${baseBranch}`);
         // Setup AWS CLI environment
         process.env.AWS_ACCESS_KEY_ID = accessKeyId;
         process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
@@ -450,6 +462,12 @@ class CoverageService {
         // Handle S3 if credentials are provided
         if (this.config.useS3) {
             core.info('AWS credentials provided, using S3 for coverage reports');
+            // Debug log for S3 configuration
+            core.info('S3 Configuration:');
+            core.info(`- Bucket: ${this.config.s3Bucket}`);
+            core.info(`- Repo Directory: ${this.config.s3RepoDirectory ? this.config.s3RepoDirectory : 'Not specified'}`);
+            core.info(`- Base Branch: ${this.config.baseBranch}`);
+            core.info(`- S3 Base URL: ${this.config.s3BaseUrl ? this.config.s3BaseUrl : 'Not specified'}`);
             // Create S3 config
             const s3Config = {
                 accessKeyId: this.config.awsAccessKeyId,
@@ -459,6 +477,8 @@ class CoverageService {
                 repoDirectory: this.config.s3RepoDirectory,
                 baseBranch: this.config.baseBranch
             };
+            // Log the S3Config object creation
+            core.info(`S3Config created with repoDirectory: ${s3Config.repoDirectory ? s3Config.repoDirectory : 'Not specified'}`);
             // If branch coverage report path not provided, use default
             if (!branchPath) {
                 branchPath = __nccwpck_require__.ab + "jest-cov-reporter/" + this.coverageDir + '/coverage-summary.json';
