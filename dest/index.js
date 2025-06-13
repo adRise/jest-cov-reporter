@@ -297,13 +297,13 @@ class JestParser {
             Object.entries(parsed).forEach(([key, value]) => {
                 if (key !== 'total' && typeof value === 'object' && value !== null) {
                     const fileValue = value;
-                    const fileData = {
+                    // Add each file directly to the report with its coverage data
+                    report[key] = {
                         statements: fileValue.statements,
                         branches: fileValue.branches,
                         functions: fileValue.functions,
                         lines: fileValue.lines
                     };
-                    report[key] = fileData;
                 }
             });
             // Validate total structure
@@ -315,6 +315,16 @@ class JestParser {
             core.info('Processed coverage report structure:');
             core.info(`- Total metrics: ${Object.keys(total).join(', ')}`);
             core.info(`- Number of files: ${Object.keys(report).length - 1}`); // Subtract 1 for total
+            // Log file entries for debugging
+            Object.keys(report).forEach(key => {
+                if (key !== 'total') {
+                    core.info(`File: ${key}`);
+                    core.info(`- Statements: ${report[key].statements?.pct}`);
+                    core.info(`- Branches: ${report[key].branches?.pct}`);
+                    core.info(`- Functions: ${report[key].functions?.pct}`);
+                    core.info(`- Lines: ${report[key].lines?.pct}`);
+                }
+            });
             return report;
         }
         catch (error) {
