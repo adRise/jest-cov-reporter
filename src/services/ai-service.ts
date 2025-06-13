@@ -41,6 +41,12 @@ export class AIService {
     baseCoverage?: CoverageReport
   ): Promise<CoverageAnalysis> {
     core.info('Starting coverage analysis...');
+    core.info(`Current coverage type: ${typeof currentCoverage}`);
+    core.info(`Current coverage keys: ${Object.keys(currentCoverage || {})}`);
+    if (baseCoverage) {
+      core.info(`Base coverage type: ${typeof baseCoverage}`);
+      core.info(`Base coverage keys: ${Object.keys(baseCoverage)}`);
+    }
     
     if (!this.config.enabled) {
       core.info('AI analysis is disabled, skipping analysis');
@@ -146,8 +152,19 @@ export class AIService {
     }
 
     core.info('Preparing coverage data...');
+    
+    // Validate current coverage data
+    if (!currentCoverage || !currentCoverage.total || !currentCoverage.files) {
+      core.error('Invalid current coverage data structure');
+      throw new Error('Invalid current coverage data structure');
+    }
+
     core.debug(`Current coverage: ${JSON.stringify(currentCoverage, null, 2)}`);
     if (baseCoverage) {
+      if (!baseCoverage.total || !baseCoverage.files) {
+        core.error('Invalid base coverage data structure');
+        throw new Error('Invalid base coverage data structure');
+      }
       core.debug(`Base coverage: ${JSON.stringify(baseCoverage, null, 2)}`);
     }
 
@@ -155,7 +172,7 @@ export class AIService {
       current: {
         total: currentCoverage.total,
         files: Object.entries(currentCoverage.files)
-          .filter(([_, coverage]) => coverage.lines.pct < 80)
+          .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
           .map(([file, coverage]) => ({
             file,
             coverage: coverage.lines.pct
@@ -167,7 +184,7 @@ export class AIService {
       data.base = {
         total: baseCoverage.total,
         files: Object.entries(baseCoverage.files)
-          .filter(([_, coverage]) => coverage.lines.pct < 80)
+          .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
           .map(([file, coverage]) => ({
             file,
             coverage: coverage.lines.pct
