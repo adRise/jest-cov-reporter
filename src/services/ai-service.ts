@@ -41,12 +41,29 @@ export class AIService {
     baseCoverage?: CoverageReport
   ): Promise<CoverageAnalysis> {
     core.info('Starting coverage analysis...');
-    core.info(`Current coverage type: ${typeof currentCoverage}`);
-    core.info(`Current coverage keys: ${Object.keys(currentCoverage || {})}`);
-    if (baseCoverage) {
-      core.info(`Base coverage type: ${typeof baseCoverage}`);
-      core.info(`Base coverage keys: ${Object.keys(baseCoverage)}`);
-    }
+    core.info('Raw coverage data:');
+    core.info(JSON.stringify({
+      currentCoverage: {
+        type: typeof currentCoverage,
+        isNull: currentCoverage === null,
+        isUndefined: currentCoverage === undefined,
+        keys: currentCoverage ? Object.keys(currentCoverage) : [],
+        hasTotal: currentCoverage?.total ? 'yes' : 'no',
+        hasFiles: currentCoverage?.files ? 'yes' : 'no',
+        totalKeys: currentCoverage?.total ? Object.keys(currentCoverage.total) : [],
+        filesKeys: currentCoverage?.files ? Object.keys(currentCoverage.files) : []
+      },
+      baseCoverage: baseCoverage ? {
+        type: typeof baseCoverage,
+        isNull: baseCoverage === null,
+        isUndefined: baseCoverage === undefined,
+        keys: Object.keys(baseCoverage),
+        hasTotal: baseCoverage.total ? 'yes' : 'no',
+        hasFiles: baseCoverage.files ? 'yes' : 'no',
+        totalKeys: baseCoverage.total ? Object.keys(baseCoverage.total) : [],
+        filesKeys: baseCoverage.files ? Object.keys(baseCoverage.files) : []
+      } : 'not provided'
+    }, null, 2));
     
     if (!this.config.enabled) {
       core.info('AI analysis is disabled, skipping analysis');

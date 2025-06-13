@@ -614,22 +614,53 @@ class CoverageService {
      */
     parseCoverageReports(basePath, branchPath) {
         try {
+            core.info('Parsing coverage reports...');
+            core.info(`Base coverage path: ${basePath}`);
+            core.info(`Branch coverage path: ${branchPath}`);
+            // Check if files exist
+            if (!external_fs_.existsSync(basePath)) {
+                core.error(`Base coverage file not found: ${basePath}`);
+                return null;
+            }
+            if (!external_fs_.existsSync(branchPath)) {
+                core.error(`Branch coverage file not found: ${branchPath}`);
+                return null;
+            }
             // Get the content of coverage files
+            core.info('Reading coverage files...');
             const baseCoverageContent = external_fs_.readFileSync(basePath, 'utf8');
             const branchCoverageContent = external_fs_.readFileSync(branchPath, 'utf8');
+            core.info(`Base coverage content length: ${baseCoverageContent.length}`);
+            core.info(`Branch coverage content length: ${branchCoverageContent.length}`);
             // Parse the content based on coverage type
+            core.info(`Using coverage type: ${this.config.coverageType}`);
             const baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
             const branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+            // Validate parsed coverage data
+            if (!baseCoverage || !baseCoverage.total || !baseCoverage.files) {
+                core.error('Invalid base coverage data structure after parsing');
+                core.debug(`Base coverage data: ${JSON.stringify(baseCoverage, null, 2)}`);
+                return null;
+            }
+            if (!branchCoverage || !branchCoverage.total || !branchCoverage.files) {
+                core.error('Invalid branch coverage data structure after parsing');
+                core.debug(`Branch coverage data: ${JSON.stringify(branchCoverage, null, 2)}`);
+                return null;
+            }
             // Get the current directory to replace the file name paths
             const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd').toString().trim();
+            core.info(`Current directory: ${currentDirectory}`);
             return { baseCoverage, branchCoverage, currentDirectory };
         }
         catch (error) {
             if (error instanceof Error) {
-                core.setFailed(`Error parsing coverage reports: ${error.message}`);
+                core.error(`Error parsing coverage reports: ${error.message}`);
+                if (error.stack) {
+                    core.debug(`Error stack trace: ${error.stack}`);
+                }
             }
             else {
-                core.setFailed('Unknown error parsing coverage reports');
+                core.error('Unknown error parsing coverage reports');
             }
             return null;
         }
@@ -8910,12 +8941,29 @@ class AIService {
      */
     async analyzeCoverage(currentCoverage, baseCoverage) {
         core.info('Starting coverage analysis...');
-        core.info(`Current coverage type: ${typeof currentCoverage}`);
-        core.info(`Current coverage keys: ${Object.keys(currentCoverage || {})}`);
-        if (baseCoverage) {
-            core.info(`Base coverage type: ${typeof baseCoverage}`);
-            core.info(`Base coverage keys: ${Object.keys(baseCoverage)}`);
-        }
+        core.info('Raw coverage data:');
+        core.info(JSON.stringify({
+            currentCoverage: {
+                type: typeof currentCoverage,
+                isNull: currentCoverage === null,
+                isUndefined: currentCoverage === undefined,
+                keys: currentCoverage ? Object.keys(currentCoverage) : [],
+                hasTotal: currentCoverage?.total ? 'yes' : 'no',
+                hasFiles: currentCoverage?.files ? 'yes' : 'no',
+                totalKeys: currentCoverage?.total ? Object.keys(currentCoverage.total) : [],
+                filesKeys: currentCoverage?.files ? Object.keys(currentCoverage.files) : []
+            },
+            baseCoverage: baseCoverage ? {
+                type: typeof baseCoverage,
+                isNull: baseCoverage === null,
+                isUndefined: baseCoverage === undefined,
+                keys: Object.keys(baseCoverage),
+                hasTotal: baseCoverage.total ? 'yes' : 'no',
+                hasFiles: baseCoverage.files ? 'yes' : 'no',
+                totalKeys: baseCoverage.total ? Object.keys(baseCoverage.total) : [],
+                filesKeys: baseCoverage.files ? Object.keys(baseCoverage.files) : []
+            } : 'not provided'
+        }, null, 2));
         if (!this.config.enabled) {
             core.info('AI analysis is disabled, skipping analysis');
             return {

@@ -168,23 +168,59 @@ export class CoverageService {
     currentDirectory: string
   } | null {
     try {
+      core.info('Parsing coverage reports...');
+      core.info(`Base coverage path: ${basePath}`);
+      core.info(`Branch coverage path: ${branchPath}`);
+      
+      // Check if files exist
+      if (!fs.existsSync(basePath)) {
+        core.error(`Base coverage file not found: ${basePath}`);
+        return null;
+      }
+      if (!fs.existsSync(branchPath)) {
+        core.error(`Branch coverage file not found: ${branchPath}`);
+        return null;
+      }
+
       // Get the content of coverage files
+      core.info('Reading coverage files...');
       const baseCoverageContent = fs.readFileSync(basePath, 'utf8');
       const branchCoverageContent = fs.readFileSync(branchPath, 'utf8');
       
+      core.info(`Base coverage content length: ${baseCoverageContent.length}`);
+      core.info(`Branch coverage content length: ${branchCoverageContent.length}`);
+      
       // Parse the content based on coverage type
+      core.info(`Using coverage type: ${this.config.coverageType}`);
       const baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
       const branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
       
+      // Validate parsed coverage data
+      if (!baseCoverage || !baseCoverage.total || !baseCoverage.files) {
+        core.error('Invalid base coverage data structure after parsing');
+        core.debug(`Base coverage data: ${JSON.stringify(baseCoverage, null, 2)}`);
+        return null;
+      }
+      
+      if (!branchCoverage || !branchCoverage.total || !branchCoverage.files) {
+        core.error('Invalid branch coverage data structure after parsing');
+        core.debug(`Branch coverage data: ${JSON.stringify(branchCoverage, null, 2)}`);
+        return null;
+      }
+      
       // Get the current directory to replace the file name paths
       const currentDirectory = execSync('pwd').toString().trim();
+      core.info(`Current directory: ${currentDirectory}`);
       
       return { baseCoverage, branchCoverage, currentDirectory };
     } catch (error) {
       if (error instanceof Error) {
-        core.setFailed(`Error parsing coverage reports: ${error.message}`);
+        core.error(`Error parsing coverage reports: ${error.message}`);
+        if (error.stack) {
+          core.debug(`Error stack trace: ${error.stack}`);
+        }
       } else {
-        core.setFailed('Unknown error parsing coverage reports');
+        core.error('Unknown error parsing coverage reports');
       }
       return null;
     }
