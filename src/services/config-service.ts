@@ -36,6 +36,13 @@ export interface CoverageConfig {
   baseBranch: string;
   s3BaseUrl: string;
   useS3: boolean;
+  
+  // AI Configuration
+  aiEnabled: boolean;
+  aiModel?: string;
+  aiTemperature?: number;
+  aiMaxTokens?: number;
+  aiApiKey?: string;
 }
 
 /**
@@ -86,6 +93,13 @@ export class ConfigService {
     core.info(`Using S3: ${useS3}`);
     core.info('=======================================');
     
+    // AI Configuration
+    const aiEnabled = core.getInput('ai-enabled') === 'true';
+    const aiModel = core.getInput('ai-model');
+    const aiTemperature = parseFloat(core.getInput('ai-temperature') || '0.7');
+    const aiMaxTokens = parseInt(core.getInput('ai-max-tokens') || '1000', 10);
+    const aiApiKey = core.getInput('ai-api-key');
+    
     return {
       repoName,
       repoOwner,
@@ -110,7 +124,12 @@ export class ConfigService {
       s3RepoDirectory,
       baseBranch,
       s3BaseUrl,
-      useS3
+      useS3,
+      aiEnabled,
+      aiModel,
+      aiTemperature,
+      aiMaxTokens,
+      aiApiKey
     };
   }
   

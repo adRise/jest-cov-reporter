@@ -68,6 +68,25 @@ inputs:
   s3-base-url:
     required: false
     description: 'Base URL for S3 coverage reports'
+  ai-enabled:
+    description: 'Enable AI analysis of coverage reports'
+    required: false
+    default: 'false'
+  ai-model:
+    description: 'AI model to use for analysis (e.g., gpt-4)'
+    required: false
+    default: 'gpt-4'
+  ai-temperature:
+    description: 'Temperature setting for AI responses (0-1)'
+    required: false
+    default: '0.7'
+  ai-max-tokens:
+    description: 'Maximum tokens for AI responses'
+    required: false
+    default: '1000'
+  ai-api-key:
+    description: 'API key for AI service'
+    required: false
 
 runs:
   using: 'node20'
