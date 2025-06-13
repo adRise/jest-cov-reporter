@@ -16,6 +16,10 @@ export class JestParser implements CoverageReportParser {
       core.info('Parsing Jest coverage report...');
       const parsed = JSON.parse(content);
       
+      // Log the raw structure
+      core.info('Raw coverage report structure:');
+      core.info(`- Top level keys: ${Object.keys(parsed).join(', ')}`);
+      
       // Validate the structure
       if (!parsed || typeof parsed !== 'object') {
         throw new Error('Invalid Jest coverage report: not an object');
@@ -26,22 +30,40 @@ export class JestParser implements CoverageReportParser {
         throw new Error('Invalid Jest coverage report: missing total field');
       }
       
-      if (!parsed.files) {
-        throw new Error('Invalid Jest coverage report: missing files field');
+      // Handle both old and new Jest coverage formats
+      let files = parsed.files;
+      if (!files) {
+        // Try to find files in the old format
+        const fileEntries = Object.entries(parsed).filter(([key, value]) => 
+          key !== 'total' && typeof value === 'object' && value !== null
+        );
+        
+        if (fileEntries.length > 0) {
+          core.info('Found files in old Jest format, converting...');
+          files = Object.fromEntries(fileEntries);
+        } else {
+          throw new Error('Invalid Jest coverage report: missing files field and no file entries found');
+        }
       }
       
+      // Create a new report with the correct structure
+      const report: CoverageReport = {
+        total: parsed.total,
+        files: files
+      };
+      
       // Validate total structure
-      const total = parsed.total;
+      const total = report.total;
       if (!total.statements || !total.branches || !total.functions || !total.lines) {
         throw new Error('Invalid Jest coverage report: total field missing required metrics');
       }
       
       // Log the structure
-      core.info('Jest coverage report structure:');
+      core.info('Processed coverage report structure:');
       core.info(`- Total metrics: ${Object.keys(total).join(', ')}`);
-      core.info(`- Number of files: ${Object.keys(parsed.files).length}`);
+      core.info(`- Number of files: ${Object.keys(report.files).length}`);
       
-      return parsed;
+      return report;
     } catch (error) {
       if (error instanceof Error) {
         core.error(`Error parsing Jest coverage report: ${error.message}`);
