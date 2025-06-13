@@ -289,24 +289,23 @@ class JestParser {
             if (!parsed.total) {
                 throw new Error('Invalid Jest coverage report: missing total field');
             }
-            // Handle both old and new Jest coverage formats
-            let files = parsed.files;
-            if (!files) {
-                // Try to find files in the old format
-                const fileEntries = Object.entries(parsed).filter(([key, value]) => key !== 'total' && typeof value === 'object' && value !== null);
-                if (fileEntries.length > 0) {
-                    core.info('Found files in old Jest format, converting...');
-                    files = Object.fromEntries(fileEntries);
-                }
-                else {
-                    throw new Error('Invalid Jest coverage report: missing files field and no file entries found');
-                }
-            }
             // Create a new report with the correct structure
             const report = {
-                total: parsed.total,
-                files: files
+                total: parsed.total
             };
+            // Process file entries
+            Object.entries(parsed).forEach(([key, value]) => {
+                if (key !== 'total' && typeof value === 'object' && value !== null) {
+                    const fileValue = value;
+                    const fileData = {
+                        statements: fileValue.statements,
+                        branches: fileValue.branches,
+                        functions: fileValue.functions,
+                        lines: fileValue.lines
+                    };
+                    report[key] = fileData;
+                }
+            });
             // Validate total structure
             const total = report.total;
             if (!total.statements || !total.branches || !total.functions || !total.lines) {
@@ -315,7 +314,7 @@ class JestParser {
             // Log the structure
             core.info('Processed coverage report structure:');
             core.info(`- Total metrics: ${Object.keys(total).join(', ')}`);
-            core.info(`- Number of files: ${Object.keys(report.files).length}`);
+            core.info(`- Number of files: ${Object.keys(report).length - 1}`); // Subtract 1 for total
             return report;
         }
         catch (error) {
