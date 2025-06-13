@@ -264,6 +264,7 @@ class CoberturaParser {
 }
 
 // CONCATENATED MODULE: ./lib/parsers/jest.js
+
 /**
  * Parser for Jest coverage reports
  */
@@ -274,7 +275,40 @@ class JestParser {
      * @returns Parsed coverage report
      */
     parse(content) {
-        return JSON.parse(content);
+        try {
+            core.info('Parsing Jest coverage report...');
+            const parsed = JSON.parse(content);
+            // Validate the structure
+            if (!parsed || typeof parsed !== 'object') {
+                throw new Error('Invalid Jest coverage report: not an object');
+            }
+            // Check for required fields
+            if (!parsed.total) {
+                throw new Error('Invalid Jest coverage report: missing total field');
+            }
+            if (!parsed.files) {
+                throw new Error('Invalid Jest coverage report: missing files field');
+            }
+            // Validate total structure
+            const total = parsed.total;
+            if (!total.statements || !total.branches || !total.functions || !total.lines) {
+                throw new Error('Invalid Jest coverage report: total field missing required metrics');
+            }
+            // Log the structure
+            core.info('Jest coverage report structure:');
+            core.info(`- Total metrics: ${Object.keys(total).join(', ')}`);
+            core.info(`- Number of files: ${Object.keys(parsed.files).length}`);
+            return parsed;
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                core.error(`Error parsing Jest coverage report: ${error.message}`);
+                if (error.stack) {
+                    core.debug(`Parse error stack: ${error.stack}`);
+                }
+            }
+            throw error;
+        }
     }
 }
 
@@ -632,10 +666,37 @@ class CoverageService {
             const branchCoverageContent = external_fs_.readFileSync(branchPath, 'utf8');
             core.info(`Base coverage content length: ${baseCoverageContent.length}`);
             core.info(`Branch coverage content length: ${branchCoverageContent.length}`);
+            // Log the first few lines of each file to check format
+            core.info('Base coverage content preview:');
+            core.info(baseCoverageContent.split('\n').slice(0, 5).join('\n'));
+            core.info('Branch coverage content preview:');
+            core.info(branchCoverageContent.split('\n').slice(0, 5).join('\n'));
             // Parse the content based on coverage type
             core.info(`Using coverage type: ${this.config.coverageType}`);
-            const baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
-            const branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+            let baseCoverage;
+            let branchCoverage;
+            try {
+                baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
+                core.info('Successfully parsed base coverage');
+            }
+            catch (error) {
+                core.error(`Error parsing base coverage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                if (error instanceof Error && error.stack) {
+                    core.debug(`Base coverage parse error stack: ${error.stack}`);
+                }
+                return null;
+            }
+            try {
+                branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+                core.info('Successfully parsed branch coverage');
+            }
+            catch (error) {
+                core.error(`Error parsing branch coverage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                if (error instanceof Error && error.stack) {
+                    core.debug(`Branch coverage parse error stack: ${error.stack}`);
+                }
+                return null;
+            }
             // Validate parsed coverage data
             if (!baseCoverage || !baseCoverage.total || !baseCoverage.files) {
                 core.error('Invalid base coverage data structure after parsing');

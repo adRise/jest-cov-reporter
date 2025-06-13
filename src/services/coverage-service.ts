@@ -190,10 +190,38 @@ export class CoverageService {
       core.info(`Base coverage content length: ${baseCoverageContent.length}`);
       core.info(`Branch coverage content length: ${branchCoverageContent.length}`);
       
+      // Log the first few lines of each file to check format
+      core.info('Base coverage content preview:');
+      core.info(baseCoverageContent.split('\n').slice(0, 5).join('\n'));
+      core.info('Branch coverage content preview:');
+      core.info(branchCoverageContent.split('\n').slice(0, 5).join('\n'));
+      
       // Parse the content based on coverage type
       core.info(`Using coverage type: ${this.config.coverageType}`);
-      const baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
-      const branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+      let baseCoverage;
+      let branchCoverage;
+      
+      try {
+        baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
+        core.info('Successfully parsed base coverage');
+      } catch (error) {
+        core.error(`Error parsing base coverage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        if (error instanceof Error && error.stack) {
+          core.debug(`Base coverage parse error stack: ${error.stack}`);
+        }
+        return null;
+      }
+      
+      try {
+        branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+        core.info('Successfully parsed branch coverage');
+      } catch (error) {
+        core.error(`Error parsing branch coverage: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        if (error instanceof Error && error.stack) {
+          core.debug(`Branch coverage parse error stack: ${error.stack}`);
+        }
+        return null;
+      }
       
       // Validate parsed coverage data
       if (!baseCoverage || !baseCoverage.total || !baseCoverage.files) {
