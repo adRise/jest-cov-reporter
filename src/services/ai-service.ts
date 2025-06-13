@@ -8,16 +8,26 @@ import { CoverageReport, FileCoverage } from '../types/coverage';
  */
 export class AIService {
   private config: AIConfig;
-  private openai: OpenAI;
+  private openai: OpenAI | null = null;
 
   constructor(config: AIConfig) {
     this.config = config;
+    core.info('Initializing AI Service...');
+    core.info(`AI Analysis enabled: ${config.enabled}`);
+    
     if (config.enabled && !config.apiKey) {
+      core.error('OpenAI API key is required when AI analysis is enabled');
       throw new Error('OpenAI API key is required when AI analysis is enabled');
     }
-    this.openai = new OpenAI({
-      apiKey: config.apiKey
-    });
+    
+    if (config.enabled) {
+      core.info(`Using OpenAI model: ${config.model || 'gpt-4'}`);
+      core.info(`Temperature: ${config.temperature || 0.7}`);
+      core.info(`Max tokens: ${config.maxTokens || 1000}`);
+      this.openai = new OpenAI({
+        apiKey: config.apiKey
+      });
+    }
   }
 
   /**
@@ -30,7 +40,10 @@ export class AIService {
     currentCoverage: CoverageReport,
     baseCoverage?: CoverageReport
   ): Promise<CoverageAnalysis> {
+    core.info('Starting coverage analysis...');
+    
     if (!this.config.enabled) {
+      core.info('AI analysis is disabled, skipping analysis');
       return {
         insights: [],
         summary: 'AI analysis is disabled',
@@ -38,10 +51,22 @@ export class AIService {
       };
     }
 
+    if (!this.openai) {
+      core.error('OpenAI client not initialized');
+      return {
+        insights: [],
+        summary: 'Error: OpenAI client not initialized',
+        recommendations: []
+      };
+    }
+
     try {
+      core.info('Preparing coverage data for analysis...');
       // Prepare coverage data for analysis
       const coverageData = this.prepareCoverageData(currentCoverage, baseCoverage);
+      core.debug(`Prepared coverage data: ${JSON.stringify(coverageData, null, 2)}`);
       
+      core.info('Sending request to OpenAI...');
       // Get analysis from OpenAI
       const response = await this.openai.chat.completions.create({
         model: this.config.model || 'gpt-4',
@@ -73,12 +98,21 @@ export class AIService {
         ]
       });
 
+      core.info('Received response from OpenAI');
+      core.debug(`OpenAI response: ${JSON.stringify(response, null, 2)}`);
+
       // Parse the response
       const analysis = JSON.parse(response.choices[0].message.content || '{}') as CoverageAnalysis;
       
+      core.info(`Analysis complete. Found ${analysis.insights.length} insights and ${analysis.recommendations.length} recommendations`);
+      core.debug(`Full analysis: ${JSON.stringify(analysis, null, 2)}`);
+      
       return analysis;
     } catch (error) {
-      core.warning(`Error in AI analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      core.error(`Error in AI analysis: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        core.debug(`Error stack trace: ${error.stack}`);
+      }
       return {
         insights: [],
         summary: 'Error during AI analysis',
@@ -111,6 +145,12 @@ export class AIService {
       };
     }
 
+    core.info('Preparing coverage data...');
+    core.debug(`Current coverage: ${JSON.stringify(currentCoverage, null, 2)}`);
+    if (baseCoverage) {
+      core.debug(`Base coverage: ${JSON.stringify(baseCoverage, null, 2)}`);
+    }
+
     const data: CoverageData = {
       current: {
         total: currentCoverage.total,
@@ -133,6 +173,11 @@ export class AIService {
             coverage: coverage.lines.pct
           }))
       };
+    }
+
+    core.info(`Prepared data includes ${data.current.files.length} files with low coverage`);
+    if (data.base) {
+      core.info(`Base coverage includes ${data.base.files.length} files with low coverage`);
     }
 
     return data;
