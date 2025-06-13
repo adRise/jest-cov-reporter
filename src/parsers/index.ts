@@ -26,13 +26,28 @@ class CoverageParserFactory implements CoverageReportParserFactory {
 }
 
 /**
- * Parse coverage report from a file
- * @param filePath - Path to coverage report file
+ * Parse coverage report from a file path or content string
+ * @param pathOrContent - Path to coverage report file or content string
  * @param type - Type of coverage report ('jest' or 'cobertura')
  * @returns Parsed coverage report
  */
-export default function parseContent(filePath: string, type: string): CoverageReport {
-  const content = fs.readFileSync(filePath).toString();
+export default function parseContent(pathOrContent: string, type: string): CoverageReport {
+  let content: string;
+  
+  try {
+    // Check if the input is a file path and if the file exists
+    if (fs.existsSync(pathOrContent) && fs.statSync(pathOrContent).isFile()) {
+      // If it's a file path, read the file content
+      content = fs.readFileSync(pathOrContent).toString();
+    } else {
+      // Otherwise, assume it's already the content
+      content = pathOrContent;
+    }
+  } catch (error) {
+    // If there's an error checking or reading the file, assume it's content
+    content = pathOrContent;
+  }
+  
   const factory = new CoverageParserFactory();
   const parser = factory.createParser(type);
   

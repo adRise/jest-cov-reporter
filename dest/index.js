@@ -2,7 +2,7 @@ module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 5438:
+/***/ 5628:
 /***/ ((__unused_webpack_module, __webpack_exports__, __nccwpck_require__) => {
 
 "use strict";
@@ -12,9 +12,688 @@ __nccwpck_require__.r(__webpack_exports__);
 // EXTERNAL MODULE: ./node_modules/@actions/core/lib/core.js
 var core = __nccwpck_require__(2186);
 // EXTERNAL MODULE: ./node_modules/@actions/github/lib/github.js
-var github = __nccwpck_require__(2867);
+var github = __nccwpck_require__(5438);
+// CONCATENATED MODULE: ./lib/services/config-service.js
+
+
+/**
+ * Service to load and validate configuration from GitHub Actions inputs
+ */
+class ConfigService {
+    /**
+     * Load configuration from GitHub Actions inputs
+     * @returns Configuration object
+     */
+    static loadConfig() {
+        const repoName = github.context.repo.repo;
+        const repoOwner = github.context.repo.owner;
+        const githubToken = core.getInput('accessToken');
+        const githubClient = github.getOctokit(githubToken);
+        const prNumberInput = core.getInput('pr-number');
+        const prNumber = github.context.issue.number || (prNumberInput ? Number(prNumberInput) : undefined);
+        // Coverage settings
+        const fullCoverage = JSON.parse(core.getInput('fullCoverageDiff'));
+        const delta = Number(core.getInput('delta'));
+        const customMessage = core.getInput('custom-message');
+        const onlyCheckChangedFiles = core.getInput('only-check-changed-files') === 'true';
+        const prefixFilenameUrl = core.getInput('prefix-filename-url');
+        const baseCoverageReportPath = core.getInput('base-coverage-report-path');
+        const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
+        const coverageType = core.getInput('coverageType');
+        const checkNewFileCoverage = JSON.parse(core.getInput('check-new-file-full-coverage'));
+        const newFileCoverageThreshold = Number(core.getInput('new-file-coverage-threshold'));
+        const useSameComment = JSON.parse(core.getInput('useSameComment'));
+        // S3 settings
+        const awsAccessKeyId = core.getInput('aws-access-key-id');
+        const awsSecretAccessKey = core.getInput('aws-secret-access-key');
+        const awsRegion = core.getInput('aws-region');
+        const s3Bucket = core.getInput('s3-bucket');
+        const s3RepoDirectory = core.getInput('s3-repo-directory');
+        const baseBranch = core.getInput('base-branch');
+        const s3BaseUrl = core.getInput('s3-base-url');
+        const useS3 = Boolean(awsAccessKeyId && awsSecretAccessKey && s3Bucket);
+        // Debug logging for S3 configuration
+        core.info('===== CONFIG SERVICE: S3 SETTINGS =====');
+        core.info(`Bucket: ${s3Bucket}`);
+        core.info(`Repo Directory: ${s3RepoDirectory}`);
+        core.info(`Base Branch: ${baseBranch}`);
+        core.info(`Using S3: ${useS3}`);
+        core.info('=======================================');
+        return {
+            repoName,
+            repoOwner,
+            githubToken,
+            githubClient,
+            prNumber,
+            fullCoverage,
+            delta,
+            customMessage,
+            onlyCheckChangedFiles,
+            prefixFilenameUrl,
+            baseCoverageReportPath,
+            branchCoverageReportPath,
+            coverageType,
+            checkNewFileCoverage,
+            newFileCoverageThreshold,
+            useSameComment,
+            awsAccessKeyId,
+            awsSecretAccessKey,
+            awsRegion,
+            s3Bucket,
+            s3RepoDirectory,
+            baseBranch,
+            s3BaseUrl,
+            useS3
+        };
+    }
+    /**
+     * Validate the configuration
+     * @param config Configuration to validate
+     * @returns True if valid, false if not
+     */
+    static validateConfig(config) {
+        // If using S3, we may not need explicit paths
+        if (config.useS3) {
+            return true;
+        }
+        // Otherwise, we need both paths
+        if (!config.baseCoverageReportPath || !config.branchCoverageReportPath) {
+            core.setFailed('You must provide either both coverage report paths or AWS S3 credentials. ' +
+                'Missing: ' + (!config.baseCoverageReportPath ? 'base-coverage-report-path ' : '') +
+                (!config.branchCoverageReportPath ? 'branch-coverage-report-path' : ''));
+            return false;
+        }
+        return true;
+    }
+}
+
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(5747);
+var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
+
+// EXTERNAL MODULE: external "path"
+var external_path_ = __nccwpck_require__(5622);
 // CONCATENATED MODULE: external "child_process"
 const external_child_process_namespaceObject = require("child_process");;
+// EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
+var xml2js = __nccwpck_require__(6189);
+// CONCATENATED MODULE: ./lib/parsers/cobertura.js
+
+/**
+ * Parser for Cobertura coverage reports
+ */
+class CoberturaParser {
+    /**
+     * Parse Cobertura XML coverage report
+     * @param content - XML content from Cobertura coverage report
+     * @returns Parsed coverage report
+     */
+    parse(content) {
+        let parsedReport = {};
+        // Parse synchronously to make the function synchronous
+        (0,xml2js.parseString)(content, { explicitArray: false }, (err, result) => {
+            if (err) {
+                throw new Error(`Failed to parse Cobertura XML: ${err.message}`);
+            }
+            parsedReport = this.processCobertura(result);
+        });
+        return parsedReport;
+    }
+    /**
+     * Process Cobertura XML result
+     * @param result - Parsed XML result
+     * @returns Coverage report
+     */
+    processCobertura(result) {
+        const report = {};
+        const coverages = result.coverage.packages.package;
+        let statements = 0;
+        let statementsTotal = 0;
+        let branches = 0;
+        let branchesTotal = 0;
+        let functions = 0;
+        let functionsTotal = 0;
+        if (Array.isArray(coverages)) {
+            coverages.forEach((pkg) => {
+                const classes = pkg.classes.class;
+                this.processClasses(classes, report);
+                // Sum up package totals
+                statementsTotal += parseInt(pkg.$.line_rate);
+                statements += parseInt(pkg.$.line_rate_covered);
+                branchesTotal += parseInt(pkg.$.branch_rate);
+                branches += parseInt(pkg.$.branch_rate_covered);
+                functionsTotal += parseInt(pkg.$.function_rate);
+                functions += parseInt(pkg.$.function_rate_covered);
+            });
+        }
+        else {
+            const classes = coverages.classes.class;
+            this.processClasses(classes, report);
+            // Get totals from the single package
+            statementsTotal = parseInt(coverages.$.line_rate);
+            statements = parseInt(coverages.$.line_rate_covered);
+            branchesTotal = parseInt(coverages.$.branch_rate);
+            branches = parseInt(coverages.$.branch_rate_covered);
+            functionsTotal = parseInt(coverages.$.function_rate);
+            functions = parseInt(coverages.$.function_rate_covered);
+        }
+        // Add total summary
+        report.total = {
+            statements: {
+                total: statementsTotal,
+                covered: statements,
+                skipped: 0,
+                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+            },
+            branches: {
+                total: branchesTotal,
+                covered: branches,
+                skipped: 0,
+                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+            },
+            functions: {
+                total: functionsTotal,
+                covered: functions,
+                skipped: 0,
+                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+            }
+        };
+        return report;
+    }
+    /**
+     * Process classes from Cobertura XML
+     * @param classes - Class data from XML
+     * @param report - Coverage report to update
+     */
+    processClasses(classes, report) {
+        if (Array.isArray(classes)) {
+            classes.forEach((cls) => {
+                this.processClass(cls, report);
+            });
+        }
+        else {
+            this.processClass(classes, report);
+        }
+    }
+    /**
+     * Process a single class from Cobertura XML
+     * @param cls - Class data from XML
+     * @param report - Coverage report to update
+     */
+    processClass(cls, report) {
+        const filename = cls.$.filename;
+        const statements = parseInt(cls.$.line_rate_covered);
+        const statementsTotal = parseInt(cls.$.line_rate);
+        const branches = parseInt(cls.$.branch_rate_covered);
+        const branchesTotal = parseInt(cls.$.branch_rate);
+        const functions = parseInt(cls.$.function_rate_covered);
+        const functionsTotal = parseInt(cls.$.function_rate);
+        report[filename] = {
+            statements: {
+                total: statementsTotal,
+                covered: statements,
+                skipped: 0,
+                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+            },
+            branches: {
+                total: branchesTotal,
+                covered: branches,
+                skipped: 0,
+                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+            },
+            functions: {
+                total: functionsTotal,
+                covered: functions,
+                skipped: 0,
+                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+            },
+            filename
+        };
+    }
+}
+
+// CONCATENATED MODULE: ./lib/parsers/jest.js
+/**
+ * Parser for Jest coverage reports
+ */
+class JestParser {
+    /**
+     * Parse Jest coverage report
+     * @param content - JSON content from Jest coverage report
+     * @returns Parsed coverage report
+     */
+    parse(content) {
+        return JSON.parse(content);
+    }
+}
+
+// CONCATENATED MODULE: ./lib/parsers/index.js
+
+
+
+/**
+ * Factory for creating coverage report parsers
+ */
+class CoverageParserFactory {
+    /**
+     * Create a parser for the specified coverage type
+     * @param type - Coverage type ('jest' or 'cobertura')
+     * @returns Coverage report parser
+     */
+    createParser(type) {
+        switch (type) {
+            case 'jest':
+                return new JestParser();
+            case 'cobertura':
+                return new CoberturaParser();
+            default:
+                throw new Error(`Unsupported coverage type: ${type}`);
+        }
+    }
+}
+/**
+ * Parse coverage report from a file path or content string
+ * @param pathOrContent - Path to coverage report file or content string
+ * @param type - Type of coverage report ('jest' or 'cobertura')
+ * @returns Parsed coverage report
+ */
+function parseContent(pathOrContent, type) {
+    let content;
+    try {
+        // Check if the input is a file path and if the file exists
+        if (external_fs_default().existsSync(pathOrContent) && external_fs_default().statSync(pathOrContent).isFile()) {
+            // If it's a file path, read the file content
+            content = external_fs_default().readFileSync(pathOrContent).toString();
+        }
+        else {
+            // Otherwise, assume it's already the content
+            content = pathOrContent;
+        }
+    }
+    catch (error) {
+        // If there's an error checking or reading the file, assume it's content
+        content = pathOrContent;
+    }
+    const factory = new CoverageParserFactory();
+    const parser = factory.createParser(type);
+    return parser.parse(content);
+}
+
+// CONCATENATED MODULE: ./lib/utils/s3.js
+
+
+
+
+/**
+ * Check if AWS CLI is available
+ * @returns Boolean indicating if AWS CLI is available
+ */
+const checkAwsCliAvailable = () => {
+    try {
+        (0,external_child_process_namespaceObject.execSync)('aws --version', { stdio: 'pipe' });
+        return true;
+    }
+    catch (error) {
+        core.warning('AWS CLI is not available. Please make sure AWS CLI is installed in your CI environment.');
+        core.warning('You can add it to your workflow with: actions/setup-python followed by pip install awscli');
+        return false;
+    }
+};
+/**
+ * Uploads coverage report to S3
+ * @param sourcePath - Path to the coverage report
+ * @param config - S3 configuration
+ * @returns Whether the upload was successful
+ */
+const uploadCoverageToS3 = (sourcePath, config) => {
+    const { accessKeyId, secretAccessKey, region, bucket, repoDirectory, destDir } = config;
+    if (!accessKeyId || !secretAccessKey || !bucket || !destDir) {
+        core.info('S3 credentials not provided, skipping upload');
+        return false;
+    }
+    // Check if AWS CLI is available
+    if (!checkAwsCliAvailable()) {
+        core.warning('Skipping S3 upload due to missing AWS CLI');
+        return false;
+    }
+    try {
+        // Ensure the coverage directory exists
+        if (!external_fs_.existsSync(sourcePath)) {
+            core.warning(`Source directory ${sourcePath} does not exist`);
+            return false;
+        }
+        // Setup AWS CLI environment
+        process.env.AWS_ACCESS_KEY_ID = accessKeyId;
+        process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
+        process.env.AWS_REGION = region || 'us-east-2';
+        // Construct the S3 path with repo directory if provided
+        const s3Path = repoDirectory
+            ? `s3://${bucket}/${repoDirectory}/${destDir}/coverage-summary.json`
+            : `s3://${bucket}/${destDir}/coverage-summary.json`;
+        // Upload coverage summary
+        const uploadCmd = `aws s3 cp ${sourcePath} ${s3Path} --acl public-read`;
+        core.info(`Uploading coverage summary to S3: ${s3Path}`);
+        (0,external_child_process_namespaceObject.execSync)(uploadCmd, { stdio: 'inherit' });
+        // Upload lcov report if it exists
+        const lcovReportDir = external_path_.resolve(external_path_.dirname(sourcePath), 'lcov-report');
+        if (external_fs_.existsSync(lcovReportDir)) {
+            const lcovS3Path = repoDirectory
+                ? `s3://${bucket}/${repoDirectory}/${destDir}/lcov-report`
+                : `s3://${bucket}/${destDir}/lcov-report`;
+            const uploadLcovCmd = `aws s3 cp ${lcovReportDir} ${lcovS3Path} --recursive --acl public-read`;
+            core.info(`Uploading lcov report to S3: ${lcovS3Path}`);
+            (0,external_child_process_namespaceObject.execSync)(uploadLcovCmd, { stdio: 'inherit' });
+        }
+        return true;
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Error uploading coverage to S3: ${error.message}`);
+        }
+        else {
+            core.warning(`Error uploading coverage to S3: Unknown error`);
+        }
+        return false;
+    }
+};
+/**
+ * Downloads base coverage report from S3
+ * @param config - S3 configuration
+ * @param destPath - Path to save the downloaded file
+ * @returns Boolean indicating success, or special string 'NO_BASE_COVERAGE' if base coverage doesn't exist
+ */
+const downloadBaseReportFromS3 = (config, destPath) => {
+    const { accessKeyId, secretAccessKey, region, bucket, repoDirectory, baseBranch } = config;
+    if (!accessKeyId || !secretAccessKey || !bucket || !baseBranch) {
+        core.info('S3 credentials not provided, skipping download');
+        return false;
+    }
+    // Check if AWS CLI is available
+    if (!checkAwsCliAvailable()) {
+        core.warning('Skipping S3 download due to missing AWS CLI');
+        return false;
+    }
+    try {
+        // Log configuration details for debugging
+        core.info('S3 Download Config:');
+        core.info(`- Bucket: ${bucket}`);
+        core.info(`- Repo Directory: ${repoDirectory ? repoDirectory : 'Not specified'}`);
+        core.info(`- Base Branch: ${baseBranch}`);
+        // Setup AWS CLI environment
+        process.env.AWS_ACCESS_KEY_ID = accessKeyId;
+        process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
+        process.env.AWS_REGION = region || 'us-east-2';
+        // Ensure the destination directory exists
+        const destDir = external_path_.dirname(destPath);
+        if (!external_fs_.existsSync(destDir)) {
+            external_fs_.mkdirSync(destDir, { recursive: true });
+        }
+        // Construct the S3 path with repo directory if provided
+        const s3Path = repoDirectory
+            ? `s3://${bucket}/${repoDirectory}/${baseBranch}/coverage-summary.json`
+            : `s3://${bucket}/${baseBranch}/coverage-summary.json`;
+        // Check if the file exists in S3 before downloading
+        try {
+            // Use aws s3 ls to check if the file exists
+            const checkCmd = `aws s3 ls ${s3Path}`;
+            (0,external_child_process_namespaceObject.execSync)(checkCmd, { stdio: 'pipe' });
+        }
+        catch (error) {
+            // File doesn't exist in S3
+            core.info(`Base coverage report not found in S3: ${s3Path}`);
+            return 'NO_BASE_COVERAGE';
+        }
+        // Download base coverage report
+        const downloadCmd = `aws s3 cp ${s3Path} ${destPath}`;
+        core.info(`Downloading base coverage report from S3: ${s3Path}`);
+        (0,external_child_process_namespaceObject.execSync)(downloadCmd, { stdio: 'inherit' });
+        return external_fs_.existsSync(destPath);
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Error downloading base coverage from S3: ${error.message}`);
+        }
+        else {
+            core.warning(`Error downloading base coverage from S3: Unknown error`);
+        }
+        return false;
+    }
+};
+
+// CONCATENATED MODULE: ./lib/services/coverage-service.js
+
+
+
+
+
+
+/**
+ * Service to handle coverage report operations
+ */
+class CoverageService {
+    /**
+     * Create a new coverage service instance
+     * @param config - Configuration for the service
+     */
+    constructor(config) {
+        this.config = config;
+        this.coverageDir = __nccwpck_require__.ab + "coverage";
+        this.ensureCoverageDir();
+    }
+    /**
+     * Ensure the coverage directory exists
+     */
+    ensureCoverageDir() {
+        if (!external_fs_.existsSync(this.coverageDir)) {
+            external_fs_.mkdirSync(this.coverageDir, { recursive: true });
+        }
+    }
+    /**
+     * Prepare coverage report paths, downloading from S3 if necessary
+     * @returns Object containing the report paths or null on failure
+     */
+    async prepareCoverageReports() {
+        let basePath = this.config.baseCoverageReportPath;
+        let branchPath = this.config.branchCoverageReportPath;
+        // Handle S3 if credentials are provided
+        if (this.config.useS3) {
+            core.info('AWS credentials provided, using S3 for coverage reports');
+            // Debug log for S3 configuration
+            core.info('S3 Configuration:');
+            core.info(`- Bucket: ${this.config.s3Bucket}`);
+            core.info(`- Repo Directory: ${this.config.s3RepoDirectory ? this.config.s3RepoDirectory : 'Not specified'}`);
+            core.info(`- Base Branch: ${this.config.baseBranch}`);
+            core.info(`- S3 Base URL: ${this.config.s3BaseUrl ? this.config.s3BaseUrl : 'Not specified'}`);
+            // Create S3 config
+            const s3Config = {
+                accessKeyId: this.config.awsAccessKeyId,
+                secretAccessKey: this.config.awsSecretAccessKey,
+                region: this.config.awsRegion,
+                bucket: this.config.s3Bucket,
+                repoDirectory: this.config.s3RepoDirectory,
+                baseBranch: this.config.baseBranch
+            };
+            // Log the S3Config object creation
+            core.info(`S3Config created with repoDirectory: ${s3Config.repoDirectory ? s3Config.repoDirectory : 'Not specified'}`);
+            // If branch coverage report path not provided, use default
+            if (!branchPath) {
+                branchPath = __nccwpck_require__.ab + "jest-cov-reporter/" + this.coverageDir + '/coverage-summary.json';
+                core.info(`No branch coverage report path provided, using default: ${branchPath}`);
+            }
+            // If base coverage report path not provided, download from S3
+            if (!basePath) {
+                basePath = external_path_.resolve(this.coverageDir, 'master-coverage-summary.json');
+                core.info(`No base coverage report path provided, downloading from S3 to: ${basePath}`);
+                const downloadResult = downloadBaseReportFromS3(s3Config, basePath);
+                // Handle first-time use case (no base coverage exists)
+                if (downloadResult === 'NO_BASE_COVERAGE') {
+                    core.info('No base coverage found. This appears to be first-time use.');
+                    // Check if branch coverage exists
+                    if (!external_fs_.existsSync(branchPath)) {
+                        core.setFailed('No branch coverage report found. Cannot bootstrap without a coverage report.');
+                        return null;
+                    }
+                    // Use the branch coverage as the base coverage
+                    core.info('Using current branch coverage as the base coverage for first-time comparison');
+                    external_fs_.copyFileSync(branchPath, basePath);
+                    // Upload the branch coverage as the base coverage for future runs
+                    core.info('Uploading current coverage as the base coverage for future comparisons');
+                    const baseUploadConfig = {
+                        ...s3Config,
+                        destDir: this.config.baseBranch
+                    };
+                    const uploadSuccess = uploadCoverageToS3(branchPath, baseUploadConfig);
+                    if (!uploadSuccess) {
+                        core.warning('Failed to upload base coverage to S3, but continuing with comparison');
+                    }
+                    else {
+                        core.info('Successfully bootstrapped base coverage from current branch');
+                    }
+                }
+                else if (!downloadResult) {
+                    // Handle general download failure
+                    core.setFailed('Failed to download base coverage report from S3. Please ensure you have proper S3 permissions.');
+                    return null;
+                }
+            }
+            // Upload current coverage to S3 if it exists
+            if (external_fs_.existsSync(branchPath)) {
+                const destDir = this.config.prNumber ? `${this.config.prNumber}` : this.config.baseBranch;
+                const uploadConfig = {
+                    ...s3Config,
+                    destDir
+                };
+                const uploadSuccess = uploadCoverageToS3(branchPath, uploadConfig);
+                if (!uploadSuccess) {
+                    core.warning('Failed to upload coverage to S3, but continuing with comparison');
+                }
+                // Update the custom message with S3 links if provided
+                if (this.config.s3BaseUrl && !this.config.customMessage.includes(this.config.s3BaseUrl)) {
+                    // Build paths with repo directory if provided
+                    const repoPath = this.config.s3RepoDirectory ? `${this.config.s3RepoDirectory}/` : '';
+                    const baseReportUrl = `${this.config.s3BaseUrl}/${repoPath}${this.config.baseBranch}/lcov-report/index.html`;
+                    const currentReportUrl = `${this.config.s3BaseUrl}/${repoPath}${destDir}/lcov-report/index.html`;
+                    core.setOutput('base-report-url', baseReportUrl);
+                    core.setOutput('current-report-url', currentReportUrl);
+                    if (!this.config.customMessage) {
+                        const newCustomMessage = `[Base Coverage Report](${baseReportUrl}) - [Current Branch Coverage Report](${currentReportUrl})`;
+                        core.info(`Setting custom message with S3 links: ${newCustomMessage}`);
+                        // Note: We can't modify the config directly, so we'll return this separately
+                        return {
+                            basePath,
+                            branchPath,
+                            newCustomMessage
+                        };
+                    }
+                }
+            }
+        }
+        // Check if the required files exist
+        if (!external_fs_.existsSync(basePath) || !external_fs_.existsSync(branchPath)) {
+            core.setFailed(`Required coverage reports not found. Base: ${basePath}, Branch: ${branchPath}`);
+            return null;
+        }
+        return { basePath, branchPath };
+    }
+    /**
+     * Parse coverage reports from files
+     * @param basePath - Path to the base coverage report
+     * @param branchPath - Path to the branch coverage report
+     * @returns Object containing the parsed reports or null on failure
+     */
+    parseCoverageReports(basePath, branchPath) {
+        try {
+            // Get the content of coverage files
+            const baseCoverageContent = external_fs_.readFileSync(basePath, 'utf8');
+            const branchCoverageContent = external_fs_.readFileSync(branchPath, 'utf8');
+            // Parse the content based on coverage type
+            const baseCoverage = parseContent(baseCoverageContent, this.config.coverageType);
+            const branchCoverage = parseContent(branchCoverageContent, this.config.coverageType);
+            // Get the current directory to replace the file name paths
+            const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd').toString().trim();
+            return { baseCoverage, branchCoverage, currentDirectory };
+        }
+        catch (error) {
+            if (error instanceof Error) {
+                core.setFailed(`Error parsing coverage reports: ${error.message}`);
+            }
+            else {
+                core.setFailed('Unknown error parsing coverage reports');
+            }
+            return null;
+        }
+    }
+    /**
+     * Get files changed in the PR
+     * @returns Object containing arrays of changed and added files
+     */
+    async getChangedFiles() {
+        const changedFiles = [];
+        const addedFiles = [];
+        // Only proceed if it's a PR and we're configured to check changed files
+        if (this.config.prNumber && this.config.onlyCheckChangedFiles) {
+            try {
+                core.info(`Getting files changed in PR #${this.config.prNumber}`);
+                const changesResponse = await this.config.githubClient.rest.pulls.listFiles({
+                    owner: this.config.repoOwner,
+                    repo: this.config.repoName,
+                    pull_number: this.config.prNumber,
+                });
+                // Filter out files that don't have coverage or aren't relevant
+                changesResponse.data.forEach((file) => {
+                    const filename = file.filename;
+                    if (file.status !== 'removed' && !filename.includes('test')) {
+                        changedFiles.push(filename);
+                        if (file.status === 'added') {
+                            addedFiles.push(filename);
+                        }
+                    }
+                });
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    core.warning(`Error getting changed files: ${error.message}`);
+                }
+                else {
+                    core.warning('Unknown error getting changed files');
+                }
+            }
+        }
+        return { changedFiles, addedFiles };
+    }
+    /**
+     * Check if we should enforce full coverage for new files
+     * @returns Boolean indicating whether to enforce full coverage
+     */
+    async shouldEnforceFullCoverage() {
+        // Start with the config value
+        let enforceFullCoverage = this.config.checkNewFileCoverage;
+        // Check for skip label if in PR context
+        if (this.config.prNumber) {
+            try {
+                const pullRequest = await this.config.githubClient.rest.pulls.get({
+                    owner: this.config.repoOwner,
+                    repo: this.config.repoName,
+                    pull_number: this.config.prNumber,
+                });
+                // Skip if the PR has the skip label
+                if (pullRequest.data.labels.some((label) => label.name && label.name.includes('skip-new-file-full-coverage'))) {
+                    enforceFullCoverage = false;
+                }
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    core.warning(`Error checking PR labels: ${error.message}`);
+                }
+                else {
+                    core.warning('Unknown error checking PR labels');
+                }
+            }
+        }
+        return enforceFullCoverage;
+    }
+}
+
 // CONCATENATED MODULE: ./lib/utils/constants.js
 const ICONS = {
     INCREASED_COVERAGE: ':green_circle:',
@@ -39,6 +718,94 @@ const STATUS_BY_COVERAGE_TYPE = {
 };
 const COMMENT_IDENTIFIER = `<!-- codeCoverageDiffComment -->`;
 const MAX_COMMENT_LINES = 500;
+
+// CONCATENATED MODULE: ./lib/utils/github.js
+
+
+/**
+ * Find a comment in a PR that contains the given identifier
+ * @param githubClient - GitHub client instance
+ * @param prNumber - PR number
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param identifier - Identifier to look for in comments
+ * @returns The comment object or null if not found
+ */
+async function findComment(githubClient, prNumber, owner, repo, identifier) {
+    try {
+        const { data: comments } = await githubClient.rest.issues.listComments({
+            owner,
+            repo,
+            issue_number: prNumber,
+        });
+        return comments.find((comment) => comment.body && comment.body.includes(identifier)) || null;
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Error finding comment: ${error.message}`);
+        }
+        else {
+            core.warning('Error finding comment: Unknown error');
+        }
+        return null;
+    }
+}
+/**
+ * Limit comment length to avoid exceeding GitHub's maximum size
+ * @param commentsLines - Array of comment lines
+ * @returns Truncated array of comment lines
+ */
+const limitCommentLength = (commentsLines) => {
+    if (commentsLines.length > MAX_COMMENT_LINES) {
+        const columnNumber = commentsLines[0].split('|').length;
+        const ellipsisRow = '...|'.repeat(columnNumber);
+        return [...commentsLines.slice(0, MAX_COMMENT_LINES), ellipsisRow];
+    }
+    return commentsLines;
+};
+/**
+ * Create or update a comment in a PR
+ * @param githubClient - GitHub client instance
+ * @param prNumber - PR number
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param body - Comment body
+ * @param commentId - Comment ID to update (if provided, update existing comment)
+ * @returns The created or updated comment
+ */
+async function createOrUpdateComment(githubClient, prNumber, owner, repo, body, commentId) {
+    try {
+        if (commentId) {
+            core.info(`Updating comment ID ${commentId}`);
+            const { data: comment } = await githubClient.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: commentId,
+                body,
+            });
+            return comment;
+        }
+        else {
+            core.info('Creating new comment');
+            const { data: comment } = await githubClient.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: prNumber,
+                body,
+            });
+            return comment;
+        }
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            core.warning(`Error creating/updating comment: ${error.message}`);
+        }
+        else {
+            core.warning('Error creating/updating comment: Unknown error');
+        }
+        throw error;
+    }
+}
 
 // CONCATENATED MODULE: ./lib/core/diff/CoverageDiffCalculator.js
 
@@ -131,71 +898,6 @@ class CoverageDiffCalculator {
         return this.diffCoverageReport;
     }
 }
-
-// CONCATENATED MODULE: ./lib/utils/github.js
-
-/**
- * Create or update comment based on commentId
- * @param commentId - ID of the existing comment to update (0 for new comment)
- * @param githubClient - GitHub API client
- * @param repoOwner - Repository owner
- * @param repoName - Repository name
- * @param messageToPost - Comment message content
- * @param prNumber - Pull request number
- */
-async function createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber) {
-    if (commentId) {
-        await githubClient.issues.updateComment({
-            owner: repoOwner,
-            repo: repoName,
-            comment_id: commentId,
-            body: messageToPost
-        });
-    }
-    else {
-        await githubClient.issues.createComment({
-            repo: repoName,
-            owner: repoOwner,
-            body: messageToPost,
-            issue_number: prNumber
-        });
-    }
-}
-/**
- * Find comment from a list of comments in a PR
- * @param githubClient - GitHub API client
- * @param repoName - Repository name
- * @param repoOwner - Repository owner
- * @param prNumber - Pull request number
- * @param identifier - Comment identifier string
- * @returns Comment ID if found, 0 otherwise
- */
-async function findComment(githubClient, repoName, repoOwner, prNumber, identifier) {
-    const comments = await githubClient.issues.listComments({
-        owner: repoOwner,
-        repo: repoName,
-        issue_number: prNumber
-    });
-    for (const comment of comments.data) {
-        if (comment.body && comment.body.startsWith(identifier)) {
-            return comment.id;
-        }
-    }
-    return 0;
-}
-/**
- * Limit comment length to avoid exceeding GitHub's maximum size
- * @param commentsLines - Array of comment lines
- * @returns Truncated array of comment lines
- */
-const limitCommentLength = (commentsLines) => {
-    if (commentsLines.length > MAX_COMMENT_LINES) {
-        const columnNumber = commentsLines[0].split('|').length;
-        const ellipsisRow = '...|'.repeat(columnNumber);
-        return [...commentsLines.slice(0, MAX_COMMENT_LINES), ellipsisRow];
-    }
-    return commentsLines;
-};
 
 // CONCATENATED MODULE: ./lib/core/format/ReportFormatter.js
 
@@ -503,203 +1205,7 @@ class ThresholdValidator {
     }
 }
 
-// EXTERNAL MODULE: external "fs"
-var external_fs_ = __nccwpck_require__(5747);
-var external_fs_default = /*#__PURE__*/__nccwpck_require__.n(external_fs_);
-
-// EXTERNAL MODULE: ./node_modules/xml2js/lib/xml2js.js
-var xml2js = __nccwpck_require__(6189);
-// CONCATENATED MODULE: ./lib/parsers/cobertura.js
-
-/**
- * Parser for Cobertura coverage reports
- */
-class CoberturaParser {
-    /**
-     * Parse Cobertura XML coverage report
-     * @param content - XML content from Cobertura coverage report
-     * @returns Parsed coverage report
-     */
-    parse(content) {
-        let parsedReport = {};
-        // Parse synchronously to make the function synchronous
-        (0,xml2js.parseString)(content, { explicitArray: false }, (err, result) => {
-            if (err) {
-                throw new Error(`Failed to parse Cobertura XML: ${err.message}`);
-            }
-            parsedReport = this.processCobertura(result);
-        });
-        return parsedReport;
-    }
-    /**
-     * Process Cobertura XML result
-     * @param result - Parsed XML result
-     * @returns Coverage report
-     */
-    processCobertura(result) {
-        const report = {};
-        const coverages = result.coverage.packages.package;
-        let statements = 0;
-        let statementsTotal = 0;
-        let branches = 0;
-        let branchesTotal = 0;
-        let functions = 0;
-        let functionsTotal = 0;
-        if (Array.isArray(coverages)) {
-            coverages.forEach((pkg) => {
-                const classes = pkg.classes.class;
-                this.processClasses(classes, report);
-                // Sum up package totals
-                statementsTotal += parseInt(pkg.$.line_rate);
-                statements += parseInt(pkg.$.line_rate_covered);
-                branchesTotal += parseInt(pkg.$.branch_rate);
-                branches += parseInt(pkg.$.branch_rate_covered);
-                functionsTotal += parseInt(pkg.$.function_rate);
-                functions += parseInt(pkg.$.function_rate_covered);
-            });
-        }
-        else {
-            const classes = coverages.classes.class;
-            this.processClasses(classes, report);
-            // Get totals from the single package
-            statementsTotal = parseInt(coverages.$.line_rate);
-            statements = parseInt(coverages.$.line_rate_covered);
-            branchesTotal = parseInt(coverages.$.branch_rate);
-            branches = parseInt(coverages.$.branch_rate_covered);
-            functionsTotal = parseInt(coverages.$.function_rate);
-            functions = parseInt(coverages.$.function_rate_covered);
-        }
-        // Add total summary
-        report.total = {
-            statements: {
-                total: statementsTotal,
-                covered: statements,
-                skipped: 0,
-                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
-            },
-            branches: {
-                total: branchesTotal,
-                covered: branches,
-                skipped: 0,
-                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
-            },
-            functions: {
-                total: functionsTotal,
-                covered: functions,
-                skipped: 0,
-                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
-            }
-        };
-        return report;
-    }
-    /**
-     * Process classes from Cobertura XML
-     * @param classes - Class data from XML
-     * @param report - Coverage report to update
-     */
-    processClasses(classes, report) {
-        if (Array.isArray(classes)) {
-            classes.forEach((cls) => {
-                this.processClass(cls, report);
-            });
-        }
-        else {
-            this.processClass(classes, report);
-        }
-    }
-    /**
-     * Process a single class from Cobertura XML
-     * @param cls - Class data from XML
-     * @param report - Coverage report to update
-     */
-    processClass(cls, report) {
-        const filename = cls.$.filename;
-        const statements = parseInt(cls.$.line_rate_covered);
-        const statementsTotal = parseInt(cls.$.line_rate);
-        const branches = parseInt(cls.$.branch_rate_covered);
-        const branchesTotal = parseInt(cls.$.branch_rate);
-        const functions = parseInt(cls.$.function_rate_covered);
-        const functionsTotal = parseInt(cls.$.function_rate);
-        report[filename] = {
-            statements: {
-                total: statementsTotal,
-                covered: statements,
-                skipped: 0,
-                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
-            },
-            branches: {
-                total: branchesTotal,
-                covered: branches,
-                skipped: 0,
-                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
-            },
-            functions: {
-                total: functionsTotal,
-                covered: functions,
-                skipped: 0,
-                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
-            },
-            filename
-        };
-    }
-}
-
-// CONCATENATED MODULE: ./lib/parsers/jest.js
-/**
- * Parser for Jest coverage reports
- */
-class JestParser {
-    /**
-     * Parse Jest coverage report
-     * @param content - JSON content from Jest coverage report
-     * @returns Parsed coverage report
-     */
-    parse(content) {
-        return JSON.parse(content);
-    }
-}
-
-// CONCATENATED MODULE: ./lib/parsers/index.js
-
-
-
-/**
- * Factory for creating coverage report parsers
- */
-class CoverageParserFactory {
-    /**
-     * Create a parser for the specified coverage type
-     * @param type - Coverage type ('jest' or 'cobertura')
-     * @returns Coverage report parser
-     */
-    createParser(type) {
-        switch (type) {
-            case 'jest':
-                return new JestParser();
-            case 'cobertura':
-                return new CoberturaParser();
-            default:
-                throw new Error(`Unsupported coverage type: ${type}`);
-        }
-    }
-}
-/**
- * Parse coverage report from a file
- * @param filePath - Path to coverage report file
- * @param type - Type of coverage report ('jest' or 'cobertura')
- * @returns Parsed coverage report
- */
-function parseContent(filePath, type) {
-    const content = external_fs_default().readFileSync(filePath).toString();
-    const factory = new CoverageParserFactory();
-    const parser = factory.createParser(type);
-    return parser.parse(content);
-}
-
-// CONCATENATED MODULE: ./lib/index.js
-
-
-
+// CONCATENATED MODULE: ./lib/services/report-service.js
 
 
 
@@ -707,110 +1213,62 @@ function parseContent(filePath, type) {
 
 
 /**
- * Main function that runs the coverage reporter
+ * Service to handle report generation and commenting on PRs
  */
-async function main() {
-    try {
-        // repo name
-        const repoName = github.context.repo.repo;
-        // get the repo owner
-        const repoOwner = github.context.repo.owner;
-        // github token
-        const githubToken = core.getInput('accessToken');
-        // Full coverage (true/false)
-        const fullCoverage = JSON.parse(core.getInput('fullCoverageDiff'));
-        // delta coverage. Defaults to 0.2
-        const delta = Number(core.getInput('delta'));
-        const githubClient = github.getOctokit(githubToken);
-        // PR number
-        const prNumber = github.context.issue.number;
-        // Use the same comment for posting diff updates on a PR
-        const useSameComment = JSON.parse(core.getInput('useSameComment'));
-        // get the custom message
-        const customMessage = core.getInput('custom-message');
-        // Only check changed files in PR
-        const onlyCheckChangedFiles = core.getInput('only-check-changed-files');
-        // Add prefix to file name URLs
-        const prefixFilenameUrl = core.getInput('prefix-filename-url');
-        // The base coverage json summary report. This should be master/main summary report.
-        const baseCoverageReportPath = core.getInput('base-coverage-report-path');
-        // branch coverage json summary report
-        const branchCoverageReportPath = core.getInput('branch-coverage-report-path');
-        // check newly added file whether have full coverage tests
-        const checkNewFileFullCoverageInput = core.getInput('check-new-file-full-coverage') === 'true';
-        // threshold for new file coverage (default to 100%)
-        const parsedThreshold = Number(core.getInput('new-file-coverage-threshold'));
-        const newFileCoverageThreshold = Number.isFinite(parsedThreshold) ? parsedThreshold : 100;
-        const coverageType = core.getInput('coverageType');
-        // If either of base or branch summary report does not exist, then exit with failure.
-        if (!baseCoverageReportPath || !branchCoverageReportPath) {
-            core.setFailed(`Validation Failure: Missing ${baseCoverageReportPath ? 'branch-coverage-report-path' : 'base-coverage-report-path'}`);
-            return;
-        }
-        let changedFiles = null;
-        let addedFiles = null;
-        if (onlyCheckChangedFiles === 'true') {
-            const files = await githubClient.pulls.listFiles({
-                owner: repoOwner,
-                repo: repoName,
-                pull_number: prNumber,
-            });
-            changedFiles = files.data ? files.data.map(file => file.filename) : [];
-            addedFiles = files.data ? files.data.filter(file => file.status === 'added').map(file => file.filename) : [];
-        }
-        const coverageReportNew = parseContent(branchCoverageReportPath, coverageType);
-        const coverageReportOld = parseContent(baseCoverageReportPath, coverageType);
-        // Get the current directory to replace the file name paths
-        const currentDirectory = (0,external_child_process_namespaceObject.execSync)('pwd')
-            .toString()
-            .trim();
-        const pullRequest = await githubClient.pulls.get({
-            owner: repoOwner,
-            repo: repoName,
-            pull_number: prNumber,
-        });
-        const checkNewFileFullCoverage = checkNewFileFullCoverageInput &&
-            !pullRequest.data.labels.some(label => label.name && label.name.includes('skip-new-file-full-coverage'));
+class ReportService {
+    /**
+     * Create a new report service
+     * @param config - Configuration object
+     */
+    constructor(config) {
+        this.config = config;
+    }
+    /**
+     * Process coverage data and generate a report
+     * @param params - Parameters for report generation
+     * @returns Object containing report results
+     */
+    async processReport({ baseCoverage, branchCoverage, currentDirectory, changedFiles, addedFiles, checkNewFileFullCoverage }) {
         // Create diff calculator
         const diffCalculator = new CoverageDiffCalculator({
-            coverageReportNew,
-            coverageReportOld,
-            coverageType,
+            coverageReportNew: branchCoverage,
+            coverageReportOld: baseCoverage,
+            coverageType: this.config.coverageType,
             currentDirectory
         });
         // Create threshold validator
         const thresholdValidator = new ThresholdValidator({
             diffCalculator,
-            delta,
+            delta: this.config.delta,
             changedFiles,
             addedFiles,
             checkNewFileFullCoverage,
             currentDirectory,
-            newFileCoverageThreshold
+            newFileCoverageThreshold: this.config.newFileCoverageThreshold
         });
         // Create report formatter
         const reportFormatter = new ReportFormatter({
             diffCalculator,
             thresholdValidator,
-            coverageReportNew,
-            coverageType,
-            delta,
+            coverageReportNew: branchCoverage,
+            coverageType: this.config.coverageType,
+            delta: this.config.delta,
             currentDirectory,
-            prefixFilenameUrl,
-            prNumber,
+            prefixFilenameUrl: this.config.prefixFilenameUrl,
+            prNumber: this.config.prNumber || 0,
             checkNewFileFullCoverage
         });
-        // Get coverage details.
-        // fullCoverage: This will provide a full coverage report. You can set it to false if you do not need full coverage
-        const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = reportFormatter.getCoverageDetails(!fullCoverage);
+        // Get coverage details
+        const { decreaseStatusLines, remainingStatusLines, totalCoverageLines, statusHeader } = reportFormatter.getCoverageDetails(!this.config.fullCoverage);
         const isCoverageBelowDelta = thresholdValidator.checkIfTestCoverageFallsBelowDelta();
         const isNotFullCoverageOnNewFile = thresholdValidator.checkIfNewFileNotFullCoverage();
-        // Add a comment to PR with full coverage report
+        const success = !isCoverageBelowDelta && !isNotFullCoverageOnNewFile;
+        // Generate report message
         let messageToPost = `## Coverage Report \n\n`;
-        messageToPost += `* **Status**: ${isNotFullCoverageOnNewFile || isCoverageBelowDelta ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`;
+        messageToPost += `* **Status**: ${!success ? ':x: **Failed**' : ':white_check_mark: **Passed**'} \n`;
         // Add the custom message if it exists
-        if (customMessage !== '') {
-            messageToPost += `* ${customMessage} \n`;
+        if (this.config.customMessage !== '') {
+            messageToPost += `* ${this.config.customMessage} \n`;
         }
         // If coverageDetails length is 0 that means there is no change between base and head
         if (remainingStatusLines.length === 0 && decreaseStatusLines.length === 0) {
@@ -820,11 +1278,11 @@ async function main() {
         }
         else {
             if (isNotFullCoverageOnNewFile) {
-                messageToPost += `* Current PR does not meet the required ${newFileCoverageThreshold}% coverage threshold for new files \n`;
+                messageToPost += `* Current PR does not meet the required ${this.config.newFileCoverageThreshold}% coverage threshold for new files \n`;
             }
             // If coverage details is below delta then post a message
             if (isCoverageBelowDelta) {
-                messageToPost += `* Current PR reduces the test coverage percentage by ${delta} for some tests \n`;
+                messageToPost += `* Current PR reduces the test coverage percentage by ${this.config.delta} for some tests \n`;
             }
             messageToPost += '--- \n\n';
             if (decreaseStatusLines.length > 0) {
@@ -851,16 +1309,99 @@ async function main() {
                 `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
         }
         messageToPost = `${COMMENT_IDENTIFIER} \n ${messageToPost}`;
-        let commentId = 0;
-        // If useSameComment is true, then find the comment and then update that comment.
-        // If not, then create a new comment
-        if (useSameComment) {
-            commentId = await findComment(githubClient, repoName, repoOwner, prNumber, COMMENT_IDENTIFIER);
+        return { report: messageToPost, success };
+    }
+    /**
+     * Post a report to GitHub PR
+     * @param report - Report content to post
+     * @returns True if posting was successful
+     */
+    async postReport(report) {
+        try {
+            // Only post if we have a PR number
+            if (this.config.prNumber) {
+                let commentId;
+                // Find existing comment if we're updating
+                if (this.config.useSameComment) {
+                    const comment = await findComment(this.config.githubClient, this.config.prNumber, this.config.repoOwner, this.config.repoName, COMMENT_IDENTIFIER);
+                    if (comment) {
+                        commentId = comment.id;
+                    }
+                }
+                // Create or update comment
+                await createOrUpdateComment(this.config.githubClient, this.config.prNumber, this.config.repoOwner, this.config.repoName, report, commentId);
+                return true;
+            }
+            else {
+                core.info('No PR number found. Not posting a comment.');
+                core.info(report);
+                return false;
+            }
         }
-        await createOrUpdateComment(commentId, githubClient, repoOwner, repoName, messageToPost, prNumber);
-        // check if the test coverage is falling below delta/tolerance.
-        if (isNotFullCoverageOnNewFile || isCoverageBelowDelta) {
-            throw Error(messageToPost);
+        catch (error) {
+            if (error instanceof Error) {
+                core.warning(`Error posting report: ${error.message}`);
+            }
+            else {
+                core.warning('Unknown error posting report');
+            }
+            return false;
+        }
+    }
+}
+
+// CONCATENATED MODULE: ./lib/index.js
+
+
+
+
+/**
+ * Main function that runs the coverage reporter
+ */
+async function main() {
+    try {
+        // 1. Load and validate configuration
+        const config = ConfigService.loadConfig();
+        if (!ConfigService.validateConfig(config)) {
+            return;
+        }
+        // 2. Set up services
+        const coverageService = new CoverageService(config);
+        const reportService = new ReportService(config);
+        // 3. Prepare coverage reports (download from S3 if needed)
+        const reportPaths = await coverageService.prepareCoverageReports();
+        if (!reportPaths) {
+            return;
+        }
+        // Extract paths and handle custom message if needed
+        const { basePath, branchPath, newCustomMessage } = reportPaths;
+        if (newCustomMessage) {
+            config.customMessage = newCustomMessage;
+        }
+        // 4. Parse coverage reports
+        const parsedReports = coverageService.parseCoverageReports(basePath, branchPath);
+        if (!parsedReports) {
+            return;
+        }
+        const { baseCoverage, branchCoverage, currentDirectory } = parsedReports;
+        // 5. Get changed files from GitHub PR
+        const { changedFiles, addedFiles } = await coverageService.getChangedFiles();
+        // 6. Check if we should enforce full coverage for new files
+        const checkNewFileFullCoverage = await coverageService.shouldEnforceFullCoverage();
+        // 7. Process the coverage data and generate a report
+        const { report, success } = await reportService.processReport({
+            baseCoverage,
+            branchCoverage,
+            currentDirectory,
+            changedFiles,
+            addedFiles,
+            checkNewFileFullCoverage
+        });
+        // 8. Post the report to GitHub PR or console
+        await reportService.postReport(report);
+        // 9. Set action status based on coverage result
+        if (!success) {
+            core.setFailed('Coverage failed to meet the threshold requirements.');
         }
     }
     catch (error) {
@@ -872,6 +1413,7 @@ async function main() {
         }
     }
 }
+// Run the action
 main();
 
 
@@ -1532,7 +2074,7 @@ exports.Context = Context;
 
 /***/ }),
 
-/***/ 2867:
+/***/ 5438:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -16160,6 +16702,6 @@ module.exports = require("zlib");;
 /******/ 	// module exports must be returned from runtime so entry inlining is disabled
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	return __nccwpck_require__(5438);
+/******/ 	return __nccwpck_require__(5628);
 /******/ })()
 ;
