@@ -3,6 +3,7 @@ import { ICONS, STATUS_BY_COVERAGE_TYPE } from '../../utils/constants';
 import { limitCommentLength } from '../../utils/github';
 import { CoverageDiffCalculator } from '../diff/CoverageDiffCalculator';
 import { ThresholdValidator } from '../threshold/ThresholdValidator';
+import * as core from '@actions/core';
 
 /**
  * ReportFormatter formats coverage reports for display
@@ -20,6 +21,7 @@ export class ReportFormatter {
   private isCobertura: boolean;
   private filePathMap: Record<string, string> = {};
   private checkNewFileFullCoverage: boolean;
+  private coverageThreshold: number;
 
   /**
    * Create a new ReportFormatter
@@ -34,7 +36,8 @@ export class ReportFormatter {
     prefixFilenameUrl,
     prNumber,
     checkNewFileFullCoverage,
-    filePathMap = {}
+    filePathMap = {},
+    coverageThreshold = 80
   }: {
     diffCalculator: CoverageDiffCalculator;
     thresholdValidator: ThresholdValidator;
@@ -46,6 +49,7 @@ export class ReportFormatter {
     prNumber: number;
     checkNewFileFullCoverage: boolean;
     filePathMap?: Record<string, string>;
+    coverageThreshold?: number;
   }) {
     this.diffCalculator = diffCalculator;
     this.thresholdValidator = thresholdValidator;
@@ -59,6 +63,7 @@ export class ReportFormatter {
     this.isCobertura = coverageType === 'cobertura';
     this.filePathMap = filePathMap;
     this.checkNewFileFullCoverage = checkNewFileFullCoverage;
+    this.coverageThreshold = coverageThreshold;
   }
 
   /**
@@ -222,6 +227,142 @@ export class ReportFormatter {
   }
 
   /**
+   * Get files with low coverage and suggestions
+   * @returns Array of files with low coverage and suggestions
+   */
+  private getLowCoverageFiles(): Array<{ file: string; metrics: Record<string, number>; suggestions: string[]; uncoveredLines?: number[] }> {
+    const lowCoverageFiles: Array<{ file: string; metrics: Record<string, number>; suggestions: string[]; uncoveredLines?: number[] }> = [];
+    
+    Object.entries(this.coverageReportNew).forEach(([file, data]) => {
+      if (file === 'total') return;
+      
+      const metrics: Record<string, number> = {};
+      const suggestions: string[] = [];
+      const uncoveredLines: number[] = [];
+      
+      // Check each metric
+      ['statements', 'branches', 'functions', 'lines'].forEach(metric => {
+        const coverage = data[metric]?.pct || 0;
+        metrics[metric] = coverage;
+        
+        if (coverage < this.coverageThreshold) {
+          suggestions.push(this.getSuggestionForMetric(metric, coverage));
+        }
+      });
+
+      // Get uncovered lines if available
+      if (data.lines?.uncovered) {
+        uncoveredLines.push(...data.lines.uncovered);
+      }
+      
+      // If any metric is below threshold, add to low coverage files
+      if (Object.values(metrics).some(coverage => coverage < this.coverageThreshold)) {
+        lowCoverageFiles.push({ file, metrics, suggestions, uncoveredLines });
+      }
+    });
+    
+    // Sort by lowest coverage
+    return lowCoverageFiles.sort((a, b) => {
+      const aMin = Math.min(...Object.values(a.metrics));
+      const bMin = Math.min(...Object.values(b.metrics));
+      return aMin - bMin;
+    });
+  }
+
+  /**
+   * Get suggestion for a specific metric
+   * @param metric - Coverage metric
+   * @param coverage - Current coverage percentage
+   * @returns Suggestion string
+   */
+  private getSuggestionForMetric(metric: string, coverage: number): string {
+    const diff = this.coverageThreshold - coverage;
+    switch (metric) {
+      case 'statements':
+        return `Add ${diff.toFixed(1)}% more statement coverage by writing tests for untested code paths`;
+      case 'branches':
+        return `Add ${diff.toFixed(1)}% more branch coverage by testing different conditional paths`;
+      case 'functions':
+        return `Add ${diff.toFixed(1)}% more function coverage by testing all function calls`;
+      case 'lines':
+        return `Add ${diff.toFixed(1)}% more line coverage by testing uncovered lines`;
+      default:
+        return `Add ${diff.toFixed(1)}% more coverage for ${metric}`;
+    }
+  }
+
+  /**
+   * Format uncovered lines for display
+   * @param lines - Array of uncovered line numbers
+   * @param file - File path
+   * @returns Formatted string of uncovered lines
+   */
+  private formatUncoveredLines(lines: number[], file: string): string {
+    if (!lines.length) return '';
+    
+    // Group consecutive line numbers
+    const groups: number[][] = [];
+    let currentGroup: number[] = [];
+    
+    lines.sort((a, b) => a - b).forEach((line, index) => {
+      if (index === 0 || line === lines[index - 1] + 1) {
+        currentGroup.push(line);
+      } else {
+        groups.push([...currentGroup]);
+        currentGroup = [line];
+      }
+    });
+    if (currentGroup.length) {
+      groups.push(currentGroup);
+    }
+    
+    // Format groups into ranges
+    const ranges = groups.map(group => {
+      if (group.length === 1) return group[0];
+      return `${group[0]}-${group[group.length - 1]}`;
+    });
+    
+    // Create links to the uncovered lines
+    const baseUrl = this.prefixFilenameUrl ? `${this.prefixFilenameUrl}/${this.prNumber}/lcov-report/${file.substring(1)}.html` : '';
+    if (baseUrl) {
+      return ranges.map(range => {
+        if (typeof range === 'number') {
+          return `[L${range}](${baseUrl}#L${range})`;
+        }
+        const [start, end] = range.split('-');
+        return `[L${start}-L${end}](${baseUrl}#L${start})`;
+      }).join(', ');
+    }
+    
+    return ranges.map(range => `L${range}`).join(', ');
+  }
+
+  /**
+   * Format low coverage report
+   * @returns Formatted low coverage report
+   */
+  private formatLowCoverageReport(): string {
+    const lowCoverageFiles = this.getLowCoverageFiles();
+    if (lowCoverageFiles.length === 0) return '';
+
+    let report = '\n\n## 📊 Files Needing More Coverage\n\n';
+    report += '| File | Coverage | Uncovered Lines | Suggestions |\n';
+    report += '|------|----------|-----------------|-------------|\n';
+
+    lowCoverageFiles.forEach(({ file, metrics, suggestions, uncoveredLines }) => {
+      const fileNameUrl = this.getFileNameUrl(file);
+      const lowestMetric = Object.entries(metrics)
+        .sort(([, a], [, b]) => a - b)[0];
+      const uncoveredLinesStr = uncoveredLines?.length 
+        ? this.formatUncoveredLines(uncoveredLines, file)
+        : 'No line data available';
+      report += `| ${fileNameUrl} | ${lowestMetric[0]}: ${lowestMetric[1].toFixed(1)}% | ${uncoveredLinesStr} | ${suggestions[0]} |\n`;
+    });
+
+    return report;
+  }
+
+  /**
    * Create coverage details table
    * @param diffOnly - Only include files with differences
    * @returns Coverage details object
@@ -230,6 +371,13 @@ export class ReportFormatter {
     const keys = Object.keys(this.diffCoverageReport);
     const decreaseStatusLines: string[] = [];
     const remainingStatusLines: string[] = [];
+    
+    // Add low coverage report
+    const lowCoverageReport = this.formatLowCoverageReport();
+    if (lowCoverageReport) {
+      remainingStatusLines.push(lowCoverageReport);
+    }
+    
     for (const key of keys) {
       if (this.compareCoverageValues(key) !== 0) {
         const diffStatus = this.createDiffLine(
@@ -256,6 +404,7 @@ export class ReportFormatter {
         }
       }
     }
+    
     return {
       totalCoverageLines: this.getTotalCoverageReport(this.diffCoverageReport['total']),
       decreaseStatusLines: limitCommentLength(decreaseStatusLines),
