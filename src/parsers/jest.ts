@@ -29,41 +29,80 @@ export class JestParser implements CoverageReportParser {
       if (!parsed.total) {
         throw new Error('Invalid Jest coverage report: missing total field');
       }
+
+      // Log total structure
+      core.info('Total coverage structure:');
+      core.info(JSON.stringify(parsed.total, null, 2));
       
       // Create a new report with the correct structure
       const report: CoverageReport = {
-        total: parsed.total
+        total: {
+          statements: {
+            total: parsed.total.statements?.total || 0,
+            covered: parsed.total.statements?.covered || 0,
+            skipped: parsed.total.statements?.skipped || 0,
+            pct: parsed.total.statements?.pct || 0
+          },
+          branches: {
+            total: parsed.total.branches?.total || 0,
+            covered: parsed.total.branches?.covered || 0,
+            skipped: parsed.total.branches?.skipped || 0,
+            pct: parsed.total.branches?.pct || 0
+          },
+          functions: {
+            total: parsed.total.functions?.total || 0,
+            covered: parsed.total.functions?.covered || 0,
+            skipped: parsed.total.functions?.skipped || 0,
+            pct: parsed.total.functions?.pct || 0
+          },
+          lines: {
+            total: parsed.total.lines?.total || 0,
+            covered: parsed.total.lines?.covered || 0,
+            skipped: parsed.total.lines?.skipped || 0,
+            pct: parsed.total.lines?.pct || 0
+          }
+        }
       };
       
       // Process file entries
       Object.entries(parsed).forEach(([key, value]) => {
         if (key !== 'total' && typeof value === 'object' && value !== null) {
+          core.info(`Processing file: ${key}`);
+          core.info(`File coverage structure: ${JSON.stringify(value, null, 2)}`);
+          
           const fileValue = value as Record<CoverageMetric, CoverageData & { uncovered?: number[] }>;
+          
+          // Validate file coverage data
+          if (!fileValue.statements || !fileValue.branches || !fileValue.functions || !fileValue.lines) {
+            core.warning(`Skipping file ${key}: missing required coverage metrics`);
+            return;
+          }
+          
           // Add each file directly to the report with its coverage data
           report[key] = {
             statements: {
-              total: fileValue.statements.total,
-              covered: fileValue.statements.covered,
-              skipped: fileValue.statements.skipped,
-              pct: fileValue.statements.pct
+              total: fileValue.statements.total || 0,
+              covered: fileValue.statements.covered || 0,
+              skipped: fileValue.statements.skipped || 0,
+              pct: fileValue.statements.pct || 0
             },
             branches: {
-              total: fileValue.branches.total,
-              covered: fileValue.branches.covered,
-              skipped: fileValue.branches.skipped,
-              pct: fileValue.branches.pct
+              total: fileValue.branches.total || 0,
+              covered: fileValue.branches.covered || 0,
+              skipped: fileValue.branches.skipped || 0,
+              pct: fileValue.branches.pct || 0
             },
             functions: {
-              total: fileValue.functions.total,
-              covered: fileValue.functions.covered,
-              skipped: fileValue.functions.skipped,
-              pct: fileValue.functions.pct
+              total: fileValue.functions.total || 0,
+              covered: fileValue.functions.covered || 0,
+              skipped: fileValue.functions.skipped || 0,
+              pct: fileValue.functions.pct || 0
             },
             lines: {
-              total: fileValue.lines.total,
-              covered: fileValue.lines.covered,
-              skipped: fileValue.lines.skipped,
-              pct: fileValue.lines.pct,
+              total: fileValue.lines.total || 0,
+              covered: fileValue.lines.covered || 0,
+              skipped: fileValue.lines.skipped || 0,
+              pct: fileValue.lines.pct || 0,
               uncovered: fileValue.lines.uncovered || []
             }
           };
