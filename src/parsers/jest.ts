@@ -19,6 +19,7 @@ export class JestParser implements CoverageReportParser {
       // Log the raw structure
       core.info('Raw coverage report structure:');
       core.info(`- Top level keys: ${Object.keys(parsed).join(', ')}`);
+      core.info(`- Raw content: ${JSON.stringify(parsed, null, 2)}`);
       
       // Validate the structure
       if (!parsed || typeof parsed !== 'object') {
@@ -133,6 +134,10 @@ export class JestParser implements CoverageReportParser {
           }
         }
       });
+      
+      // Log final report structure
+      core.info('Final report structure:');
+      core.info(JSON.stringify(report, null, 2));
       
       return report;
     } catch (error) {
