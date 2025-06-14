@@ -19,6 +19,7 @@ Failure Screenshot
 - Detailed GitHub PR comments with coverage changes
 - Configurable thresholds and options
 - **New:** Automatic S3 upload/download of coverage reports
+- **New:** Optional AI-powered coverage analysis and recommendations
 
 ## Usage
 
@@ -77,6 +78,11 @@ Failure Screenshot
 | `base-branch` | Base branch name (e.g., main or master) | `main` |
 | `pr-number` | Pull request number | Optional, auto-detected in PR context |
 | `s3-base-url` | Base URL for S3 coverage reports | Optional |
+| `ai-enabled` | Enable AI analysis of coverage reports | `false` |
+| `ai-model` | AI model to use for analysis | `gpt-4` |
+| `ai-temperature` | Temperature setting for AI responses (0-1) | `0.7` |
+| `ai-max-tokens` | Maximum tokens for AI responses | `1000` |
+| `ai-api-key` | API key for AI service | Optional |
 
 ## S3 Integration
 
@@ -281,3 +287,89 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 MIT
+
+## AI Analysis (Optional)
+
+The action includes an optional AI-powered analysis feature that provides intelligent insights about your coverage reports. This feature is disabled by default and requires an OpenAI API key to use.
+
+### Basic Usage
+
+To enable AI analysis, add the following to your workflow:
+
+```yaml
+- name: Coverage Report
+  uses: adRise/jest-cov-reporter@main
+  with:
+    # ... existing options ...
+    ai-enabled: 'true'
+    ai-api-key: ${{ secrets.OPENAI_API_KEY }}
+```
+
+### Configuration Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `ai-enabled` | Enable AI analysis of coverage reports | `false` |
+| `ai-model` | AI model to use for analysis (e.g., 'gpt-4') | `gpt-4` |
+| `ai-temperature` | Temperature setting for AI responses (0-1) | `0.7` |
+| `ai-max-tokens` | Maximum tokens for AI responses | `1000` |
+| `ai-api-key` | API key for OpenAI service | Required if enabled |
+
+### Example Output
+
+When AI analysis is enabled, your coverage report will include an additional section:
+
+```markdown
+## AI Analysis
+
+Analysis found 2 high, 1 medium, and 0 low severity issues.
+
+### Recommendations
+- Consider adding more test cases for files with low coverage
+- Review files with coverage warnings and add missing test cases
+
+### Detailed Insights
+⚠️ **HIGH**: Overall line coverage is below 80%
+⚠️ **HIGH**: Coverage decreased by 5.2%
+⚠️ **MEDIUM**: Low coverage in src/utils/helper.ts
+   - File: src/utils/helper.ts
+```
+
+### Advanced Configuration
+
+You can customize the AI analysis behavior:
+
+```yaml
+- name: Coverage Report
+  uses: adRise/jest-cov-reporter@main
+  with:
+    # ... existing options ...
+    ai-enabled: 'true'
+    ai-model: 'gpt-4'  # Choose your preferred model
+    ai-temperature: '0.7'  # Adjust creativity (0-1)
+    ai-max-tokens: '1000'  # Control response length
+    ai-api-key: ${{ secrets.OPENAI_API_KEY }}
+```
+
+### Using Without AI
+
+If you don't want to use the AI analysis feature, simply omit the AI-related inputs:
+
+```yaml
+- name: Coverage Report
+  uses: adRise/jest-cov-reporter@main
+  with:
+    branch-coverage-report-path: ./coverage/coverage-summary.json
+    base-coverage-report-path: ./coverage/master-coverage-summary.json
+    delta: 0.3
+```
+
+The action will work exactly the same way, just without the AI analysis section in the report.
+
+### Security Note
+
+When using AI analysis:
+1. Store your OpenAI API key as a GitHub secret
+2. Never commit the API key directly in your workflow files
+3. Consider using a dedicated API key for this action
+4. Monitor your OpenAI API usage and costs

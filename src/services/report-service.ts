@@ -5,6 +5,7 @@ import { createOrUpdateComment, findComment } from '../utils/github';
 import { CoverageDiffCalculator } from '../core/diff/CoverageDiffCalculator';
 import { ReportFormatter } from '../core/format/ReportFormatter';
 import { ThresholdValidator } from '../core/threshold/ThresholdValidator';
+import { CoverageAnalysis } from '../types/ai';
 
 /**
  * Service to handle report generation and commenting on PRs
@@ -31,7 +32,8 @@ export class ReportService {
     currentDirectory,
     changedFiles,
     addedFiles,
-    checkNewFileFullCoverage
+    checkNewFileFullCoverage,
+    aiAnalysis
   }: {
     baseCoverage: any;
     branchCoverage: any;
@@ -39,6 +41,7 @@ export class ReportService {
     changedFiles: string[];
     addedFiles: string[];
     checkNewFileFullCoverage: boolean;
+    aiAnalysis?: CoverageAnalysis;
   }): Promise<{
     report: string;
     success: boolean;
@@ -136,6 +139,30 @@ export class ReportService {
       } = totalCoverageLines;
       messageToPost +=
             `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
+    }
+
+    // Add AI analysis section if available
+    if (aiAnalysis && aiAnalysis.insights.length > 0) {
+      messageToPost += '\n\n## AI Analysis\n\n';
+      messageToPost += `${aiAnalysis.summary}\n\n`;
+      
+      if (aiAnalysis.recommendations.length > 0) {
+        messageToPost += '### Recommendations\n';
+        aiAnalysis.recommendations.forEach(rec => {
+          messageToPost += `- ${rec}\n`;
+        });
+        messageToPost += '\n';
+      }
+
+      messageToPost += '### Detailed Insights\n';
+      aiAnalysis.insights.forEach(insight => {
+        const emoji = insight.type === 'warning' ? '⚠️' : 
+                     insight.type === 'improvement' ? '✅' : '💡';
+        messageToPost += `${emoji} **${insight.severity.toUpperCase()}**: ${insight.message}\n`;
+        if (insight.file) {
+          messageToPost += `   - File: ${insight.file}\n`;
+        }
+      });
     }
 
     messageToPost = `${COMMENT_IDENTIFIER} \n ${messageToPost}`;

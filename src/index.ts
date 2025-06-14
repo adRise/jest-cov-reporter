@@ -2,6 +2,8 @@ import * as core from '@actions/core';
 import { ConfigService } from './services/config-service';
 import { CoverageService } from './services/coverage-service';
 import { ReportService } from './services/report-service';
+import { AIService } from './services/ai-service';
+import { AIConfig } from './types/ai';
 
 /**
  * Main function that runs the coverage reporter
@@ -43,21 +45,37 @@ async function main(): Promise<void> {
     
     // 6. Check if we should enforce full coverage for new files
     const checkNewFileFullCoverage = await coverageService.shouldEnforceFullCoverage();
+
+    // 7. Run AI analysis if enabled
+    let aiAnalysis;
+    if (config.aiEnabled) {
+      const aiConfig: AIConfig = {
+        enabled: true,
+        model: config.aiModel,
+        temperature: config.aiTemperature,
+        maxTokens: config.aiMaxTokens,
+        apiKey: config.aiApiKey
+      };
+
+      const aiService = new AIService(aiConfig);
+      aiAnalysis = await aiService.analyzeCoverage(branchCoverage, baseCoverage);
+    }
     
-    // 7. Process the coverage data and generate a report
+    // 8. Process the coverage data and generate a report
     const { report, success } = await reportService.processReport({
       baseCoverage,
       branchCoverage,
       currentDirectory,
       changedFiles,
       addedFiles,
-      checkNewFileFullCoverage
+      checkNewFileFullCoverage,
+      aiAnalysis
     });
     
-    // 8. Post the report to GitHub PR or console
+    // 9. Post the report to GitHub PR or console
     await reportService.postReport(report);
     
-    // 9. Set action status based on coverage result
+    // 10. Set action status based on coverage result
     if (!success) {
       core.setFailed('Coverage failed to meet the threshold requirements.');
     }
