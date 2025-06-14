@@ -38,13 +38,34 @@ export class JestParser implements CoverageReportParser {
       // Process file entries
       Object.entries(parsed).forEach(([key, value]) => {
         if (key !== 'total' && typeof value === 'object' && value !== null) {
-          const fileValue = value as Record<CoverageMetric, CoverageData>;
+          const fileValue = value as Record<CoverageMetric, CoverageData & { uncovered?: number[] }>;
           // Add each file directly to the report with its coverage data
           report[key] = {
-            statements: fileValue.statements,
-            branches: fileValue.branches,
-            functions: fileValue.functions,
-            lines: fileValue.lines
+            statements: {
+              total: fileValue.statements.total,
+              covered: fileValue.statements.covered,
+              skipped: fileValue.statements.skipped,
+              pct: fileValue.statements.pct
+            },
+            branches: {
+              total: fileValue.branches.total,
+              covered: fileValue.branches.covered,
+              skipped: fileValue.branches.skipped,
+              pct: fileValue.branches.pct
+            },
+            functions: {
+              total: fileValue.functions.total,
+              covered: fileValue.functions.covered,
+              skipped: fileValue.functions.skipped,
+              pct: fileValue.functions.pct
+            },
+            lines: {
+              total: fileValue.lines.total,
+              covered: fileValue.lines.covered,
+              skipped: fileValue.lines.skipped,
+              pct: fileValue.lines.pct,
+              uncovered: fileValue.lines.uncovered || []
+            }
           };
         }
       });
@@ -68,6 +89,9 @@ export class JestParser implements CoverageReportParser {
           core.info(`- Branches: ${report[key].branches?.pct}`);
           core.info(`- Functions: ${report[key].functions?.pct}`);
           core.info(`- Lines: ${report[key].lines?.pct}`);
+          if (report[key].lines?.uncovered) {
+            core.info(`- Uncovered lines: ${report[key].lines.uncovered.join(', ')}`);
+          }
         }
       });
       

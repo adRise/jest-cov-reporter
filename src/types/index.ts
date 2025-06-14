@@ -11,6 +11,7 @@ export interface CoverageData {
   covered: number;
   skipped: number;
   pct: number;
+  uncovered?: number[]; // Optional array of uncovered line numbers
 }
 
 /**
