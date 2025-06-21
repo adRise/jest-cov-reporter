@@ -13,6 +13,26 @@ export interface CoverageMetrics {
   
   /** Coverage percentage */
   pct: number;
+
+  /** Optional array of uncovered line numbers */
+  uncovered?: number[];
+}
+
+/**
+ * Represents detailed line coverage information
+ */
+export interface DetailedLineCoverage {
+  /** Line number */
+  line: number;
+  
+  /** Number of hits (0 = uncovered) */
+  hits: number;
+  
+  /** Whether this line is a branch */
+  branch?: boolean;
+  
+  /** Optional code content for this line */
+  code?: string;
 }
 
 /**
@@ -30,6 +50,12 @@ export interface FileCoverage {
   
   /** Branch coverage metrics */
   branches: CoverageMetrics;
+
+  /** Optional detailed line-by-line coverage information */
+  lineDetails?: DetailedLineCoverage[];
+
+  /** Optional uncovered line numbers (for quick access) */
+  uncoveredLines?: number[];
 }
 
 /**

@@ -21,6 +21,46 @@ Failure Screenshot
 - **New:** Automatic S3 upload/download of coverage reports
 - **New:** Optional AI-powered coverage analysis and recommendations
 
+## Quick Start with AI Coverage Suggestions
+
+Here's a complete example of using the action with AI-powered line-level coverage suggestions:
+
+```yaml
+name: Test Coverage with AI Analysis
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests with coverage
+        run: npm test -- --coverage --coverageReporters="json-summary"
+        
+      - name: AI-Powered Coverage Report
+        uses: adRise/jest-cov-reporter@main
+        with:
+          branch-coverage-report-path: ./coverage/coverage-summary.json
+          base-coverage-report-path: ./coverage/coverage-summary.json
+          delta: 0.3
+          ai-enabled: 'true'
+          ai-api-key: ${{ secrets.OPENAI_API_KEY }}
+```
+
+This will generate coverage reports with intelligent AI suggestions for improving your test coverage, including specific line-by-line recommendations.
+
 ## Usage
 
 ### Basic Usage
@@ -78,11 +118,11 @@ Failure Screenshot
 | `base-branch` | Base branch name (e.g., main or master) | `main` |
 | `pr-number` | Pull request number | Optional, auto-detected in PR context |
 | `s3-base-url` | Base URL for S3 coverage reports | Optional |
-| `ai-enabled` | Enable AI analysis of coverage reports | `false` |
-| `ai-model` | AI model to use for analysis | `gpt-4` |
-| `ai-temperature` | Temperature setting for AI responses (0-1) | `0.7` |
-| `ai-max-tokens` | Maximum tokens for AI responses | `1000` |
-| `ai-api-key` | API key for AI service | Optional |
+| `ai-enabled` | Enable AI-powered coverage analysis and line-level suggestions | `false` |
+| `ai-model` | AI model to use for analysis (e.g., 'gpt-4', 'gpt-3.5-turbo') | `gpt-4` |
+| `ai-temperature` | Temperature setting for AI responses (0-1, lower = more focused) | `0.7` |
+| `ai-max-tokens` | Maximum tokens for AI responses (increase for detailed line suggestions) | `2000` |
+| `ai-api-key` | OpenAI API key for AI-powered coverage analysis | Required if enabled |
 
 ## S3 Integration
 
@@ -288,9 +328,9 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 MIT
 
-## AI Analysis (Optional)
+## AI-Powered Coverage Analysis (Optional)
 
-The action includes an optional AI-powered analysis feature that provides intelligent insights about your coverage reports. This feature is disabled by default and requires an OpenAI API key to use.
+The action includes an optional AI-powered analysis feature that provides intelligent insights about your coverage reports, including specific line-level suggestions for improving test coverage. This feature is disabled by default and requires an OpenAI API key to use.
 
 ### Basic Usage
 
@@ -309,30 +349,73 @@ To enable AI analysis, add the following to your workflow:
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `ai-enabled` | Enable AI analysis of coverage reports | `false` |
-| `ai-model` | AI model to use for analysis (e.g., 'gpt-4') | `gpt-4` |
-| `ai-temperature` | Temperature setting for AI responses (0-1) | `0.7` |
-| `ai-max-tokens` | Maximum tokens for AI responses | `1000` |
-| `ai-api-key` | API key for OpenAI service | Required if enabled |
+| `ai-enabled` | Enable AI-powered coverage analysis and line-level suggestions | `false` |
+| `ai-model` | AI model to use for analysis (e.g., 'gpt-4', 'gpt-3.5-turbo') | `gpt-4` |
+| `ai-temperature` | Temperature setting for AI responses (0-1, lower = more focused) | `0.7` |
+| `ai-max-tokens` | Maximum tokens for AI responses (increase for detailed line suggestions) | `2000` |
+| `ai-api-key` | OpenAI API key for AI-powered coverage analysis | Required if enabled |
+
+### Features
+
+The AI analysis provides:
+
+1. **General Coverage Insights**: Overall analysis of coverage trends and issues
+2. **Specific Line Suggestions**: AI-generated recommendations for testing specific uncovered lines
+3. **Prioritized Recommendations**: High/medium/low priority suggestions based on code importance
+4. **Test Type Recommendations**: Suggestions for unit tests, integration tests, or edge case testing
+5. **Uncovered Code Analysis**: Detailed breakdown of files needing coverage with code snippets
 
 ### Example Output
 
-When AI analysis is enabled, your coverage report will include an additional section:
+When AI analysis is enabled, your coverage report will include an enhanced section:
 
 ```markdown
-## AI Analysis
+## 🤖 AI Coverage Analysis
 
-Analysis found 2 high, 1 medium, and 0 low severity issues.
+Analysis found 3 high priority issues and 2 medium priority recommendations for improving test coverage.
 
-### Recommendations
-- Consider adding more test cases for files with low coverage
-- Review files with coverage warnings and add missing test cases
+### 📋 Recommendations
+- Add comprehensive unit tests for authentication logic in auth.ts
+- Consider integration tests for database operations
+- Focus on edge cases for error handling paths
 
-### Detailed Insights
-⚠️ **HIGH**: Overall line coverage is below 80%
-⚠️ **HIGH**: Coverage decreased by 5.2%
-⚠️ **MEDIUM**: Low coverage in src/utils/helper.ts
-   - File: src/utils/helper.ts
+### 🎯 Specific Line Suggestions
+
+**src/auth/authentication.ts**
+- 🔴 🧪 **Line 45**: Add unit test for token validation failure case
+- 🟡 🔗 **Line 67**: Test integration with external auth provider
+- 🟢 ⚠️ **Line 89**: Add edge case test for malformed input
+
+**src/utils/database.ts**
+- 🔴 🧪 **Line 23**: Test error handling for database connection failure
+- 🟡 🧪 **Line 34**: Verify transaction rollback behavior
+
+### 📊 Files Needing Coverage
+
+**authentication.ts** (67.3% coverage)
+- 8 uncovered lines: 45, 67, 89, 102, 134, 156, 178, 190
+- Key uncovered code:
+  - Line 45: `throw new AuthenticationError('Invalid token')`
+  - Line 67: `const result = await externalAuth.validate(token)`
+  - Line 89: `if (!input || typeof input !== 'string') {`
+
+**database.ts** (72.1% coverage)
+- 5 uncovered lines: 23, 34, 56, 78, 91
+- Key uncovered code:
+  - Line 23: `throw new DatabaseError('Connection failed')`
+  - Line 34: `await transaction.rollback()`
+
+### 🔍 Detailed Insights
+⚠️ **HIGH**: Critical authentication logic lacks test coverage
+   - File: src/auth/authentication.ts
+   - Uncovered lines: 45, 67, 89
+   - Suggested tests:
+     - Test invalid token scenarios
+     - Test external provider integration
+     - Test input validation edge cases
+
+✅ **IMPROVEMENT**: Database connection handling improved since last analysis
+💡 **SUGGESTION**: Consider adding property-based tests for input validation
 ```
 
 ### Advanced Configuration
@@ -340,16 +423,23 @@ Analysis found 2 high, 1 medium, and 0 low severity issues.
 You can customize the AI analysis behavior:
 
 ```yaml
-- name: Coverage Report
+- name: Coverage Report with Enhanced AI Analysis
   uses: adRise/jest-cov-reporter@main
   with:
     # ... existing options ...
     ai-enabled: 'true'
     ai-model: 'gpt-4'  # Choose your preferred model
-    ai-temperature: '0.7'  # Adjust creativity (0-1)
-    ai-max-tokens: '1000'  # Control response length
+    ai-temperature: '0.3'  # Lower = more focused suggestions
+    ai-max-tokens: '3000'  # Higher = more detailed line suggestions
     ai-api-key: ${{ secrets.OPENAI_API_KEY }}
 ```
+
+### Model Recommendations
+
+- **gpt-4**: Best for detailed, accurate line-level suggestions (recommended)
+- **gpt-3.5-turbo**: Faster and cheaper, good for general insights
+- **Temperature 0.3-0.5**: Best for focused, practical testing suggestions
+- **Max Tokens 2000-3000**: Allows for detailed line-by-line analysis
 
 ### Using Without AI
 
@@ -366,10 +456,23 @@ If you don't want to use the AI analysis feature, simply omit the AI-related inp
 
 The action will work exactly the same way, just without the AI analysis section in the report.
 
-### Security Note
+### Security and Cost Considerations
 
 When using AI analysis:
-1. Store your OpenAI API key as a GitHub secret
-2. Never commit the API key directly in your workflow files
-3. Consider using a dedicated API key for this action
-4. Monitor your OpenAI API usage and costs
+
+1. **Security**:
+   - Store your OpenAI API key as a GitHub secret
+   - Never commit the API key directly in your workflow files
+   - Consider using a dedicated API key for this action
+   - The AI only receives coverage data and file paths, not your actual source code
+
+2. **Cost Management**:
+   - Monitor your OpenAI API usage and costs
+   - Consider using gpt-3.5-turbo for cost-effective analysis
+   - Adjust `ai-max-tokens` based on your needs
+   - The action limits analysis to the most problematic files to control costs
+
+3. **Privacy**:
+   - Only coverage statistics and uncovered line numbers are sent to OpenAI
+   - Limited code snippets (only uncovered lines) may be included for context
+   - No complete source files are transmitted

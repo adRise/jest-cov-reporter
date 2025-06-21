@@ -140,7 +140,7 @@ class CoberturaParser {
      * @returns Parsed coverage report
      */
     parse(content) {
-        let parsedReport = {};
+        let parsedReport = { total: this.createEmptyFileCoverage(), files: {} };
         // Parse synchronously to make the function synchronous
         (0,xml2js.parseString)(content, { explicitArray: false }, (err, result) => {
             if (err) {
@@ -151,62 +151,68 @@ class CoberturaParser {
         return parsedReport;
     }
     /**
+     * Create empty file coverage structure
+     */
+    createEmptyFileCoverage() {
+        return {
+            lines: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            statements: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            functions: { total: 0, covered: 0, skipped: 0, pct: 0 },
+            branches: { total: 0, covered: 0, skipped: 0, pct: 0 }
+        };
+    }
+    /**
      * Process Cobertura XML result
      * @param result - Parsed XML result
      * @returns Coverage report
      */
     processCobertura(result) {
-        const report = {};
+        const report = {
+            total: this.createEmptyFileCoverage(),
+            files: {}
+        };
         const coverages = result.coverage.packages.package;
-        let statements = 0;
-        let statementsTotal = 0;
-        let branches = 0;
-        let branchesTotal = 0;
-        let functions = 0;
-        let functionsTotal = 0;
+        let totalStats = {
+            lines: { total: 0, covered: 0 },
+            statements: { total: 0, covered: 0 },
+            branches: { total: 0, covered: 0 },
+            functions: { total: 0, covered: 0 }
+        };
         if (Array.isArray(coverages)) {
             coverages.forEach((pkg) => {
                 const classes = pkg.classes.class;
-                this.processClasses(classes, report);
-                // Sum up package totals
-                statementsTotal += parseInt(pkg.$.line_rate);
-                statements += parseInt(pkg.$.line_rate_covered);
-                branchesTotal += parseInt(pkg.$.branch_rate);
-                branches += parseInt(pkg.$.branch_rate_covered);
-                functionsTotal += parseInt(pkg.$.function_rate);
-                functions += parseInt(pkg.$.function_rate_covered);
+                this.processClasses(classes, report, totalStats);
             });
         }
         else {
             const classes = coverages.classes.class;
-            this.processClasses(classes, report);
-            // Get totals from the single package
-            statementsTotal = parseInt(coverages.$.line_rate);
-            statements = parseInt(coverages.$.line_rate_covered);
-            branchesTotal = parseInt(coverages.$.branch_rate);
-            branches = parseInt(coverages.$.branch_rate_covered);
-            functionsTotal = parseInt(coverages.$.function_rate);
-            functions = parseInt(coverages.$.function_rate_covered);
+            this.processClasses(classes, report, totalStats);
         }
-        // Add total summary
+        // Calculate total percentages
         report.total = {
-            statements: {
-                total: statementsTotal,
-                covered: statements,
+            lines: {
+                total: totalStats.lines.total,
+                covered: totalStats.lines.covered,
                 skipped: 0,
-                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+                pct: totalStats.lines.total > 0 ? (totalStats.lines.covered / totalStats.lines.total) * 100 : 0
+            },
+            statements: {
+                total: totalStats.statements.total,
+                covered: totalStats.statements.covered,
+                skipped: 0,
+                pct: totalStats.statements.total > 0 ? (totalStats.statements.covered / totalStats.statements.total) * 100 : 0
             },
             branches: {
-                total: branchesTotal,
-                covered: branches,
+                total: totalStats.branches.total,
+                covered: totalStats.branches.covered,
                 skipped: 0,
-                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+                pct: totalStats.branches.total > 0 ? (totalStats.branches.covered / totalStats.branches.total) * 100 : 0
             },
             functions: {
-                total: functionsTotal,
-                covered: functions,
+                total: totalStats.functions.total,
+                covered: totalStats.functions.covered,
                 skipped: 0,
-                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+                pct: totalStats.functions.total > 0 ? (totalStats.functions.covered / totalStats.functions.total) * 100 : 0
             }
         };
         return report;
@@ -215,51 +221,115 @@ class CoberturaParser {
      * Process classes from Cobertura XML
      * @param classes - Class data from XML
      * @param report - Coverage report to update
+     * @param totalStats - Total statistics accumulator
      */
-    processClasses(classes, report) {
+    processClasses(classes, report, totalStats) {
         if (Array.isArray(classes)) {
             classes.forEach((cls) => {
-                this.processClass(cls, report);
+                this.processClass(cls, report, totalStats);
             });
         }
         else {
-            this.processClass(classes, report);
+            this.processClass(classes, report, totalStats);
         }
     }
     /**
      * Process a single class from Cobertura XML
      * @param cls - Class data from XML
      * @param report - Coverage report to update
+     * @param totalStats - Total statistics accumulator
      */
-    processClass(cls, report) {
+    processClass(cls, report, totalStats) {
         const filename = cls.$.filename;
-        const statements = parseInt(cls.$.line_rate_covered);
-        const statementsTotal = parseInt(cls.$.line_rate);
-        const branches = parseInt(cls.$.branch_rate_covered);
-        const branchesTotal = parseInt(cls.$.branch_rate);
-        const functions = parseInt(cls.$.function_rate_covered);
-        const functionsTotal = parseInt(cls.$.function_rate);
-        report[filename] = {
-            statements: {
-                total: statementsTotal,
-                covered: statements,
+        const lineRate = parseFloat(cls.$['line-rate'] || '0');
+        const branchRate = parseFloat(cls.$['branch-rate'] || '0');
+        // Extract line details from the lines section
+        const lineDetails = [];
+        const uncoveredLines = [];
+        let linesTotal = 0;
+        let linesCovered = 0;
+        // Process line information if available
+        if (cls.lines && cls.lines.line) {
+            const lines = Array.isArray(cls.lines.line) ? cls.lines.line : [cls.lines.line];
+            lines.forEach((line) => {
+                const lineNumber = parseInt(line.$.number);
+                const hits = parseInt(line.$.hits || '0');
+                const isBranch = line.$.branch === 'true';
+                linesTotal++;
+                if (hits > 0) {
+                    linesCovered++;
+                }
+                else {
+                    uncoveredLines.push(lineNumber);
+                }
+                lineDetails.push({
+                    line: lineNumber,
+                    hits: hits,
+                    branch: isBranch
+                });
+            });
+        }
+        // Calculate metrics
+        const linePct = linesTotal > 0 ? (linesCovered / linesTotal) * 100 : 0;
+        // Create file coverage
+        const fileCoverage = {
+            lines: {
+                total: linesTotal,
+                covered: linesCovered,
                 skipped: 0,
-                pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+                pct: linePct,
+                uncovered: uncoveredLines
             },
-            branches: {
-                total: branchesTotal,
-                covered: branches,
+            statements: {
+                total: linesTotal, // In Cobertura, statements often map to lines
+                covered: linesCovered,
                 skipped: 0,
-                pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+                pct: linePct
             },
             functions: {
-                total: functionsTotal,
-                covered: functions,
+                total: 0, // Would need to extract from methods if available
+                covered: 0,
                 skipped: 0,
-                pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+                pct: 0
             },
-            filename
+            branches: {
+                total: 0, // Would need to calculate from branch data
+                covered: 0,
+                skipped: 0,
+                pct: branchRate * 100
+            },
+            lineDetails: lineDetails.sort((a, b) => a.line - b.line),
+            uncoveredLines: uncoveredLines.sort((a, b) => a - b)
         };
+        // Process methods for function coverage if available
+        if (cls.methods && cls.methods.method) {
+            const methods = Array.isArray(cls.methods.method) ? cls.methods.method : [cls.methods.method];
+            let functionsTotal = methods.length;
+            let functionsCovered = 0;
+            methods.forEach((method) => {
+                const methodLineRate = parseFloat(method.$['line-rate'] || '0');
+                const methodBranchRate = parseFloat(method.$['branch-rate'] || '0');
+                // Consider a method covered if it has some coverage
+                if (methodLineRate > 0 || methodBranchRate > 0) {
+                    functionsCovered++;
+                }
+            });
+            fileCoverage.functions = {
+                total: functionsTotal,
+                covered: functionsCovered,
+                skipped: 0,
+                pct: functionsTotal > 0 ? (functionsCovered / functionsTotal) * 100 : 0
+            };
+        }
+        report.files[filename] = fileCoverage;
+        // Update total stats
+        totalStats.lines.total += linesTotal;
+        totalStats.lines.covered += linesCovered;
+        totalStats.statements.total += linesTotal;
+        totalStats.statements.covered += linesCovered;
+        totalStats.functions.total += fileCoverage.functions.total;
+        totalStats.functions.covered += fileCoverage.functions.covered;
+        // Branch stats would need more detailed processing
     }
 }
 
@@ -281,7 +351,6 @@ class JestParser {
             // Log the raw structure
             core.info('Raw coverage report structure:');
             core.info(`- Top level keys: ${Object.keys(parsed).join(', ')}`);
-            core.info(`- Raw content: ${JSON.stringify(parsed, null, 2)}`);
             // Validate the structure
             if (!parsed || typeof parsed !== 'object') {
                 throw new Error('Invalid Jest coverage report: not an object');
@@ -295,99 +364,31 @@ class JestParser {
             core.info(JSON.stringify(parsed.total, null, 2));
             // Create a new report with the correct structure
             const report = {
-                total: {
-                    statements: {
-                        total: parsed.total.statements?.total || 0,
-                        covered: parsed.total.statements?.covered || 0,
-                        skipped: parsed.total.statements?.skipped || 0,
-                        pct: parsed.total.statements?.pct || 0
-                    },
-                    branches: {
-                        total: parsed.total.branches?.total || 0,
-                        covered: parsed.total.branches?.covered || 0,
-                        skipped: parsed.total.branches?.skipped || 0,
-                        pct: parsed.total.branches?.pct || 0
-                    },
-                    functions: {
-                        total: parsed.total.functions?.total || 0,
-                        covered: parsed.total.functions?.covered || 0,
-                        skipped: parsed.total.functions?.skipped || 0,
-                        pct: parsed.total.functions?.pct || 0
-                    },
-                    lines: {
-                        total: parsed.total.lines?.total || 0,
-                        covered: parsed.total.lines?.covered || 0,
-                        skipped: parsed.total.lines?.skipped || 0,
-                        pct: parsed.total.lines?.pct || 0
-                    }
-                }
+                total: this.convertFileCoverage(parsed.total),
+                files: {}
             };
             // Process file entries
             Object.entries(parsed).forEach(([key, value]) => {
                 if (key !== 'total' && typeof value === 'object' && value !== null) {
                     core.info(`Processing file: ${key}`);
-                    core.info(`File coverage structure: ${JSON.stringify(value, null, 2)}`);
-                    const fileValue = value;
-                    // Validate file coverage data
-                    if (!fileValue.statements || !fileValue.branches || !fileValue.functions || !fileValue.lines) {
-                        core.warning(`Skipping file ${key}: missing required coverage metrics`);
-                        return;
-                    }
-                    // Add each file directly to the report with its coverage data
-                    report[key] = {
-                        statements: {
-                            total: fileValue.statements.total || 0,
-                            covered: fileValue.statements.covered || 0,
-                            skipped: fileValue.statements.skipped || 0,
-                            pct: fileValue.statements.pct || 0
-                        },
-                        branches: {
-                            total: fileValue.branches.total || 0,
-                            covered: fileValue.branches.covered || 0,
-                            skipped: fileValue.branches.skipped || 0,
-                            pct: fileValue.branches.pct || 0
-                        },
-                        functions: {
-                            total: fileValue.functions.total || 0,
-                            covered: fileValue.functions.covered || 0,
-                            skipped: fileValue.functions.skipped || 0,
-                            pct: fileValue.functions.pct || 0
-                        },
-                        lines: {
-                            total: fileValue.lines.total || 0,
-                            covered: fileValue.lines.covered || 0,
-                            skipped: fileValue.lines.skipped || 0,
-                            pct: fileValue.lines.pct || 0,
-                            uncovered: fileValue.lines.uncovered || []
-                        }
-                    };
+                    const fileCoverage = this.convertFileCoverage(value, key);
+                    report.files[key] = fileCoverage;
                 }
             });
-            // Validate total structure
-            const total = report.total;
-            if (!total.statements || !total.branches || !total.functions || !total.lines) {
-                throw new Error('Invalid Jest coverage report: total field missing required metrics');
-            }
             // Log the structure
             core.info('Processed coverage report structure:');
-            core.info(`- Total metrics: ${Object.keys(total).join(', ')}`);
-            core.info(`- Number of files: ${Object.keys(report).length - 1}`); // Subtract 1 for total
+            core.info(`- Number of files: ${Object.keys(report.files).length}`);
             // Log file entries for debugging
-            Object.keys(report).forEach(key => {
-                if (key !== 'total') {
-                    core.info(`File: ${key}`);
-                    core.info(`- Statements: ${report[key].statements?.pct}`);
-                    core.info(`- Branches: ${report[key].branches?.pct}`);
-                    core.info(`- Functions: ${report[key].functions?.pct}`);
-                    core.info(`- Lines: ${report[key].lines?.pct}`);
-                    if (report[key].lines?.uncovered) {
-                        core.info(`- Uncovered lines: ${report[key].lines.uncovered.join(', ')}`);
-                    }
+            Object.entries(report.files).forEach(([filePath, fileCoverage]) => {
+                core.info(`File: ${filePath}`);
+                core.info(`- Statements: ${fileCoverage.statements.pct}%`);
+                core.info(`- Branches: ${fileCoverage.branches.pct}%`);
+                core.info(`- Functions: ${fileCoverage.functions.pct}%`);
+                core.info(`- Lines: ${fileCoverage.lines.pct}%`);
+                if (fileCoverage.uncoveredLines && fileCoverage.uncoveredLines.length > 0) {
+                    core.info(`- Uncovered lines: ${fileCoverage.uncoveredLines.slice(0, 10).join(', ')}${fileCoverage.uncoveredLines.length > 10 ? '...' : ''}`);
                 }
             });
-            // Log final report structure
-            core.info('Final report structure:');
-            core.info(JSON.stringify(report, null, 2));
             return report;
         }
         catch (error) {
@@ -399,6 +400,92 @@ class JestParser {
             }
             throw error;
         }
+    }
+    /**
+     * Convert Jest file coverage to our enhanced format
+     * @param jestCoverage Jest coverage data
+     * @param filePath Optional file path for detailed analysis
+     * @returns Enhanced file coverage data
+     */
+    convertFileCoverage(jestCoverage, filePath) {
+        const fileCoverage = {
+            lines: {
+                total: jestCoverage.lines?.total || 0,
+                covered: jestCoverage.lines?.covered || 0,
+                skipped: jestCoverage.lines?.skipped || 0,
+                pct: jestCoverage.lines?.pct || 0
+            },
+            statements: {
+                total: jestCoverage.statements?.total || 0,
+                covered: jestCoverage.statements?.covered || 0,
+                skipped: jestCoverage.statements?.skipped || 0,
+                pct: jestCoverage.statements?.pct || 0
+            },
+            functions: {
+                total: jestCoverage.functions?.total || 0,
+                covered: jestCoverage.functions?.covered || 0,
+                skipped: jestCoverage.functions?.skipped || 0,
+                pct: jestCoverage.functions?.pct || 0
+            },
+            branches: {
+                total: jestCoverage.branches?.total || 0,
+                covered: jestCoverage.branches?.covered || 0,
+                skipped: jestCoverage.branches?.skipped || 0,
+                pct: jestCoverage.branches?.pct || 0
+            }
+        };
+        // Extract detailed line information if available
+        if (jestCoverage.statementMap && jestCoverage.s) {
+            const lineDetails = [];
+            const uncoveredLines = [];
+            Object.entries(jestCoverage.statementMap).forEach(([statementId, statementInfo]) => {
+                const hits = jestCoverage.s[statementId] || 0;
+                const lineNumber = statementInfo.start.line;
+                // Add to line details
+                lineDetails.push({
+                    line: lineNumber,
+                    hits: hits,
+                    branch: false
+                });
+                // Track uncovered lines
+                if (hits === 0) {
+                    uncoveredLines.push(lineNumber);
+                }
+            });
+            // Add branch information if available
+            if (jestCoverage.branchMap && jestCoverage.b) {
+                Object.entries(jestCoverage.branchMap).forEach(([branchId, branchInfo]) => {
+                    const branchHits = jestCoverage.b[branchId] || [];
+                    const lineNumber = branchInfo.line;
+                    // Check if any branch path is uncovered
+                    const hasUncoveredBranch = branchHits.some((hits) => hits === 0);
+                    if (hasUncoveredBranch) {
+                        // Find existing line detail or create new one
+                        let lineDetail = lineDetails.find(detail => detail.line === lineNumber);
+                        if (lineDetail) {
+                            lineDetail.branch = true;
+                        }
+                        else {
+                            lineDetails.push({
+                                line: lineNumber,
+                                hits: hasUncoveredBranch ? 0 : 1,
+                                branch: true
+                            });
+                        }
+                        // Add to uncovered lines if not already there
+                        if (!uncoveredLines.includes(lineNumber)) {
+                            uncoveredLines.push(lineNumber);
+                        }
+                    }
+                });
+            }
+            // Sort and deduplicate uncovered lines
+            const uniqueUncoveredLines = [...new Set(uncoveredLines)].sort((a, b) => a - b);
+            fileCoverage.lineDetails = lineDetails.sort((a, b) => a.line - b.line);
+            fileCoverage.uncoveredLines = uniqueUncoveredLines;
+            fileCoverage.lines.uncovered = uniqueUncoveredLines;
+        }
+        return fileCoverage;
     }
 }
 
@@ -1631,22 +1718,73 @@ class ReportService {
         }
         // Add AI analysis section if available
         if (aiAnalysis && aiAnalysis.insights.length > 0) {
-            messageToPost += '\n\n## AI Analysis\n\n';
+            messageToPost += '\n\n## 🤖 AI Coverage Analysis\n\n';
             messageToPost += `${aiAnalysis.summary}\n\n`;
             if (aiAnalysis.recommendations.length > 0) {
-                messageToPost += '### Recommendations\n';
+                messageToPost += '### 📋 Recommendations\n';
                 aiAnalysis.recommendations.forEach(rec => {
                     messageToPost += `- ${rec}\n`;
                 });
                 messageToPost += '\n';
             }
-            messageToPost += '### Detailed Insights\n';
+            // Add line-level suggestions if available
+            if (aiAnalysis.lineSuggestions && aiAnalysis.lineSuggestions.length > 0) {
+                messageToPost += '### 🎯 Specific Line Suggestions\n\n';
+                // Group suggestions by file
+                const suggestionsByFile = aiAnalysis.lineSuggestions.reduce((acc, suggestion) => {
+                    if (!acc[suggestion.file]) {
+                        acc[suggestion.file] = [];
+                    }
+                    acc[suggestion.file].push(suggestion);
+                    return acc;
+                }, {});
+                Object.entries(suggestionsByFile).forEach(([file, suggestions]) => {
+                    messageToPost += `**${file}**\n`;
+                    suggestions.forEach(suggestion => {
+                        const priorityEmoji = suggestion.priority === 'high' ? '🔴' :
+                            suggestion.priority === 'medium' ? '🟡' : '🟢';
+                        const testTypeEmoji = suggestion.testType === 'unit' ? '🧪' :
+                            suggestion.testType === 'integration' ? '🔗' : '⚠️';
+                        messageToPost += `- ${priorityEmoji} ${testTypeEmoji} **Line ${suggestion.line}**: ${suggestion.suggestion}\n`;
+                    });
+                    messageToPost += '\n';
+                });
+            }
+            // Add uncovered files summary if available
+            if (aiAnalysis.uncoveredFiles && aiAnalysis.uncoveredFiles.length > 0) {
+                messageToPost += '### 📊 Files Needing Coverage\n\n';
+                // Show top 5 files with most uncovered lines
+                const topUncoveredFiles = aiAnalysis.uncoveredFiles.slice(0, 5);
+                topUncoveredFiles.forEach(fileInfo => {
+                    const fileName = fileInfo.file.split('/').pop() || fileInfo.file;
+                    messageToPost += `**${fileName}** (${fileInfo.coverage.toFixed(1)}% coverage)\n`;
+                    messageToPost += `- ${fileInfo.lines.length} uncovered lines: ${fileInfo.lines.slice(0, 10).join(', ')}${fileInfo.lines.length > 10 ? '...' : ''}\n`;
+                    // Add code snippets if available
+                    if (fileInfo.codeSnippets && fileInfo.codeSnippets.length > 0) {
+                        messageToPost += '- Key uncovered code:\n';
+                        fileInfo.codeSnippets.slice(0, 3).forEach(snippet => {
+                            messageToPost += `  - Line ${snippet.line}: \`${snippet.code.trim()}\`\n`;
+                        });
+                    }
+                    messageToPost += '\n';
+                });
+            }
+            messageToPost += '### 🔍 Detailed Insights\n';
             aiAnalysis.insights.forEach(insight => {
                 const emoji = insight.type === 'warning' ? '⚠️' :
                     insight.type === 'improvement' ? '✅' : '💡';
                 messageToPost += `${emoji} **${insight.severity.toUpperCase()}**: ${insight.message}\n`;
                 if (insight.file) {
                     messageToPost += `   - File: ${insight.file}\n`;
+                }
+                if (insight.uncoveredLines && insight.uncoveredLines.length > 0) {
+                    messageToPost += `   - Uncovered lines: ${insight.uncoveredLines.join(', ')}\n`;
+                }
+                if (insight.suggestedTests && insight.suggestedTests.length > 0) {
+                    messageToPost += `   - Suggested tests:\n`;
+                    insight.suggestedTests.forEach(test => {
+                        messageToPost += `     - ${test}\n`;
+                    });
                 }
             });
         }
@@ -9190,6 +9328,7 @@ const API_KEY_SENTINEL = '<Missing Key>';
 // CONCATENATED MODULE: ./lib/services/ai-service.js
 
 
+
 /**
  * Service for analyzing coverage data using OpenAI
  */
@@ -9264,17 +9403,26 @@ class AIService {
             // Prepare coverage data for analysis
             const coverageData = this.prepareCoverageData(currentCoverage, baseCoverage);
             core.debug(`Prepared coverage data: ${JSON.stringify(coverageData, null, 2)}`);
+            // Extract uncovered lines information
+            const uncoveredFiles = this.extractUncoveredLines(currentCoverage);
+            core.info(`Found ${uncoveredFiles.length} files with uncovered lines`);
             core.info('Sending request to OpenAI...');
             // Get analysis from OpenAI
             const response = await this.openai.chat.completions.create({
                 model: this.config.model || 'gpt-4',
                 temperature: this.config.temperature || 0.7,
-                max_tokens: this.config.maxTokens || 1000,
+                max_tokens: this.config.maxTokens || 2000, // Increased for detailed line suggestions
                 messages: [
                     {
                         role: 'system',
-                        content: `You are a code coverage analysis expert. Analyze the provided coverage data and generate insights, recommendations, and a summary. 
-            Focus on identifying areas of concern, improvements, and actionable recommendations.
+                        content: `You are a code coverage analysis expert. Analyze the provided coverage data and generate insights, recommendations, and specific line-level suggestions for improving test coverage.
+            
+            Focus on:
+            1. Identifying critical uncovered lines that need testing
+            2. Suggesting specific test cases for uncovered code paths
+            3. Prioritizing which lines are most important to cover
+            4. Recommending test types (unit, integration, edge-case)
+            
             Format your response as a JSON object with the following structure:
             {
               "insights": [
@@ -9282,16 +9430,30 @@ class AIService {
                   "type": "warning" | "improvement" | "suggestion",
                   "message": "string",
                   "severity": "high" | "medium" | "low",
-                  "file": "string (optional)"
+                  "file": "string (optional)",
+                  "uncoveredLines": [number] (optional),
+                  "suggestedTests": ["string"] (optional)
                 }
               ],
               "summary": "string",
-              "recommendations": ["string"]
+              "recommendations": ["string"],
+              "lineSuggestions": [
+                {
+                  "file": "string",
+                  "line": number,
+                  "suggestion": "string - specific test suggestion for this line",
+                  "priority": "high" | "medium" | "low",
+                  "testType": "unit" | "integration" | "edge-case"
+                }
+              ]
             }`
                     },
                     {
                         role: 'user',
-                        content: JSON.stringify(coverageData)
+                        content: JSON.stringify({
+                            ...coverageData,
+                            uncoveredFiles: uncoveredFiles.slice(0, 10) // Limit to first 10 files to avoid token limits
+                        })
                     }
                 ]
             });
@@ -9299,7 +9461,9 @@ class AIService {
             core.debug(`OpenAI response: ${JSON.stringify(response, null, 2)}`);
             // Parse the response
             const analysis = JSON.parse(response.choices[0].message.content || '{}');
-            core.info(`Analysis complete. Found ${analysis.insights.length} insights and ${analysis.recommendations.length} recommendations`);
+            // Add the uncovered files information
+            analysis.uncoveredFiles = uncoveredFiles;
+            core.info(`Analysis complete. Found ${analysis.insights.length} insights, ${analysis.recommendations.length} recommendations, and ${analysis.lineSuggestions?.length || 0} line suggestions`);
             core.debug(`Full analysis: ${JSON.stringify(analysis, null, 2)}`);
             return analysis;
         }
@@ -9314,6 +9478,65 @@ class AIService {
                 recommendations: []
             };
         }
+    }
+    /**
+     * Extract uncovered lines information from coverage data
+     * @param coverage Coverage report data
+     * @returns Array of uncovered line information per file
+     */
+    extractUncoveredLines(coverage) {
+        const uncoveredFiles = [];
+        Object.entries(coverage.files).forEach(([filePath, fileCoverage]) => {
+            const uncoveredLines = [];
+            // Extract uncovered lines from different sources
+            if (fileCoverage.uncoveredLines) {
+                uncoveredLines.push(...fileCoverage.uncoveredLines);
+            }
+            if (fileCoverage.lineDetails) {
+                fileCoverage.lineDetails.forEach(lineDetail => {
+                    if (lineDetail.hits === 0) {
+                        uncoveredLines.push(lineDetail.line);
+                    }
+                });
+            }
+            // If we have uncovered lines, add to the list
+            if (uncoveredLines.length > 0) {
+                const uniqueLines = [...new Set(uncoveredLines)].sort((a, b) => a - b);
+                uncoveredFiles.push({
+                    file: filePath,
+                    lines: uniqueLines,
+                    coverage: fileCoverage.lines.pct,
+                    codeSnippets: this.extractCodeSnippets(filePath, uniqueLines)
+                });
+            }
+        });
+        // Sort by number of uncovered lines (most problematic first)
+        return uncoveredFiles.sort((a, b) => b.lines.length - a.lines.length);
+    }
+    /**
+     * Extract code snippets for uncovered lines
+     * @param filePath Path to the file
+     * @param lines Array of line numbers
+     * @returns Array of code snippets
+     */
+    extractCodeSnippets(filePath, lines) {
+        try {
+            // Only extract snippets for a reasonable number of lines to avoid token limits
+            const maxSnippets = 5;
+            const linesToExtract = lines.slice(0, maxSnippets);
+            if (external_fs_.existsSync(filePath)) {
+                const fileContent = external_fs_.readFileSync(filePath, 'utf8');
+                const fileLines = fileContent.split('\n');
+                return linesToExtract.map(lineNum => ({
+                    line: lineNum,
+                    code: fileLines[lineNum - 1] || '' // Line numbers are 1-based
+                })).filter(snippet => snippet.code.trim().length > 0);
+            }
+        }
+        catch (error) {
+            core.debug(`Could not extract code snippets from ${filePath}: ${error}`);
+        }
+        return [];
     }
     /**
      * Prepare coverage data for AI analysis
@@ -9343,7 +9566,8 @@ class AIService {
                     .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
                     .map(([file, coverage]) => ({
                     file,
-                    coverage: coverage.lines.pct
+                    coverage: coverage.lines.pct,
+                    uncoveredLines: coverage.uncoveredLines || []
                 }))
             }
         };

@@ -1,7 +1,8 @@
 import * as core from '@actions/core';
 import OpenAI from 'openai';
-import { CoverageAnalysis, CoverageInsight, AIConfig } from '../types/ai';
+import { CoverageAnalysis, AIConfig, UncoveredLineInfo } from '../types/ai';
 import { CoverageReport, FileCoverage } from '../types/coverage';
+import * as fs from 'fs';
 
 /**
  * Service for analyzing coverage data using OpenAI
@@ -89,17 +90,27 @@ export class AIService {
       const coverageData = this.prepareCoverageData(currentCoverage, baseCoverage);
       core.debug(`Prepared coverage data: ${JSON.stringify(coverageData, null, 2)}`);
       
+      // Extract uncovered lines information
+      const uncoveredFiles = this.extractUncoveredLines(currentCoverage);
+      core.info(`Found ${uncoveredFiles.length} files with uncovered lines`);
+      
       core.info('Sending request to OpenAI...');
       // Get analysis from OpenAI
       const response = await this.openai.chat.completions.create({
         model: this.config.model || 'gpt-4',
         temperature: this.config.temperature || 0.7,
-        max_tokens: this.config.maxTokens || 1000,
+        max_tokens: this.config.maxTokens || 2000, // Increased for detailed line suggestions
         messages: [
           {
             role: 'system',
-            content: `You are a code coverage analysis expert. Analyze the provided coverage data and generate insights, recommendations, and a summary. 
-            Focus on identifying areas of concern, improvements, and actionable recommendations.
+            content: `You are a code coverage analysis expert. Analyze the provided coverage data and generate insights, recommendations, and specific line-level suggestions for improving test coverage.
+            
+            Focus on:
+            1. Identifying critical uncovered lines that need testing
+            2. Suggesting specific test cases for uncovered code paths
+            3. Prioritizing which lines are most important to cover
+            4. Recommending test types (unit, integration, edge-case)
+            
             Format your response as a JSON object with the following structure:
             {
               "insights": [
@@ -107,16 +118,30 @@ export class AIService {
                   "type": "warning" | "improvement" | "suggestion",
                   "message": "string",
                   "severity": "high" | "medium" | "low",
-                  "file": "string (optional)"
+                  "file": "string (optional)",
+                  "uncoveredLines": [number] (optional),
+                  "suggestedTests": ["string"] (optional)
                 }
               ],
               "summary": "string",
-              "recommendations": ["string"]
+              "recommendations": ["string"],
+              "lineSuggestions": [
+                {
+                  "file": "string",
+                  "line": number,
+                  "suggestion": "string - specific test suggestion for this line",
+                  "priority": "high" | "medium" | "low",
+                  "testType": "unit" | "integration" | "edge-case"
+                }
+              ]
             }`
           },
           {
             role: 'user',
-            content: JSON.stringify(coverageData)
+            content: JSON.stringify({
+              ...coverageData,
+              uncoveredFiles: uncoveredFiles.slice(0, 10) // Limit to first 10 files to avoid token limits
+            })
           }
         ]
       });
@@ -127,7 +152,10 @@ export class AIService {
       // Parse the response
       const analysis = JSON.parse(response.choices[0].message.content || '{}') as CoverageAnalysis;
       
-      core.info(`Analysis complete. Found ${analysis.insights.length} insights and ${analysis.recommendations.length} recommendations`);
+      // Add the uncovered files information
+      analysis.uncoveredFiles = uncoveredFiles;
+      
+      core.info(`Analysis complete. Found ${analysis.insights.length} insights, ${analysis.recommendations.length} recommendations, and ${analysis.lineSuggestions?.length || 0} line suggestions`);
       core.debug(`Full analysis: ${JSON.stringify(analysis, null, 2)}`);
       
       return analysis;
@@ -145,6 +173,75 @@ export class AIService {
   }
 
   /**
+   * Extract uncovered lines information from coverage data
+   * @param coverage Coverage report data
+   * @returns Array of uncovered line information per file
+   */
+  private extractUncoveredLines(coverage: CoverageReport): UncoveredLineInfo[] {
+    const uncoveredFiles: UncoveredLineInfo[] = [];
+    
+    Object.entries(coverage.files).forEach(([filePath, fileCoverage]) => {
+      const uncoveredLines: number[] = [];
+      
+      // Extract uncovered lines from different sources
+      if (fileCoverage.uncoveredLines) {
+        uncoveredLines.push(...fileCoverage.uncoveredLines);
+      }
+      
+      if (fileCoverage.lineDetails) {
+        fileCoverage.lineDetails.forEach(lineDetail => {
+          if (lineDetail.hits === 0) {
+            uncoveredLines.push(lineDetail.line);
+          }
+        });
+      }
+      
+      // If we have uncovered lines, add to the list
+      if (uncoveredLines.length > 0) {
+        const uniqueLines = [...new Set(uncoveredLines)].sort((a, b) => a - b);
+        
+        uncoveredFiles.push({
+          file: filePath,
+          lines: uniqueLines,
+          coverage: fileCoverage.lines.pct,
+          codeSnippets: this.extractCodeSnippets(filePath, uniqueLines)
+        });
+      }
+    });
+    
+    // Sort by number of uncovered lines (most problematic first)
+    return uncoveredFiles.sort((a, b) => b.lines.length - a.lines.length);
+  }
+
+  /**
+   * Extract code snippets for uncovered lines
+   * @param filePath Path to the file
+   * @param lines Array of line numbers
+   * @returns Array of code snippets
+   */
+  private extractCodeSnippets(filePath: string, lines: number[]): Array<{ line: number; code: string }> {
+    try {
+      // Only extract snippets for a reasonable number of lines to avoid token limits
+      const maxSnippets = 5;
+      const linesToExtract = lines.slice(0, maxSnippets);
+      
+      if (fs.existsSync(filePath)) {
+        const fileContent = fs.readFileSync(filePath, 'utf8');
+        const fileLines = fileContent.split('\n');
+        
+        return linesToExtract.map(lineNum => ({
+          line: lineNum,
+          code: fileLines[lineNum - 1] || '' // Line numbers are 1-based
+        })).filter(snippet => snippet.code.trim().length > 0);
+      }
+    } catch (error) {
+      core.debug(`Could not extract code snippets from ${filePath}: ${error}`);
+    }
+    
+    return [];
+  }
+
+  /**
    * Prepare coverage data for AI analysis
    * @param currentCoverage Current branch coverage data
    * @param baseCoverage Optional base branch coverage data
@@ -157,6 +254,7 @@ export class AIService {
         files: Array<{
           file: string;
           coverage: number;
+          uncoveredLines?: number[];
         }>;
       };
       base?: {
@@ -192,7 +290,8 @@ export class AIService {
           .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
           .map(([file, coverage]) => ({
             file,
-            coverage: coverage.lines.pct
+            coverage: coverage.lines.pct,
+            uncoveredLines: coverage.uncoveredLines || []
           }))
       }
     };

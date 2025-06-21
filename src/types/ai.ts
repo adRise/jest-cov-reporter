@@ -16,6 +16,32 @@ export interface CoverageInsight {
   
   /** Optional line number this insight relates to */
   line?: number;
+
+  /** Optional specific lines that need coverage */
+  uncoveredLines?: number[];
+
+  /** Optional suggested test cases for specific lines */
+  suggestedTests?: string[];
+}
+
+/**
+ * Represents detailed information about uncovered lines in a file
+ */
+export interface UncoveredLineInfo {
+  /** File path */
+  file: string;
+  
+  /** Array of uncovered line numbers */
+  lines: number[];
+  
+  /** Line coverage percentage for this file */
+  coverage: number;
+  
+  /** Optional code snippets for uncovered lines */
+  codeSnippets?: Array<{
+    line: number;
+    code: string;
+  }>;
 }
 
 /**
@@ -50,4 +76,16 @@ export interface CoverageAnalysis {
   
   /** List of actionable recommendations */
   recommendations: string[];
+
+  /** Detailed information about uncovered lines per file */
+  uncoveredFiles?: UncoveredLineInfo[];
+
+  /** AI-generated suggestions for specific lines that need coverage */
+  lineSuggestions?: Array<{
+    file: string;
+    line: number;
+    suggestion: string;
+    priority: 'high' | 'medium' | 'low';
+    testType: 'unit' | 'integration' | 'edge-case';
+  }>;
 } 

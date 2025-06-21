@@ -69,23 +69,23 @@ inputs:
     required: false
     description: 'Base URL for S3 coverage reports'
   ai-enabled:
-    description: 'Enable AI analysis of coverage reports'
+    description: 'Enable AI-powered coverage analysis and line-level suggestions'
     required: false
     default: 'false'
   ai-model:
-    description: 'AI model to use for analysis (e.g., gpt-4)'
+    description: 'AI model to use for analysis (e.g., gpt-4, gpt-3.5-turbo)'
     required: false
     default: 'gpt-4'
   ai-temperature:
-    description: 'Temperature setting for AI responses (0-1)'
+    description: 'Temperature setting for AI responses (0-1, lower = more focused)'
     required: false
     default: '0.7'
   ai-max-tokens:
-    description: 'Maximum tokens for AI responses'
+    description: 'Maximum tokens for AI responses (increase for detailed line suggestions)'
     required: false
-    default: '1000'
+    default: '2000'
   ai-api-key:
-    description: 'API key for AI service'
+    description: 'OpenAI API key for AI-powered coverage analysis'
     required: false
 
 runs:

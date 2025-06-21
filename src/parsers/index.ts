@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { CoverageReport } from '../types';
+import { CoverageReport } from '../types/coverage';
 import { CoberturaParser } from './cobertura';
 import { JestParser } from './jest';
 import { CoverageReportParser, CoverageReportParserFactory } from './types';
