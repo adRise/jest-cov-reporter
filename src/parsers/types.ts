@@ -1,4 +1,4 @@
-import { CoverageReport } from '../types';
+import { CoverageReport } from '../types/coverage';
 
 /**
  * Parser interface for coverage report parsers

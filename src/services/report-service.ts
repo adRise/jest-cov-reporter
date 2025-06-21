@@ -5,6 +5,7 @@ import { createOrUpdateComment, findComment } from '../utils/github';
 import { CoverageDiffCalculator } from '../core/diff/CoverageDiffCalculator';
 import { ReportFormatter } from '../core/format/ReportFormatter';
 import { ThresholdValidator } from '../core/threshold/ThresholdValidator';
+import { CoverageAnalysis } from '../types/ai';
 
 /**
  * Service to handle report generation and commenting on PRs
@@ -31,7 +32,8 @@ export class ReportService {
     currentDirectory,
     changedFiles,
     addedFiles,
-    checkNewFileFullCoverage
+    checkNewFileFullCoverage,
+    aiAnalysis
   }: {
     baseCoverage: any;
     branchCoverage: any;
@@ -39,6 +41,7 @@ export class ReportService {
     changedFiles: string[];
     addedFiles: string[];
     checkNewFileFullCoverage: boolean;
+    aiAnalysis?: CoverageAnalysis;
   }): Promise<{
     report: string;
     success: boolean;
@@ -136,6 +139,87 @@ export class ReportService {
       } = totalCoverageLines;
       messageToPost +=
             `| Total | ${totalPct}% | \n :-----|-----: \n Change from base: | ${changesPct}% \n Covered ${summaryMetric}: | ${covered} \n Total ${summaryMetric}: | ${total} \n`;
+    }
+
+    // Add AI analysis section if available
+    if (aiAnalysis && aiAnalysis.insights.length > 0) {
+      messageToPost += '\n\n## 🤖 AI Coverage Analysis\n\n';
+      messageToPost += `${aiAnalysis.summary}\n\n`;
+      
+      if (aiAnalysis.recommendations.length > 0) {
+        messageToPost += '### 📋 Recommendations\n';
+        aiAnalysis.recommendations.forEach(rec => {
+          messageToPost += `- ${rec}\n`;
+        });
+        messageToPost += '\n';
+      }
+
+      // Add line-level suggestions if available
+      if (aiAnalysis.lineSuggestions && aiAnalysis.lineSuggestions.length > 0) {
+        messageToPost += '### 🎯 Specific Line Suggestions\n\n';
+        
+        // Group suggestions by file
+        const suggestionsByFile = aiAnalysis.lineSuggestions.reduce((acc, suggestion) => {
+          if (!acc[suggestion.file]) {
+            acc[suggestion.file] = [];
+          }
+          acc[suggestion.file].push(suggestion);
+          return acc;
+        }, {} as Record<string, typeof aiAnalysis.lineSuggestions>);
+
+        Object.entries(suggestionsByFile).forEach(([file, suggestions]) => {
+          messageToPost += `**${file}**\n`;
+          suggestions.forEach(suggestion => {
+            const priorityEmoji = suggestion.priority === 'high' ? '🔴' : 
+                                 suggestion.priority === 'medium' ? '🟡' : '🟢';
+            const testTypeEmoji = suggestion.testType === 'unit' ? '🧪' : 
+                                 suggestion.testType === 'integration' ? '🔗' : '⚠️';
+            messageToPost += `- ${priorityEmoji} ${testTypeEmoji} **Line ${suggestion.line}**: ${suggestion.suggestion}\n`;
+          });
+          messageToPost += '\n';
+        });
+      }
+
+      // Add uncovered files summary if available
+      if (aiAnalysis.uncoveredFiles && aiAnalysis.uncoveredFiles.length > 0) {
+        messageToPost += '### 📊 Files Needing Coverage\n\n';
+        
+        // Show top 5 files with most uncovered lines
+        const topUncoveredFiles = aiAnalysis.uncoveredFiles.slice(0, 5);
+        topUncoveredFiles.forEach(fileInfo => {
+          const fileName = fileInfo.file.split('/').pop() || fileInfo.file;
+          messageToPost += `**${fileName}** (${fileInfo.coverage.toFixed(1)}% coverage)\n`;
+          messageToPost += `- ${fileInfo.lines.length} uncovered lines: ${fileInfo.lines.slice(0, 10).join(', ')}${fileInfo.lines.length > 10 ? '...' : ''}\n`;
+          
+          // Add code snippets if available
+          if (fileInfo.codeSnippets && fileInfo.codeSnippets.length > 0) {
+            messageToPost += '- Key uncovered code:\n';
+            fileInfo.codeSnippets.slice(0, 3).forEach(snippet => {
+              messageToPost += `  - Line ${snippet.line}: \`${snippet.code.trim()}\`\n`;
+            });
+          }
+          messageToPost += '\n';
+        });
+      }
+
+      messageToPost += '### 🔍 Detailed Insights\n';
+      aiAnalysis.insights.forEach(insight => {
+        const emoji = insight.type === 'warning' ? '⚠️' : 
+                     insight.type === 'improvement' ? '✅' : '💡';
+        messageToPost += `${emoji} **${insight.severity.toUpperCase()}**: ${insight.message}\n`;
+        if (insight.file) {
+          messageToPost += `   - File: ${insight.file}\n`;
+        }
+        if (insight.uncoveredLines && insight.uncoveredLines.length > 0) {
+          messageToPost += `   - Uncovered lines: ${insight.uncoveredLines.join(', ')}\n`;
+        }
+        if (insight.suggestedTests && insight.suggestedTests.length > 0) {
+          messageToPost += `   - Suggested tests:\n`;
+          insight.suggestedTests.forEach(test => {
+            messageToPost += `     - ${test}\n`;
+          });
+        }
+      });
     }
 
     messageToPost = `${COMMENT_IDENTIFIER} \n ${messageToPost}`;
