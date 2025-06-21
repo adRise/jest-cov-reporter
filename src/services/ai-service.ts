@@ -180,7 +180,27 @@ export class AIService {
   private extractUncoveredLines(coverage: CoverageReport): UncoveredLineInfo[] {
     const uncoveredFiles: UncoveredLineInfo[] = [];
     
-    Object.entries(coverage.files).forEach(([filePath, fileCoverage]) => {
+    // Handle different coverage report formats
+    let files: Record<string, FileCoverage>;
+    
+    if (coverage.files) {
+      // New format with separate files object
+      files = coverage.files;
+    } else {
+      // Legacy format where files are at root level
+      files = {};
+      Object.entries(coverage).forEach(([key, value]) => {
+        if (key !== 'total' && typeof value === 'object' && value !== null) {
+          files[key] = value as FileCoverage;
+        }
+      });
+    }
+    
+    Object.entries(files).forEach(([filePath, fileCoverage]) => {
+      if (!fileCoverage || !fileCoverage.lines) {
+        return; // Skip invalid file coverage data
+      }
+      
       const uncoveredLines: number[] = [];
       
       // Extract uncovered lines from different sources
@@ -269,24 +289,77 @@ export class AIService {
     core.info('Preparing coverage data...');
     
     // Validate current coverage data
-    if (!currentCoverage || !currentCoverage.total || !currentCoverage.files) {
-      core.error('Invalid current coverage data structure');
+    if (!currentCoverage) {
+      core.error('Current coverage data is null or undefined');
       throw new Error('Invalid current coverage data structure');
     }
 
-    core.debug(`Current coverage: ${JSON.stringify(currentCoverage, null, 2)}`);
+    // Handle different coverage report formats
+    let currentTotal: FileCoverage;
+    let currentFiles: Record<string, FileCoverage>;
+
+    if (currentCoverage.total && currentCoverage.files) {
+      // New format with separate total and files
+      currentTotal = currentCoverage.total;
+      currentFiles = currentCoverage.files;
+    } else if ((currentCoverage as any).total && Object.keys(currentCoverage).length > 1) {
+      // Legacy format where files are mixed with total at root level
+      const legacyCoverage = currentCoverage as any;
+      currentTotal = legacyCoverage.total;
+      currentFiles = {};
+      
+      // Extract files from root level (excluding 'total')
+      Object.entries(legacyCoverage).forEach(([key, value]) => {
+        if (key !== 'total' && typeof value === 'object' && value !== null) {
+          currentFiles[key] = value as FileCoverage;
+        }
+      });
+    } else {
+      core.error('Invalid current coverage data structure - missing total or files');
+      core.debug(`Current coverage keys: ${Object.keys(currentCoverage)}`);
+      core.debug(`Current coverage structure: ${JSON.stringify(currentCoverage, null, 2)}`);
+      throw new Error('Invalid current coverage data structure');
+    }
+
+    core.debug(`Current coverage files count: ${Object.keys(currentFiles).length}`);
+    
+    // Validate base coverage data if provided
+    let baseTotal: FileCoverage | undefined;
+    let baseFiles: Record<string, FileCoverage> | undefined;
+
     if (baseCoverage) {
-      if (!baseCoverage.total || !baseCoverage.files) {
-        core.error('Invalid base coverage data structure');
-        throw new Error('Invalid base coverage data structure');
+      if (baseCoverage.total && baseCoverage.files) {
+        // New format
+        baseTotal = baseCoverage.total;
+        baseFiles = baseCoverage.files;
+      } else if ((baseCoverage as any).total && Object.keys(baseCoverage).length > 1) {
+        // Legacy format
+        const legacyBaseCoverage = baseCoverage as any;
+        baseTotal = legacyBaseCoverage.total;
+        baseFiles = {};
+        
+        Object.entries(legacyBaseCoverage).forEach(([key, value]) => {
+          if (key !== 'total' && typeof value === 'object' && value !== null) {
+            baseFiles![key] = value as FileCoverage;
+          }
+        });
+      } else {
+        core.warning('Invalid base coverage data structure - skipping base comparison');
+        core.debug(`Base coverage keys: ${Object.keys(baseCoverage)}`);
+        core.debug(`Base coverage structure: ${JSON.stringify(baseCoverage, null, 2)}`);
+        baseTotal = undefined;
+        baseFiles = undefined;
       }
-      core.debug(`Base coverage: ${JSON.stringify(baseCoverage, null, 2)}`);
+      
+      if (baseFiles) {
+        core.debug(`Base coverage files count: ${Object.keys(baseFiles).length}`);
+      }
     }
 
     const data: CoverageData = {
       current: {
-        total: currentCoverage.total,
-        files: Object.entries(currentCoverage.files)
+        total: currentTotal,
+        files: Object.entries(currentFiles)
           .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
           .map(([file, coverage]) => ({
             file,
@@ -296,10 +369,10 @@ export class AIService {
       }
     };
 
-    if (baseCoverage) {
+    if (baseTotal && baseFiles) {
       data.base = {
-        total: baseCoverage.total,
-        files: Object.entries(baseCoverage.files)
+        total: baseTotal,
+        files: Object.entries(baseFiles)
           .filter(([_, coverage]) => coverage && coverage.lines && coverage.lines.pct < 80)
           .map(([file, coverage]) => ({
             file,
