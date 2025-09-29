@@ -33,59 +33,54 @@ export class CoberturaParser implements CoverageReportParser {
    */
   private processCobertura(result: any): CoverageReport {
     const report: CoverageReport = {};
-    const coverages = result.coverage.packages.package;
-    let statements = 0;
-    let statementsTotal = 0;
-    let branches = 0;
-    let branchesTotal = 0;
-    let functions = 0;
-    let functionsTotal = 0;
-
-    if (Array.isArray(coverages)) {
-      coverages.forEach((pkg: any) => {
-        const classes = pkg.classes.class;
-        this.processClasses(classes, report);
-
-        // Sum up package totals
-        statementsTotal += parseInt(pkg.$.line_rate);
-        statements += parseInt(pkg.$.line_rate_covered);
-        branchesTotal += parseInt(pkg.$.branch_rate);
-        branches += parseInt(pkg.$.branch_rate_covered);
-        functionsTotal += parseInt(pkg.$.function_rate);
-        functions += parseInt(pkg.$.function_rate_covered);
-      });
-    } else {
-      const classes = coverages.classes.class;
-      this.processClasses(classes, report);
-
-      // Get totals from the single package
-      statementsTotal = parseInt(coverages.$.line_rate);
-      statements = parseInt(coverages.$.line_rate_covered);
-      branchesTotal = parseInt(coverages.$.branch_rate);
-      branches = parseInt(coverages.$.branch_rate_covered);
-      functionsTotal = parseInt(coverages.$.function_rate);
-      functions = parseInt(coverages.$.function_rate_covered);
+    const coverage = result.coverage;
+    
+    // Get totals from the root coverage element
+    const linesTotal = parseInt(coverage.$['lines-valid']) || 0;
+    const linesCovered = parseInt(coverage.$['lines-covered']) || 0;
+    const branchesTotal = parseInt(coverage.$['branches-valid']) || 0;
+    const branchesCovered = parseInt(coverage.$['branches-covered']) || 0;
+    
+    // Process packages
+    const packages = coverage.packages?.package;
+    if (packages) {
+      if (Array.isArray(packages)) {
+        packages.forEach((pkg: any) => {
+          if (pkg.classes?.class) {
+            this.processClasses(pkg.classes.class, report);
+          }
+        });
+      } else {
+        if (packages.classes?.class) {
+          this.processClasses(packages.classes.class, report);
+        }
+      }
     }
 
+    // Calculate line and branch percentages
+    const linePct = linesTotal > 0 ? (linesCovered / linesTotal) * 100 : 0;
+    const branchPct = branchesTotal > 0 ? (branchesCovered / branchesTotal) * 100 : 0;
+
     // Add total summary
+    // Note: Cobertura doesn't track functions separately, so we use lines for both statements and lines
     report.total = {
       statements: {
-        total: statementsTotal,
-        covered: statements,
+        total: linesTotal,
+        covered: linesCovered,
         skipped: 0,
-        pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+        pct: linePct
       },
       branches: {
         total: branchesTotal,
-        covered: branches,
+        covered: branchesCovered,
         skipped: 0,
-        pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+        pct: branchPct
       },
       functions: {
-        total: functionsTotal,
-        covered: functions,
+        total: 0,
+        covered: 0,
         skipped: 0,
-        pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+        pct: 0
       }
     };
 
@@ -114,31 +109,79 @@ export class CoberturaParser implements CoverageReportParser {
    */
   private processClass(cls: any, report: CoverageReport): void {
     const filename = cls.$.filename;
-    const statements = parseInt(cls.$.line_rate_covered);
-    const statementsTotal = parseInt(cls.$.line_rate);
-    const branches = parseInt(cls.$.branch_rate_covered);
-    const branchesTotal = parseInt(cls.$.branch_rate);
-    const functions = parseInt(cls.$.function_rate_covered);
-    const functionsTotal = parseInt(cls.$.function_rate);
+    const lineRate = parseFloat(cls.$['line-rate']) || 0;
+    const branchRate = parseFloat(cls.$['branch-rate']) || 0;
+    
+    // Count lines and branches from the class's lines
+    let linesTotal = 0;
+    let linesCovered = 0;
+    let branchesTotal = 0;
+    let branchesCovered = 0;
+    
+    if (cls.lines?.line) {
+      const lines = Array.isArray(cls.lines.line) ? cls.lines.line : [cls.lines.line];
+      
+      lines.forEach((line: any) => {
+        // Count lines
+        linesTotal++;
+        const hits = parseInt(line.$.hits) || 0;
+        if (hits > 0) {
+          linesCovered++;
+        }
+        
+        // Count branches if present
+        if (line.$['condition-coverage']) {
+          // Parse condition coverage like "50% (1/2)"
+          const match = line.$['condition-coverage'].match(/\((\d+)\/(\d+)\)/);
+          if (match) {
+            const covered = parseInt(match[1]);
+            const total = parseInt(match[2]);
+            branchesCovered += covered;
+            branchesTotal += total;
+          }
+        }
+      });
+    }
+    
+    // If we couldn't count lines/branches from the detailed data, 
+    // calculate from the rates
+    if (linesTotal === 0 && cls.methods?.method) {
+      // Try to count from methods
+      const methods = Array.isArray(cls.methods.method) ? cls.methods.method : [cls.methods.method];
+      methods.forEach((method: any) => {
+        if (method.lines?.line) {
+          const methodLines = Array.isArray(method.lines.line) ? method.lines.line : [method.lines.line];
+          linesTotal += methodLines.length;
+          methodLines.forEach((line: any) => {
+            const hits = parseInt(line.$.hits) || 0;
+            if (hits > 0) linesCovered++;
+          });
+        }
+      });
+    }
+    
+    // Calculate percentages
+    const linePct = lineRate * 100;
+    const branchPct = branchRate * 100;
 
     report[filename] = {
       statements: {
-        total: statementsTotal,
-        covered: statements,
+        total: linesTotal,
+        covered: linesCovered,
         skipped: 0,
-        pct: statementsTotal > 0 ? (statements / statementsTotal) * 100 : 0
+        pct: linePct
       },
       branches: {
         total: branchesTotal,
-        covered: branches,
+        covered: branchesCovered,
         skipped: 0,
-        pct: branchesTotal > 0 ? (branches / branchesTotal) * 100 : 0
+        pct: branchPct
       },
       functions: {
-        total: functionsTotal,
-        covered: functions,
+        total: 0,
+        covered: 0,
         skipped: 0,
-        pct: functionsTotal > 0 ? (functions / functionsTotal) * 100 : 0
+        pct: 0
       },
       filename
     };
