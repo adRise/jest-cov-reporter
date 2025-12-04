@@ -17,8 +17,8 @@ export const STATUS_BY_COVERAGE_TYPE: Record<string, CoverageTypeConfig> = {
     summaryMetric: 'lines',
   },
   cobertura: {
-    statusHeaders: ['Stmts', 'Branch', 'Funcs'],
-    statusMetrics: ['statements', 'branches', 'functions'],
+    statusHeaders: ['Stmts', 'Branch', 'Funcs', 'Lines'],
+    statusMetrics: ['statements', 'branches', 'functions', 'lines'],
     summaryMetric: 'lines',
   },
 };

@@ -190,6 +190,12 @@ export class CoberturaParser implements CoverageReportParser {
         skipped: 0,
         pct: 0
       },
+      lines: {
+        total: linesTotal,
+        covered: linesCovered,
+        skipped: 0,
+        pct: linePct
+      },
       filename
     };
   }
