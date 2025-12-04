@@ -62,7 +62,8 @@ export class CoberturaParser implements CoverageReportParser {
     const branchPct = branchesTotal > 0 ? (branchesCovered / branchesTotal) * 100 : 0;
 
     // Add total summary
-    // Note: Cobertura doesn't track functions separately, so we use lines for both statements and lines
+    // Note: Cobertura tracks lines as primary metric. We include both 'statements' and 'lines'
+    // pointing to the same line coverage data for compatibility with summaryMetric: 'lines'
     report.total = {
       statements: {
         total: linesTotal,
@@ -81,6 +82,12 @@ export class CoberturaParser implements CoverageReportParser {
         covered: 0,
         skipped: 0,
         pct: 0
+      },
+      lines: {
+        total: linesTotal,
+        covered: linesCovered,
+        skipped: 0,
+        pct: linePct
       }
     };
 
