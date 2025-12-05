@@ -57,9 +57,9 @@ export class CoberturaParser implements CoverageReportParser {
       }
     }
 
-    // Calculate line and branch percentages
-    const linePct = linesTotal > 0 ? (linesCovered / linesTotal) * 100 : 0;
-    const branchPct = branchesTotal > 0 ? (branchesCovered / branchesTotal) * 100 : 0;
+    // Calculate line and branch percentages (rounded to 2 decimal places)
+    const linePct = linesTotal > 0 ? Math.round((linesCovered / linesTotal) * 10000) / 100 : 0;
+    const branchPct = branchesTotal > 0 ? Math.round((branchesCovered / branchesTotal) * 10000) / 100 : 0;
 
     // Add total summary
     // Note: Cobertura tracks lines as primary metric. We include both 'statements' and 'lines'
@@ -167,9 +167,9 @@ export class CoberturaParser implements CoverageReportParser {
       });
     }
     
-    // Calculate percentages
-    const linePct = lineRate * 100;
-    const branchPct = branchRate * 100;
+    // Calculate percentages (rounded to 2 decimal places)
+    const linePct = Math.round(lineRate * 10000) / 100;
+    const branchPct = Math.round(branchRate * 10000) / 100;
 
     report[filename] = {
       statements: {
