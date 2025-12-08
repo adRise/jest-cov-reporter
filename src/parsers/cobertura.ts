@@ -57,12 +57,13 @@ export class CoberturaParser implements CoverageReportParser {
       }
     }
 
-    // Calculate line and branch percentages
-    const linePct = linesTotal > 0 ? (linesCovered / linesTotal) * 100 : 0;
-    const branchPct = branchesTotal > 0 ? (branchesCovered / branchesTotal) * 100 : 0;
+    // Calculate line and branch percentages (rounded to 2 decimal places)
+    const linePct = linesTotal > 0 ? Math.round((linesCovered / linesTotal) * 10000) / 100 : 0;
+    const branchPct = branchesTotal > 0 ? Math.round((branchesCovered / branchesTotal) * 10000) / 100 : 0;
 
     // Add total summary
-    // Note: Cobertura doesn't track functions separately, so we use lines for both statements and lines
+    // Note: Cobertura tracks lines as primary metric. We include both 'statements' and 'lines'
+    // pointing to the same line coverage data for compatibility with summaryMetric: 'lines'
     report.total = {
       statements: {
         total: linesTotal,
@@ -81,6 +82,12 @@ export class CoberturaParser implements CoverageReportParser {
         covered: 0,
         skipped: 0,
         pct: 0
+      },
+      lines: {
+        total: linesTotal,
+        covered: linesCovered,
+        skipped: 0,
+        pct: linePct
       }
     };
 
@@ -160,9 +167,9 @@ export class CoberturaParser implements CoverageReportParser {
       });
     }
     
-    // Calculate percentages
-    const linePct = lineRate * 100;
-    const branchPct = branchRate * 100;
+    // Calculate percentages (rounded to 2 decimal places)
+    const linePct = Math.round(lineRate * 10000) / 100;
+    const branchPct = Math.round(branchRate * 10000) / 100;
 
     report[filename] = {
       statements: {
@@ -182,6 +189,12 @@ export class CoberturaParser implements CoverageReportParser {
         covered: 0,
         skipped: 0,
         pct: 0
+      },
+      lines: {
+        total: linesTotal,
+        covered: linesCovered,
+        skipped: 0,
+        pct: linePct
       },
       filename
     };

@@ -88,7 +88,8 @@ jest.mock('../parsers/cobertura', () => ({
         'total': {
           statements: { total: 10, covered: 8, skipped: 0, pct: 80 },
           branches: { total: 5, covered: 4, skipped: 0, pct: 80 },
-          functions: { total: 3, covered: 3, skipped: 0, pct: 100 }
+          functions: { total: 3, covered: 3, skipped: 0, pct: 100 },
+          lines: { total: 10, covered: 8, skipped: 0, pct: 80 }
         }
       };
     })
